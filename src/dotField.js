@@ -183,7 +183,7 @@ export class DotField {
   #breathStartMs = null;
 
   #gridEnabled = false;
-  #gridPull = 20;
+  #gridPull = 30;
   /** @type {number | null} */
   #gridTransitionUntilMs = null;
   #gridSoftCollisions = false;
