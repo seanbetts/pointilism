@@ -113,6 +113,25 @@ body {
   padding: 0.75rem clamp(1rem, 5vw, 3rem);
 }
 
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.controls-panel {
+  margin-top: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--shield);
+}
+
+[data-mode='light'] .controls-panel {
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
 .nav {
   display: flex;
   align-items: center;
@@ -124,6 +143,7 @@ body {
 .controls {
   display: flex;
   align-items: flex-start;
+  flex-wrap: wrap;
   gap: 0.9rem;
 }
 
