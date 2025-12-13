@@ -54,7 +54,7 @@ import { DotField } from './dotField.js';
 
   function getInitialDensity() {
     const stored = Number(localStorage.getItem('dotDensity'));
-    if (Number.isFinite(stored) && stored > 0) return stored;
+    if (Number.isFinite(stored) && stored > 0) return Math.max(0.2, Math.min(1, stored));
     return defaults.dotDensity;
   }
 
@@ -198,7 +198,8 @@ import { DotField } from './dotField.js';
   }
 
   function clampMinMaxSizes() {
-    dotMaxSize = Math.max(1, Math.round(dotMaxSize));
+    dotMinSize = Math.max(1, Math.min(10, dotMinSize));
+    dotMaxSize = Math.max(5, Math.min(100, Math.round(dotMaxSize)));
     if (dotMinSize > dotMaxSize) dotMaxSize = Math.ceil(dotMinSize);
     if (dotMaxSize < dotMinSize) dotMinSize = dotMaxSize;
   }
