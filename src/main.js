@@ -503,8 +503,8 @@ import { DotField } from './dotField.js';
     posterGrid: {
       dotMinSize: 3,
       dotMaxSize: 30,
-      dotDensity: 0.6,
-      dotSizeCount: 8,
+      dotDensity: 1.0,
+      dotSizeCount: 15,
       dotDistribution: 0, // Small (linear)
       speed: 0.0,
       breathingEnabled: false,
