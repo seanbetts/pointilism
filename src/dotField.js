@@ -184,6 +184,9 @@ export class DotField {
 
   #gridEnabled = false;
   #gridPull = 20;
+  /** @type {number | null} */
+  #gridTransitionUntilMs = null;
+  #gridSoftCollisions = false;
 
   #gravityEnabled = false;
   /** @type {number | null} */
@@ -328,12 +331,17 @@ export class DotField {
     if (next === this.#gridEnabled) return;
     this.#gridEnabled = next;
     if (!next) {
+      this.#gridTransitionUntilMs = null;
+      this.#gridSoftCollisions = false;
       for (const dot of this.#dots) {
         delete dot.ghx;
         delete dot.ghy;
       }
       return;
     }
+    // Allow dots to pass "through" each other briefly so they can reach their grid homes
+    // without getting stuck behind neighbors.
+    this.#gridTransitionUntilMs = nowMs() + 950;
     this.#assignGridHomes();
   }
 
@@ -502,21 +510,10 @@ export class DotField {
     const usableW = Math.max(1, this.#width - 2 * margin);
     const usableH = Math.max(1, this.#height - excludeTop - 2 * margin);
 
-    const minStep = Math.max(6, 2 * maxDotR + buffer);
-    const maxCols = Math.max(1, Math.floor(usableW / minStep) + 1);
-    const maxRows = Math.max(1, Math.floor(usableH / minStep) + 1);
-
     const count = this.#dots.length;
-    let cols = clampInt(Math.sqrt((count * usableW) / Math.max(1, usableH)), 1, maxCols);
-    let rows = Math.ceil(count / cols);
-    if (rows > maxRows) {
-      rows = maxRows;
-      cols = Math.min(maxCols, Math.ceil(count / rows));
-    }
-    if (cols * rows < count) {
-      cols = maxCols;
-      rows = maxRows;
-    }
+    let cols = Math.max(1, Math.ceil(Math.sqrt((count * usableW) / Math.max(1, usableH))));
+    let rows = Math.max(1, Math.ceil(count / cols));
+    if (cols * rows < count) rows = Math.ceil(count / cols);
 
     const stepX = cols <= 1 ? 0 : usableW / (cols - 1);
     const stepY = rows <= 1 ? 0 : usableH / (rows - 1);
@@ -524,6 +521,12 @@ export class DotField {
     const offsetY = excludeTop + margin;
 
     const totalCells = cols * rows;
+
+    const strictStep = 2 * maxDotR + buffer;
+    const actualStep = Math.min(stepX || Infinity, stepY || Infinity);
+    // If the grid is denser than a strict non-overlap layout, don't enforce collisions.
+    // (Otherwise some dots can never reach their homes and will vibrate forever.)
+    this.#gridSoftCollisions = actualStep < strictStep;
 
     const cellCenter = (cx, cy) => ({
       x: offsetX + cx * stepX,
@@ -1000,7 +1003,12 @@ export class DotField {
       this.#settleBoostUntilMs != null &&
       tNow >= this.#settleBoostStartMs &&
       tNow < this.#settleBoostUntilMs;
-    const overlapIterations = dropping ? 28 : settling ? 16 : this.#gridEnabled ? 10 : 2;
+    const gridTransition =
+      this.#gridEnabled && this.#gridTransitionUntilMs != null && tNow < this.#gridTransitionUntilMs;
+    if (this.#gridTransitionUntilMs != null && tNow >= this.#gridTransitionUntilMs) this.#gridTransitionUntilMs = null;
+
+    const overlapIterations =
+      dropping ? 28 : settling ? 16 : this.#gridEnabled ? (gridTransition || this.#gridSoftCollisions ? 0 : 10) : 2;
     const pushScale = dropping ? 1.95 : settling ? 1.65 : this.#gridEnabled ? 1.25 : 1;
     this.#resolveOverlaps(dt, overlapIterations, pushScale, breathEnabled ? exhaleForce : 0, breathThresholdR);
     this.#pushOutOfExclusions();
@@ -1029,6 +1037,8 @@ export class DotField {
     const allowCoupling = !breathing;
     const adhesionBand = physics ? 6 * this.#dpr : 0;
     const breathBand = breathExhale > 0 ? 18 * this.#dpr : 0;
+    const bufferPx = (gridSnap ? 0 : this.#bufferPx) * this.#dpr;
+    const minDistScale = gridSnap ? 0.9 : 1;
 
     for (let iter = 0; iter < iterations; iter++) {
       /** @type {Map<string, Dot[]>} */
@@ -1058,7 +1068,7 @@ export class DotField {
               const dx = other.x - dot.x;
               const dy = other.y - dot.y;
               const dist2 = dx * dx + dy * dy;
-              const minDist = dot.r + other.r + this.#bufferPx * this.#dpr;
+              const minDist = (dot.r + other.r + bufferPx) * minDistScale;
               const minDist2 = minDist * minDist;
               const stickRaw = physics ? (dot.stick + other.stick) * 0.5 : 0;
               const stick = breathing || gridSnap ? 0 : stickRaw;
