@@ -916,12 +916,14 @@ export class DotField {
       const bins = 80;
       /** @type {number[]} */
       const topYs = new Array(bins).fill(Number.POSITIVE_INFINITY);
-      const cutoffY = this.#height * 0.45;
 
       for (const dot of this.#dots) {
-        if (dot.y < cutoffY) continue;
-        const bin = clampInt(Math.floor((dot.x / this.#width) * bins), 0, bins - 1);
-        if (dot.y < topYs[bin]) topYs[bin] = dot.y;
+        const u = (dot.x / this.#width) * (bins - 1);
+        const b0 = clampInt(Math.floor(u), 0, bins - 1);
+        const b1 = clampInt(b0 + 1, 0, bins - 1);
+        const y = dot.y;
+        if (y < topYs[b0]) topYs[b0] = y;
+        if (y < topYs[b1]) topYs[b1] = y;
       }
 
       // Fill missing bins by carrying nearest values.
