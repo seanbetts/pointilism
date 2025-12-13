@@ -184,6 +184,8 @@ export class DotField {
   #gravityMaskStartMs = null;
   /** @type {number | null} */
   #gravityActiveUntilMs = null;
+  /** @type {number | null} */
+  #settleBoostUntilMs = null;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -306,6 +308,7 @@ export class DotField {
     if (!this.#gravityEnabled) {
       this.#gravityDropUntilMs = null;
       this.#gravityActiveUntilMs = null;
+      this.#settleBoostUntilMs = null;
     }
   }
 
@@ -319,11 +322,13 @@ export class DotField {
     const t0 = nowMs();
     const dropMs = clamp(options?.dropMs ?? 900, 100, 20_000);
     const activeMs = clamp(options?.activeMs ?? 1000, dropMs, 30_000);
+    const settleBoostMs = clamp(options?.settleBoostMs ?? 1400, 0, 10_000);
     const maskDelayMs = clamp(options?.maskDelayMs ?? 0, 0, 30_000);
     // If maskMs is 0, keep the mask visible until the next Drop / reset.
     const maskMs = clamp(options?.maskMs ?? 0, 0, 60_000);
     this.#gravityDropUntilMs = t0 + dropMs;
     this.#gravityActiveUntilMs = t0 + activeMs;
+    this.#settleBoostUntilMs = this.#gravityDropUntilMs + settleBoostMs;
     this.#gravityMaskStartMs = t0 + maskDelayMs;
     this.#gravityMaskUntilMs = maskMs <= 0 ? null : this.#gravityMaskStartMs + maskMs;
 
@@ -744,15 +749,19 @@ export class DotField {
       }
     }
 
-    this.#resolveOverlaps(dt, dropping ? 10 : 2);
+    const settling = this.#settleBoostUntilMs != null && tNow < this.#settleBoostUntilMs;
+    const overlapIterations = dropping ? 18 : settling ? 10 : 2;
+    const pushScale = dropping ? 1.6 : settling ? 1.35 : 1;
+    this.#resolveOverlaps(dt, overlapIterations, pushScale);
     this.#draw(false);
   }
 
   /**
    * @param {number} dt
    * @param {number} iterations
+   * @param {number} pushScale
    */
-  #resolveOverlaps(dt, iterations = 2) {
+  #resolveOverlaps(dt, iterations = 2, pushScale = 1) {
     if (this.#dots.length < 2) return;
 
     const maxR = this.#maxRadiusCssPx * this.#dpr * 1.06;
@@ -833,7 +842,7 @@ export class DotField {
               const overlap = minDist - dist;
               const nx = dx / dist;
               const ny = dy / dist;
-              const push = overlap * 0.5;
+              const push = overlap * 0.5 * clamp(pushScale, 0.5, 2);
 
               dot.x -= nx * push;
               dot.y -= ny * push;
