@@ -182,7 +182,6 @@ export class DotField {
   #gravityMaskUntilMs = null;
   /** @type {number | null} */
   #gravityMaskStartMs = null;
-  #gravityMaskSeed = 0;
   /** @type {number | null} */
   #gravityActiveUntilMs = null;
 
@@ -326,7 +325,6 @@ export class DotField {
     this.#gravityActiveUntilMs = t0 + activeMs;
     this.#gravityMaskStartMs = t0 + maskDelayMs;
     this.#gravityMaskUntilMs = this.#gravityMaskStartMs + maskMs;
-    this.#gravityMaskSeed = (Math.random() * 0x7fffffff) | 0;
 
     for (const dot of this.#dots) {
       dot.vy = Math.max(0, dot.vy);
@@ -900,7 +898,6 @@ export class DotField {
     const maskEnd = this.#gravityMaskUntilMs;
     const maskActive = maskStart != null && maskEnd != null && tNow >= maskStart && tNow < maskEnd;
     if (maskActive && maskStart != null && maskEnd != null) {
-      const barMaxH = Math.min(this.#height * 0.18, 270 * this.#dpr);
       const dur = Math.max(1, maskEnd - maskStart);
       const localT = clamp((tNow - maskStart) / dur, 0, 1);
 
@@ -908,11 +905,11 @@ export class DotField {
       const fadeFrac = 0.55;
       const holdFrac = Math.max(0, 1 - growFrac - fadeFrac);
 
-      let h = barMaxH;
+      let reveal = 1;
       let alpha = 1;
       if (localT < growFrac) {
         const p = smoothstep(clamp(localT / growFrac, 0, 1));
-        h = barMaxH * p;
+        reveal = p;
         alpha = p;
       } else if (localT > growFrac + holdFrac) {
         const p = smoothstep(clamp((localT - (growFrac + holdFrac)) / fadeFrac, 0, 1));
@@ -921,29 +918,48 @@ export class DotField {
 
       this.#ctx.fillStyle = this.#palette.dot;
       this.#ctx.globalAlpha = clamp(alpha, 0, 1);
-      const topBase = this.#height - h;
-      const amp = Math.min(h * 0.18, 36 * this.#dpr);
-      const seed = this.#gravityMaskSeed || 1;
-      const ph1 = ((seed >>> 0) % 360) * (Math.PI / 180);
-      const ph2 = (((seed >>> 8) % 360) * Math.PI) / 180;
-      const ph3 = (((seed >>> 16) % 360) * Math.PI) / 180;
-      const f1 = 1 + ((seed >>> 20) % 3);
-      const f2 = 2 + ((seed >>> 24) % 4);
-      const f3 = 3 + ((seed >>> 28) % 5);
 
-      const segments = 16;
+      const bins = clampInt(Math.floor(this.#width / (70 * this.#dpr)), 18, 48);
+      /** @type {number[]} */
+      const topYs = new Array(bins).fill(Number.POSITIVE_INFINITY);
+      const cutoffY = this.#height * 0.45;
+
+      for (const dot of this.#dots) {
+        if (dot.y < cutoffY) continue;
+        const bin = clampInt(Math.floor((dot.x / this.#width) * bins), 0, bins - 1);
+        if (dot.y < topYs[bin]) topYs[bin] = dot.y;
+      }
+
+      // Fill missing bins by carrying nearest values.
+      let last = Number.POSITIVE_INFINITY;
+      for (let i = 0; i < bins; i++) {
+        if (Number.isFinite(topYs[i])) last = topYs[i];
+        else if (Number.isFinite(last)) topYs[i] = last;
+      }
+      last = Number.POSITIVE_INFINITY;
+      for (let i = bins - 1; i >= 0; i--) {
+        if (Number.isFinite(topYs[i])) last = topYs[i];
+        else if (Number.isFinite(last)) topYs[i] = last;
+      }
+      for (let i = 0; i < bins; i++) {
+        if (!Number.isFinite(topYs[i])) topYs[i] = this.#height;
+      }
+
+      // Smooth the skyline a bit so it reads as a continuous surface.
+      for (let pass = 0; pass < 2; pass++) {
+        const copy = topYs.slice();
+        for (let i = 1; i < bins - 1; i++) {
+          topYs[i] = 0.25 * copy[i - 1] + 0.5 * copy[i] + 0.25 * copy[i + 1];
+        }
+      }
+
       this.#ctx.beginPath();
       this.#ctx.moveTo(0, this.#height);
-      for (let i = 0; i <= segments; i++) {
-        const x = (i / segments) * this.#width;
-        const u = i / segments;
-        const wave =
-          0.62 * Math.sin(2 * Math.PI * f1 * u + ph1) +
-          0.28 * Math.sin(2 * Math.PI * f2 * u + ph2) +
-          0.1 * Math.sin(2 * Math.PI * f3 * u + ph3);
-        const y = clamp(topBase + wave * amp, topBase - amp, this.#height - 1);
-        if (i === 0) this.#ctx.lineTo(0, y);
-        else this.#ctx.lineTo(x, y);
+      for (let i = 0; i < bins; i++) {
+        const x = (i / (bins - 1)) * this.#width;
+        const yTarget = clamp(topYs[i], 0, this.#height);
+        const y = lerp(this.#height, yTarget, reveal);
+        this.#ctx.lineTo(x, y);
       }
       this.#ctx.lineTo(this.#width, this.#height);
       this.#ctx.closePath();
