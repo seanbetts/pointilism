@@ -896,16 +896,30 @@ export class DotField {
     this.#ctx.fillRect(0, 0, this.#width, this.#height);
 
     const tNow = nowMs();
-    const maskActive =
-      this.#gravityMaskStartMs != null &&
-      this.#gravityMaskUntilMs != null &&
-      tNow >= this.#gravityMaskStartMs &&
-      tNow < this.#gravityMaskUntilMs;
-    if (maskActive) {
-      const barH = Math.min(this.#height * 0.12, 180 * this.#dpr);
+    const maskStart = this.#gravityMaskStartMs;
+    const maskEnd = this.#gravityMaskUntilMs;
+    const maskActive = maskStart != null && maskEnd != null && tNow >= maskStart && tNow < maskEnd;
+    if (maskActive && maskStart != null && maskEnd != null) {
+      const barMaxH = Math.min(this.#height * 0.12, 180 * this.#dpr);
+      const dur = Math.max(1, maskEnd - maskStart);
+      const localT = clamp((tNow - maskStart) / dur, 0, 1);
+
+      const growFrac = 0.22;
+      const shrinkFrac = 0.22;
+      const holdFrac = Math.max(0, 1 - growFrac - shrinkFrac);
+
+      let h = barMaxH;
+      if (localT < growFrac) {
+        const p = smoothstep(localT / growFrac);
+        h = barMaxH * p;
+      } else if (localT > growFrac + holdFrac) {
+        const p = smoothstep((localT - (growFrac + holdFrac)) / shrinkFrac);
+        h = barMaxH * (1 - p);
+      }
+
       this.#ctx.fillStyle = this.#palette.dot;
       this.#ctx.globalAlpha = 1;
-      this.#ctx.fillRect(0, this.#height - barH, this.#width, barH);
+      this.#ctx.fillRect(0, this.#height - h, this.#width, h);
     }
 
     this.#ctx.fillStyle = this.#palette.dot;
