@@ -273,6 +273,7 @@ import { DotField } from './dotField.js';
     dotMinSizeEl.value = String(dotMinSize);
     if (dotMinSizeValue instanceof HTMLOutputElement) dotMinSizeValue.value = dotMinSize.toFixed(1);
     dotMinSizeEl.addEventListener('input', () => {
+      if (activePresetId) clearActivePreset();
       const next = Number(dotMinSizeEl.value);
       if (!Number.isFinite(next)) return;
       dotMinSize = next;
@@ -290,6 +291,7 @@ import { DotField } from './dotField.js';
     dotMaxSizeEl.value = String(dotMaxSize);
     if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(0);
     dotMaxSizeEl.addEventListener('input', () => {
+      if (activePresetId) clearActivePreset();
       const next = Number(dotMaxSizeEl.value);
       if (!Number.isFinite(next)) return;
       dotMaxSize = Math.round(next);
@@ -307,6 +309,7 @@ import { DotField } from './dotField.js';
     dotDensityEl.value = String(dotDensity);
     if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(2);
     dotDensityEl.addEventListener('input', () => {
+      if (activePresetId) clearActivePreset();
       const next = Number(dotDensityEl.value);
       if (!Number.isFinite(next)) return;
       dotDensity = next;
@@ -320,6 +323,7 @@ import { DotField } from './dotField.js';
     dotSizeCountEl.value = String(dotSizeCount);
     if (dotSizeCountValue instanceof HTMLOutputElement) dotSizeCountValue.value = String(dotSizeCount);
     dotSizeCountEl.addEventListener('input', () => {
+      if (activePresetId) clearActivePreset();
       const next = Number(dotSizeCountEl.value);
       if (!Number.isFinite(next)) return;
       dotSizeCount = next;
@@ -356,6 +360,7 @@ import { DotField } from './dotField.js';
       dotDistributionValue.value = distributionLabel(dotDistribution);
     }
     dotDistributionEl.addEventListener('input', () => {
+      if (activePresetId) clearActivePreset();
       const next = Number(dotDistributionEl.value);
       if (!Number.isFinite(next)) return;
       dotDistribution = next;
@@ -371,6 +376,7 @@ import { DotField } from './dotField.js';
     speedEl.value = String(speed);
     if (speedValue instanceof HTMLOutputElement) speedValue.value = speed.toFixed(2);
     speedEl.addEventListener('input', () => {
+      if (activePresetId) clearActivePreset();
       if (paused) {
         paused = false;
         dotField.resume();
@@ -391,6 +397,7 @@ import { DotField } from './dotField.js';
       breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
     }
     breathingEnabledEl.addEventListener('change', () => {
+      if (activePresetId) clearActivePreset();
       breathingEnabled = breathingEnabledEl.checked;
       localStorage.setItem('breathingEnabled', String(breathingEnabled));
       if (breathingEnabledValue instanceof HTMLOutputElement) {
@@ -411,6 +418,7 @@ import { DotField } from './dotField.js';
     gridEnabledEl.checked = gridEnabled;
     if (gridEnabledValue instanceof HTMLOutputElement) gridEnabledValue.value = gridEnabled ? 'On' : 'Off';
     gridEnabledEl.addEventListener('change', () => {
+      if (activePresetId) clearActivePreset();
       gridEnabled = gridEnabledEl.checked;
       localStorage.setItem('gridEnabled', String(gridEnabled));
       if (gridEnabledValue instanceof HTMLOutputElement) gridEnabledValue.value = gridEnabled ? 'On' : 'Off';
@@ -512,6 +520,7 @@ import { DotField } from './dotField.js';
     },
   };
 
+  /** @param {string | null} presetId */
   function setActivePreset(presetId) {
     for (const button of presetButtons) {
       if (!(button instanceof HTMLButtonElement)) continue;
@@ -519,6 +528,13 @@ import { DotField } from './dotField.js';
       button.classList.toggle('is-active', active);
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
     }
+  }
+
+  /** @type {string | null} */
+  let activePresetId = 'default';
+  function clearActivePreset() {
+    activePresetId = null;
+    setActivePreset(null);
   }
 
   function applyPreset(presetId) {
@@ -531,6 +547,7 @@ import { DotField } from './dotField.js';
       syncPauseControls();
     }
 
+    activePresetId = presetId;
     setActivePreset(presetId);
 
     dotMinSize = preset.dotMinSize;
@@ -571,6 +588,7 @@ import { DotField } from './dotField.js';
   }
 
   // Default state corresponds to the Default preset.
+  activePresetId = 'default';
   setActivePreset('default');
 
   function syncControlValues() {
@@ -600,6 +618,7 @@ import { DotField } from './dotField.js';
       syncPauseControls();
     }
 
+    activePresetId = 'default';
     setActivePreset('default');
 
     dotMinSize = defaults.dotMinSize;
