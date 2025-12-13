@@ -305,8 +305,6 @@ export class DotField {
     this.#gravityEnabled = Boolean(enabled);
     if (!this.#gravityEnabled) {
       this.#gravityDropUntilMs = null;
-      this.#gravityVisualUntilMs = null;
-      this.#gravityVisualStartMs = null;
       this.#gravityActiveUntilMs = null;
     }
   }
@@ -903,7 +901,7 @@ export class DotField {
       const dur = Math.max(1, this.#gravityVisualUntilMs - start);
       const p = clamp((tNow - start) / dur, 0, 1);
 
-      const maxPool = Math.min(this.#height * 0.22, 260 * this.#dpr);
+      const maxPool = Math.min(this.#height * 0.36, 520 * this.#dpr);
       const poolH = maxPool * (1 - p * p * 0.92);
       if (poolH > 1) {
         const g = this.#ctx.createLinearGradient(0, this.#height - poolH, 0, this.#height);
@@ -911,14 +909,14 @@ export class DotField {
         g.addColorStop(0.25, this.#palette.dot);
         g.addColorStop(1, this.#palette.dot);
         this.#ctx.save();
-        this.#ctx.globalAlpha = 0.14;
+        this.#ctx.globalAlpha = 0.28;
         this.#ctx.fillStyle = g;
         this.#ctx.fillRect(0, this.#height - poolH, this.#width, poolH);
         this.#ctx.restore();
       }
 
       this.#ctx.shadowColor = this.#palette.dot;
-      this.#ctx.shadowBlur = lerp(34, 12, p) * this.#dpr;
+      this.#ctx.shadowBlur = lerp(42, 14, p) * this.#dpr;
     } else {
       this.#ctx.shadowBlur = 0;
     }
