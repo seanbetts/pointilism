@@ -1000,8 +1000,8 @@ export class DotField {
       this.#settleBoostUntilMs != null &&
       tNow >= this.#settleBoostStartMs &&
       tNow < this.#settleBoostUntilMs;
-    const overlapIterations = dropping ? 28 : settling ? 16 : 2;
-    const pushScale = dropping ? 1.95 : settling ? 1.65 : 1;
+    const overlapIterations = dropping ? 28 : settling ? 16 : this.#gridEnabled ? 10 : 2;
+    const pushScale = dropping ? 1.95 : settling ? 1.65 : this.#gridEnabled ? 1.25 : 1;
     this.#resolveOverlaps(dt, overlapIterations, pushScale, breathEnabled ? exhaleForce : 0, breathThresholdR);
     this.#pushOutOfExclusions();
     this.#draw(false);
@@ -1025,6 +1025,7 @@ export class DotField {
 
     const physics = this.#physicsEnabled && !this.#gravityEnabled;
     const breathing = this.#breathingEnabled;
+    const gridSnap = this.#gridEnabled;
     const allowCoupling = !breathing;
     const adhesionBand = physics ? 6 * this.#dpr : 0;
     const breathBand = breathExhale > 0 ? 18 * this.#dpr : 0;
@@ -1060,11 +1061,11 @@ export class DotField {
               const minDist = dot.r + other.r + this.#bufferPx * this.#dpr;
               const minDist2 = minDist * minDist;
               const stickRaw = physics ? (dot.stick + other.stick) * 0.5 : 0;
-              const stick = breathing ? 0 : stickRaw;
-              const restitution = physics ? lerp(1.25, 0.05, stick) : 0;
-              const friction = physics ? lerp(0.06, 0.7, stick) : 1;
-              const adhesionStrength = physics ? 0.05 * stick : 0;
-              const coupleStrength = physics && allowCoupling ? 0.9 * stick : 0;
+              const stick = breathing || gridSnap ? 0 : stickRaw;
+              const restitution = !physics || gridSnap ? 0 : lerp(1.25, 0.05, stick);
+              const friction = !physics || gridSnap ? 1 : lerp(0.06, 0.7, stick);
+              const adhesionStrength = !physics || gridSnap ? 0 : 0.05 * stick;
+              const coupleStrength = !physics || gridSnap || !allowCoupling ? 0 : 0.9 * stick;
               if (dist2 >= minDist2) {
                 if (breathBand > 0) {
                   const band2 = (minDist + breathBand) * (minDist + breathBand);
@@ -1147,6 +1148,14 @@ export class DotField {
               dot.vy *= damp;
               other.vx *= damp;
               other.vy *= damp;
+
+              if (gridSnap) {
+                const snapDamp = Math.pow(0.55, dt);
+                dot.vx *= snapDamp;
+                dot.vy *= snapDamp;
+                other.vx *= snapDamp;
+                other.vy *= snapDamp;
+              }
             }
           }
         }
