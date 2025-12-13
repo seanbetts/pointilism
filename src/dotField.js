@@ -320,11 +320,12 @@ export class DotField {
     const dropMs = clamp(options?.dropMs ?? 900, 100, 20_000);
     const activeMs = clamp(options?.activeMs ?? 1000, dropMs, 30_000);
     const maskDelayMs = clamp(options?.maskDelayMs ?? 0, 0, 30_000);
-    const maskMs = clamp(options?.maskMs ?? 5000, 0, 30_000);
+    // If maskMs is 0, keep the mask visible until the next Drop / reset.
+    const maskMs = clamp(options?.maskMs ?? 0, 0, 60_000);
     this.#gravityDropUntilMs = t0 + dropMs;
     this.#gravityActiveUntilMs = t0 + activeMs;
     this.#gravityMaskStartMs = t0 + maskDelayMs;
-    this.#gravityMaskUntilMs = this.#gravityMaskStartMs + maskMs;
+    this.#gravityMaskUntilMs = maskMs <= 0 ? null : this.#gravityMaskStartMs + maskMs;
 
     for (const dot of this.#dots) {
       dot.vy = Math.max(0, dot.vy);
@@ -896,10 +897,10 @@ export class DotField {
     const tNow = nowMs();
     const maskStart = this.#gravityMaskStartMs;
     const maskEnd = this.#gravityMaskUntilMs;
-    const maskActive = maskStart != null && maskEnd != null && tNow >= maskStart && tNow < maskEnd;
-    if (maskActive && maskStart != null && maskEnd != null) {
-      const dur = Math.max(1, maskEnd - maskStart);
-      const localT = clamp((tNow - maskStart) / dur, 0, 1);
+    const maskActive = maskStart != null && tNow >= maskStart && (maskEnd == null || tNow < maskEnd);
+    if (maskActive && maskStart != null) {
+      const growMs = 900;
+      const localT = clamp((tNow - maskStart) / growMs, 0, 1);
 
       const growFrac = 0.2;
 
@@ -912,7 +913,7 @@ export class DotField {
       this.#ctx.fillStyle = this.#palette.dot;
       this.#ctx.globalAlpha = 1;
 
-      const bins = 120;
+      const bins = 80;
       /** @type {number[]} */
       const topYs = new Array(bins).fill(Number.POSITIVE_INFINITY);
       const cutoffY = this.#height * 0.45;
