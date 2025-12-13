@@ -17,7 +17,7 @@ function nowMs() {
 }
 
 /**
- * @typedef {{ x: number; y: number; vx: number; vy: number; r: number }} Dot
+ * @typedef {{ x: number; y: number; vx: number; vy: number; r: number; hx: number; hy: number }} Dot
  */
 
 export class ContainedDotField {
@@ -52,6 +52,8 @@ export class ContainedDotField {
   #density = 1;
   #stability = 0.965;
   #maxV = 0.25;
+  #gridStrength = 0.018;
+  #gridJitter = 0.06;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -128,67 +130,54 @@ export class ContainedDotField {
     const area = rect.width * rect.height;
     const baseDots = area < 30_000 ? 90 : area < 70_000 ? 150 : area < 120_000 ? 220 : 300;
     const count = Math.floor(baseDots * this.#density);
-    this.#dots = this.#spawnDots(count);
+    this.#dots = this.#spawnDotsGrid(count);
     this.#draw();
   }
 
   /** @param {number} count */
-  #spawnDots(count) {
+  #spawnDotsGrid(count) {
     const minR = this.#minRadiusCssPx * this.#dpr;
     const maxR = this.#maxRadiusCssPx * this.#dpr;
     const edgePad = this.#edgePadCssPx * this.#dpr;
-    const cellSize = Math.max(6, 2 * maxR + (this.#bufferPx + this.#edgePadCssPx) * this.#dpr);
 
-    /** @type {Map<string, Dot[]>} */
-    const grid = new Map();
+    const usableW = Math.max(1, this.#width - 2 * edgePad);
+    const usableH = Math.max(1, this.#height - 2 * edgePad);
+    const spacing = Math.max(6, 2 * maxR + this.#bufferPx * this.#dpr);
+    const cols = Math.max(1, Math.floor(usableW / spacing));
+    const rows = Math.max(1, Math.floor(usableH / spacing));
+    const totalCells = cols * rows;
+
+    const target = Math.min(count, totalCells);
+    const indices = Array.from({ length: totalCells }, (_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+
+    const offsetX = edgePad + (usableW - (cols - 1) * spacing) * 0.5;
+    const offsetY = edgePad + (usableH - (rows - 1) * spacing) * 0.5;
+
     /** @type {Dot[]} */
     const dots = [];
-
-    const perDotAttempts = 140;
-    for (let i = 0; i < count; i++) {
+    for (let n = 0; n < target; n++) {
+      const idx = indices[n];
+      const cx = idx % cols;
+      const cy = Math.floor(idx / cols);
+      const hx = offsetX + cx * spacing;
+      const hy = offsetY + cy * spacing;
       const r = lerp(minR, maxR, Math.random());
-      let placed = false;
-      for (let tries = 0; tries < perDotAttempts; tries++) {
-        const x = lerp(r + edgePad, this.#width - r - edgePad, Math.random());
-        const y = lerp(r + edgePad, this.#height - r - edgePad, Math.random());
-        const cx = Math.floor(x / cellSize);
-        const cy = Math.floor(y / cellSize);
 
-        let ok = true;
-        for (let oy = -1; oy <= 1 && ok; oy++) {
-          for (let ox = -1; ox <= 1 && ok; ox++) {
-            const bucket = grid.get(`${cx + ox},${cy + oy}`);
-            if (!bucket) continue;
-            for (const other of bucket) {
-              const dx = x - other.x;
-              const dy = y - other.y;
-              const minDist = r + other.r + this.#bufferPx * this.#dpr;
-              if (dx * dx + dy * dy < minDist * minDist) {
-                ok = false;
-                break;
-              }
-            }
-          }
-        }
-        if (!ok) continue;
-
-        /** @type {Dot} */
-        const dot = {
-          x,
-          y,
-          vx: (Math.random() - 0.5) * 0.16,
-          vy: (Math.random() - 0.5) * 0.16,
-          r,
-        };
-        const key = `${cx},${cy}`;
-        const bucket = grid.get(key);
-        if (bucket) bucket.push(dot);
-        else grid.set(key, [dot]);
-        dots.push(dot);
-        placed = true;
-        break;
-      }
-      if (!placed && dots.length > 24) break;
+      /** @type {Dot} */
+      const dot = {
+        x: hx,
+        y: hy,
+        hx,
+        hy,
+        vx: (Math.random() - 0.5) * 0.08,
+        vy: (Math.random() - 0.5) * 0.08,
+        r,
+      };
+      dots.push(dot);
     }
 
     return dots;
@@ -203,6 +192,15 @@ export class ContainedDotField {
 
     if (!this.#paused) {
       for (const dot of this.#dots) {
+        const dx = dot.hx - dot.x;
+        const dy = dot.hy - dot.y;
+        dot.vx += dx * this.#gridStrength * dt;
+        dot.vy += dy * this.#gridStrength * dt;
+
+        const jitter = (Math.random() - 0.5) * this.#gridJitter;
+        dot.vx += jitter * 0.07 * dt;
+        dot.vy += jitter * 0.07 * dt;
+
         dot.vx *= this.#stability;
         dot.vy *= this.#stability;
         dot.vx = clamp(dot.vx, -this.#maxV, this.#maxV);
@@ -243,4 +241,3 @@ export class ContainedDotField {
     }
   }
 }
-
