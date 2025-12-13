@@ -942,13 +942,25 @@ export class DotField {
         dot.vy += pullY * cohesion * dt;
       }
 
-      if (this.#gridEnabled && dot.ghx != null && dot.ghy != null && !dropping && !gravityActive) {
+      if (this.#gridEnabled && dot.ghx != null && dot.ghy != null && !dropping && !gravityActive && !this.#paused) {
+        // Use a first-order "snap" (exponential decay) instead of a stiff spring.
+        // This avoids oscillation/vibration at high pull strengths.
         const dx = dot.ghx - dot.x;
         const dy = dot.ghy - dot.y;
-        const k = this.#gridPull;
-        const c = 2 * Math.sqrt(Math.max(0.001, k)) * 1.1;
-        dot.vx += (dx * k - dot.vx * c) * dtSec;
-        dot.vy += (dy * k - dot.vy * c) * dtSec;
+        const rate = Math.max(0.001, this.#gridPull);
+        const t = 1 - Math.exp(-rate * dtSec);
+        dot.x += dx * t;
+        dot.y += dy * t;
+        const damp = Math.pow(0.2, dt);
+        dot.vx *= damp;
+        dot.vy *= damp;
+
+        if (Math.abs(dx) < 0.25 * this.#dpr && Math.abs(dy) < 0.25 * this.#dpr) {
+          dot.x = dot.ghx;
+          dot.y = dot.ghy;
+          dot.vx = 0;
+          dot.vy = 0;
+        }
       }
 
       dot.vx *= stability;
