@@ -650,8 +650,8 @@ export class DotField {
     );
     const breathThresholdR = breathThresholdCss * this.#dpr;
     const breathT0 = this.#breathStartMs ?? tNow;
-    // Start at peak (expanded) then move into the downward curve (inward breath).
-    const phase = ((tNow - breathT0) / breathPeriodMs) * Math.PI * 2 + Math.PI / 2;
+    // Start at midpoint (current size) and move into the downward curve (inward breath).
+    const phase = ((tNow - breathT0) / breathPeriodMs) * Math.PI * 2 + Math.PI;
     const breath = Math.sin(phase);
     const exhale = Math.max(0, breath);
     let driftSeed0 = 0;
