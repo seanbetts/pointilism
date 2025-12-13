@@ -155,13 +155,13 @@ body {
 
 .shield {
   background: var(--shield);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 0.9rem;
   padding: 1.25rem 1.25rem;
 }
 
 [data-mode='light'] .shield {
-  border-color: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.18);
 }
 
 .eyebrow {
