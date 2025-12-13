@@ -9,9 +9,9 @@ This project explores how **state, intent, and transformation** can be communica
 ## What this is
 
 - A **single-page demo** built to test a visual system
-- One persistent dot field that reconfigures based on user intent
+- One persistent dot field under a readable, solid UI layer
 - A strict black/white palette with light and dark modes
-- Solid, readable typography layered over a dynamic system
+- Simple controls to explore density, sizing, motion, and “events” (drop/breathing)
 
 This is **not**:
 - A particle animation demo
@@ -62,22 +62,27 @@ This separation is intentional:
 ### 4. Motion communicates meaning
 Motion is functional, not expressive.
 
-- Sections stabilise as they become important
-- Navigation emerges only on intent
-- Proof reduces motion to signal trust
+- Drift should feel calm by default
+- “Events” (like a drop) should be brief and readable
 
 If motion draws attention to itself, it is too strong.
 
 ---
 
-## What the page demonstrates
+## Controls
 
-- Hero section where meaning resolves from a dispersed field
-- Intent-driven navigation (no persistent nav bar)
-- Content sections as local “density islands”
-- Proof section with noticeably dampened motion
-- Footer that dissolves rather than terminates
-- Dark/light mode switching via polarity inversion
+The header contains a small set of controls:
+
+- **Min size / Max size**: dot radius bounds (CSS pixels).
+- **Size count**: number of discrete sizes between min/max.
+- **Size distribution**: how sizes are allocated across those buckets (e.g. small-biased).
+- **Density**: how many dots are spawned.
+- **Speed**: how quickly drift settles (breathing is independent).
+- **Breathing**: larger dots oscillate at a fixed tempo; exhale nudges nearby dots.
+- **Drop**: applies a brief “gravity drop” to stack dots at the bottom.
+- **Reset**: resets sliders to defaults and respawns.
+- **Stop/Start**: pauses/resumes animation.
+- **Light/Dark**: polarity inversion (icon toggle).
 
 ---
 
@@ -104,11 +109,16 @@ Each dot tracks:
 Global parameters control:
 
 - Density
-- Cohesion (attraction to anchors)
 - Stability (damping)
-- Noise (micro-jitter)
+- Drift (a smooth noise field)
 
-Rather than full physics, the system uses **anchor-driven reconfiguration** to stay lightweight.
+The engine enforces strict layout constraints:
+
+- Dots are **strictly non-overlapping** with a buffer.
+- Dots avoid the header area (a top exclusion band).
+- Dots avoid the screen edges (edge padding).
+
+Collisions are resolved via a spatial hash + iterative separation, with a contact feel that mixes bounce/stick (and disables stickiness/coupling while breathing).
 
 ---
 
@@ -159,7 +169,6 @@ Then open `http://localhost:8000` and load `index.html`.
 - Black/white only
 - One dot field
 - No dot-based typography
-- No decorative motion
 - No UI chrome that breaks the illusion of a single system
 
 If something looks impressive but does not communicate state or intent, it does not belong.
