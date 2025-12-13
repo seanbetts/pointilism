@@ -159,8 +159,23 @@ body {
   cursor: pointer;
 }
 
+.reset-controls {
+  border: 1px solid var(--muted);
+  background: transparent;
+  color: var(--muted);
+  padding: 0.45rem 0.6rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
 .mode-toggle:hover,
 .mode-toggle:focus-visible {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.reset-controls:hover,
+.reset-controls:focus-visible {
   border-color: var(--fg);
   color: var(--fg);
 }

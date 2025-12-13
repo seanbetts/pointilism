@@ -16,30 +16,37 @@ import { DotField } from './dotField.js';
   let mode = getInitialMode();
   root.dataset.mode = mode;
 
+  const defaults = {
+    dotScale: 1,
+    dotDensity: 1,
+    dotVariance: 1,
+    dotSizeSteps: 0,
+  };
+
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
   function getInitialDotScale() {
     const stored = Number(localStorage.getItem('dotScale'));
     if (Number.isFinite(stored) && stored > 0) return stored;
-    return 1;
+    return defaults.dotScale;
   }
 
   function getInitialDensity() {
     const stored = Number(localStorage.getItem('dotDensity'));
     if (Number.isFinite(stored) && stored > 0) return stored;
-    return 1;
+    return defaults.dotDensity;
   }
 
   function getInitialVariance() {
     const stored = Number(localStorage.getItem('dotVariance'));
     if (Number.isFinite(stored) && stored >= 0) return stored;
-    return 1;
+    return defaults.dotVariance;
   }
 
   function getInitialSizeSteps() {
     const stored = Number(localStorage.getItem('dotSizeSteps'));
     if (Number.isFinite(stored) && stored >= 0) return stored;
-    return 0;
+    return defaults.dotSizeSteps;
   }
 
   let dotScale = getInitialDotScale();
@@ -84,6 +91,7 @@ import { DotField } from './dotField.js';
   const dotVarianceValue = document.querySelector('#dotVarianceValue');
   const dotSizeStepsEl = document.querySelector('#dotSizeSteps');
   const dotSizeStepsValue = document.querySelector('#dotSizeStepsValue');
+  const resetControls = document.querySelector('#resetControls');
 
   let dotUpdateScheduled = false;
   function scheduleDotUpdate() {
@@ -158,6 +166,32 @@ import { DotField } from './dotField.js';
       scheduleDotUpdate();
     });
   }
+
+  function syncControlValues() {
+    if (dotSize instanceof HTMLInputElement) dotSize.value = String(dotScale);
+    if (dotSizeValue instanceof HTMLOutputElement) dotSizeValue.value = dotScale.toFixed(1);
+    if (dotDensityEl instanceof HTMLInputElement) dotDensityEl.value = String(dotDensity);
+    if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(1);
+    if (dotVarianceEl instanceof HTMLInputElement) dotVarianceEl.value = String(dotVariance);
+    if (dotVarianceValue instanceof HTMLOutputElement) dotVarianceValue.value = dotVariance.toFixed(1);
+    if (dotSizeStepsEl instanceof HTMLInputElement) dotSizeStepsEl.value = String(dotSizeSteps);
+    if (dotSizeStepsValue instanceof HTMLOutputElement) dotSizeStepsValue.value = formatSizeSteps(dotSizeSteps);
+  }
+
+  resetControls?.addEventListener('click', () => {
+    dotScale = defaults.dotScale;
+    dotDensity = defaults.dotDensity;
+    dotVariance = defaults.dotVariance;
+    dotSizeSteps = defaults.dotSizeSteps;
+
+    localStorage.removeItem('dotScale');
+    localStorage.removeItem('dotDensity');
+    localStorage.removeItem('dotVariance');
+    localStorage.removeItem('dotSizeSteps');
+
+    syncControlValues();
+    scheduleDotUpdate();
+  });
 
   const modeToggle = document.querySelector('#modeToggle');
   function syncModeToggle() {
