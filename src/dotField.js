@@ -655,7 +655,7 @@ export class DotField {
         const fx = (vx / len) * driftForce * speed;
         const fy = (vy / len) * driftForce * speed;
         if (this.#physicsEnabled) {
-          const mass = Math.max(1, dot.r0 * dot.r0);
+          const mass = 1 + dot.r0 * dot.r0 * 0.05;
           dot.vx += (fx / mass) * dt;
           dot.vy += (fy / mass) * dt;
         } else {
@@ -682,7 +682,7 @@ export class DotField {
 
       if (this.#motionEnabled && this.#physicsEnabled && this.#gravityEnabled && speed > 0) {
         const gravityForce = 1.2 * this.#dpr * speed;
-        const mass = Math.max(1, dot.r0 * dot.r0);
+        const mass = 1 + dot.r0 * dot.r0 * 0.05;
         dot.vy += (gravityForce / mass) * dt;
       }
 
