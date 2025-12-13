@@ -29,6 +29,26 @@ body {
     'Segoe UI', sans-serif;
   line-height: 1.45;
   letter-spacing: 0.01em;
+  transition: background-color 320ms ease, color 320ms ease;
+}
+
+.header,
+.noscript,
+.mode-toggle,
+.restart-controls,
+.pause-controls,
+.gravity-drop,
+.shield {
+  transition: background-color 320ms ease, color 320ms ease, border-color 320ms ease, filter 320ms ease;
+}
+
+.toggle-switch,
+.help {
+  transition: border-color 320ms ease, color 320ms ease, background-color 320ms ease;
+}
+
+.toggle-switch::after {
+  transition: transform 140ms linear, background-color 320ms ease;
 }
 
 :focus-visible {
