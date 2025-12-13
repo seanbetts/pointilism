@@ -119,6 +119,31 @@ body {
 
 .control-label {
   line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.help {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--muted);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0;
+  cursor: help;
+}
+
+.help:hover,
+.help:focus-visible {
+  border-color: var(--fg);
+  color: var(--fg);
 }
 
 .control-input {
