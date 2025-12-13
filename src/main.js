@@ -50,26 +50,7 @@ import { DotField } from './dotField.js';
     dotField.setReducedMotion(event.matches);
   });
 
-  const header = document.querySelector('.header');
-  const navIntent = document.querySelector('.nav-intent');
-  const nav = document.querySelector('.nav');
-
-  function openNav(open) {
-    if (!header) return;
-    header.dataset.nav = open ? 'open' : 'closed';
-    dotField.setNavActive(open);
-  }
-
-  openNav(false);
-
-  navIntent?.addEventListener('pointerenter', () => openNav(true));
-  header?.addEventListener('pointerleave', () => openNav(false));
-  nav?.addEventListener('focusin', () => openNav(true));
-  nav?.addEventListener('focusout', (event) => {
-    const related = event.relatedTarget;
-    if (related instanceof Node && nav.contains(related)) return;
-    openNav(false);
-  });
+  dotField.setNavActive(true);
 
   const anchorElements = Array.from(document.querySelectorAll('[data-section], a, button'));
 

@@ -205,7 +205,7 @@ export class DotField {
         vx: (Math.random() - 0.5) * 0.3,
         vy: (Math.random() - 0.5) * 0.3,
         r: lerp(0.8, 1.8, Math.random()) * this.#dpr,
-        a: lerp(0.12, 0.5, Math.random()),
+        a: 1,
       });
     }
     return dots;
@@ -363,12 +363,11 @@ export class DotField {
     this.#ctx.fillRect(0, 0, this.#width, this.#height);
 
     this.#ctx.fillStyle = this.#palette.dot;
+    this.#ctx.globalAlpha = 1;
     for (const dot of this.#dots) {
-      this.#ctx.globalAlpha = dot.a;
       this.#ctx.beginPath();
       this.#ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2);
       this.#ctx.fill();
     }
-    this.#ctx.globalAlpha = 1;
   }
 }

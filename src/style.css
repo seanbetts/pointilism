@@ -90,29 +90,15 @@ body {
   position: sticky;
   top: 0;
   z-index: 5;
-}
-
-.nav-intent {
-  height: 64px;
+  padding: 0.75rem clamp(1rem, 5vw, 3rem);
 }
 
 .nav {
-  pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem clamp(1rem, 5vw, 3rem);
-  opacity: 0;
-  transform: translateY(-8px);
-  transition: opacity 160ms linear, transform 160ms linear;
-}
-
-.header[data-nav='open'] .nav,
-.nav:focus-within {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+  min-height: 44px;
 }
 
 .brand {
@@ -120,11 +106,6 @@ body {
   text-decoration: none;
   font-weight: 550;
   letter-spacing: 0.02em;
-}
-
-.nav-links {
-  display: flex;
-  gap: 1rem;
 }
 
 .nav a {
@@ -251,23 +232,7 @@ p {
   color: var(--focus);
 }
 
-.secondary,
-.text-link {
-  color: var(--muted);
-}
-
-.proof-list {
-  margin: 0.75rem 0 0;
-  padding-left: 1.1rem;
-  color: var(--muted);
-}
-
-.footer {
-  padding: 3rem clamp(1rem, 5vw, 3rem);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .nav,
   .skip-link {
     transition: none;
   }
