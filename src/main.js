@@ -113,6 +113,7 @@ import { DotField } from './dotField.js';
   const dotDistributionEl = document.querySelector('#dotDistribution');
   const dotDistributionValue = document.querySelector('#dotDistributionValue');
   const autoFitEl = document.querySelector('#autoFit');
+  const autoFitValue = document.querySelector('#autoFitValue');
   const resetControls = document.querySelector('#resetControls');
 
   let dotUpdateScheduled = false;
@@ -235,9 +236,11 @@ import { DotField } from './dotField.js';
 
   if (autoFitEl instanceof HTMLInputElement) {
     autoFitEl.checked = autoFit;
+    if (autoFitValue instanceof HTMLOutputElement) autoFitValue.value = autoFit ? 'On' : 'Off';
     autoFitEl.addEventListener('change', () => {
       autoFit = autoFitEl.checked;
       localStorage.setItem('autoFit', String(autoFit));
+      if (autoFitValue instanceof HTMLOutputElement) autoFitValue.value = autoFit ? 'On' : 'Off';
       scheduleDotUpdate();
     });
   }
@@ -255,6 +258,7 @@ import { DotField } from './dotField.js';
     if (dotDistributionEl instanceof HTMLInputElement) dotDistributionEl.value = String(dotDistribution);
     if (dotDistributionValue instanceof HTMLOutputElement) dotDistributionValue.value = distributionLabel(dotDistribution);
     if (autoFitEl instanceof HTMLInputElement) autoFitEl.checked = autoFit;
+    if (autoFitValue instanceof HTMLOutputElement) autoFitValue.value = autoFit ? 'On' : 'Off';
   }
 
   resetControls?.addEventListener('click', () => {
