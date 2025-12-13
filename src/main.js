@@ -126,6 +126,8 @@ import { ContainedDotField } from './containedDotField.js';
   let miniField = null;
   /** @type {HTMLElement | null} */
   let miniPanel = null;
+  /** @type {HTMLElement | null} */
+  let controlsPanel = null;
   try {
     dotField = new DotField(canvas, {
       mode,
@@ -156,6 +158,9 @@ import { ContainedDotField } from './containedDotField.js';
     }
   }
 
+  const controlsPanelEl = document.querySelector('.hero .controls-panel');
+  if (controlsPanelEl instanceof HTMLElement) controlsPanel = controlsPanelEl;
+
   dotField.setDensityScalar(dotDensity);
   dotField.setMinRadius(dotMinSize);
   dotField.setMaxRadius(dotMaxSize);
@@ -179,38 +184,35 @@ import { ContainedDotField } from './containedDotField.js';
   }
 
   function updateExclusionRects() {
-    if (!(miniPanel instanceof HTMLElement)) {
-      dotField.setExclusionRects([]);
-      return;
-    }
-    const rect = miniPanel.getBoundingClientRect();
-    const visible =
-      rect.width > 1 &&
-      rect.height > 1 &&
-      rect.bottom > 0 &&
-      rect.right > 0 &&
-      rect.top < window.innerHeight &&
-      rect.left < window.innerWidth;
-    if (!visible) {
-      dotField.setExclusionRects([]);
-      return;
-    }
+    const rects = [];
     const pad = 8;
-    dotField.setExclusionRects([
-      {
+
+    for (const el of [miniPanel, controlsPanel]) {
+      if (!(el instanceof HTMLElement)) continue;
+      const rect = el.getBoundingClientRect();
+      const visible =
+        rect.width > 1 &&
+        rect.height > 1 &&
+        rect.bottom > 0 &&
+        rect.right > 0 &&
+        rect.top < window.innerHeight &&
+        rect.left < window.innerWidth;
+      if (!visible) continue;
+      rects.push({
         left: rect.left - pad,
         top: rect.top - pad,
         right: rect.right + pad,
         bottom: rect.bottom + pad,
-      },
-    ]);
+      });
+    }
+
+    dotField.setExclusionRects(rects);
   }
 
   updateExclusionRects();
-  if (miniPanel instanceof HTMLElement) {
-    const panelObserver = new ResizeObserver(() => updateExclusionRects());
-    panelObserver.observe(miniPanel);
-  }
+  const panelObserver = new ResizeObserver(() => updateExclusionRects());
+  if (miniPanel instanceof HTMLElement) panelObserver.observe(miniPanel);
+  if (controlsPanel instanceof HTMLElement) panelObserver.observe(controlsPanel);
   window.addEventListener('scroll', () => updateExclusionRects(), { passive: true });
   window.addEventListener('resize', () => updateExclusionRects(), { passive: true });
 
