@@ -175,6 +175,11 @@ export class DotField {
   #reactToUi = true;
   #speed = 0.35;
   #physicsEnabled = true;
+
+  #breathingEnabled = false;
+  /** @type {number | null} */
+  #breathStartMs = null;
+
   #gravityEnabled = false;
   /** @type {number | null} */
   #gravityDropUntilMs = null;
@@ -302,6 +307,14 @@ export class DotField {
   /** @param {number} speed */
   setSpeed(speed) {
     this.#speed = clamp(speed, 0, 1);
+  }
+
+  /** @param {boolean} enabled */
+  setBreathingEnabled(enabled) {
+    const next = Boolean(enabled);
+    if (next === this.#breathingEnabled) return;
+    this.#breathingEnabled = next;
+    this.#breathStartMs = next ? nowMs() : null;
   }
 
   /** @param {boolean} enabled */
@@ -627,6 +640,19 @@ export class DotField {
     const minR = this.#minRadiusCssPx * this.#dpr;
     const maxR = this.#maxRadiusCssPx * this.#dpr * 1.06;
     const edgePad = this.#edgePaddingCssPx * this.#dpr;
+
+    const breathEnabled = this.#breathingEnabled && !this.#reducedMotion && !gravityActive;
+    const breathPeriodMs = 6500;
+    const breathAmp = 0.18;
+    const breathThresholdCss = Math.min(
+      this.#maxRadiusCssPx,
+      Math.max(this.#minRadiusCssPx + 2, this.#maxRadiusCssPx * 0.25)
+    );
+    const breathThresholdR = breathThresholdCss * this.#dpr;
+    const breathT0 = this.#breathStartMs ?? tNow;
+    const phase = ((tNow - breathT0) / breathPeriodMs) * Math.PI * 2 - Math.PI / 2;
+    const breath = Math.sin(phase);
+    const exhale = Math.max(0, breath);
     let driftSeed0 = 0;
     let driftSeed1 = 0;
     let driftT = 0;
@@ -648,6 +674,9 @@ export class DotField {
 
     for (const dot of this.#dots) {
       dot.r = dot.r0;
+      if (breathEnabled && dot.r0 >= breathThresholdR) {
+        dot.r = Math.max(0.5 * this.#dpr, dot.r0 * (1 + breathAmp * breath));
+      }
 
       const jitter = (Math.random() - 0.5) * noise;
       dot.vx += jitter * 0.22 * dt;
@@ -761,7 +790,7 @@ export class DotField {
       tNow < this.#settleBoostUntilMs;
     const overlapIterations = dropping ? 28 : settling ? 16 : 2;
     const pushScale = dropping ? 1.95 : settling ? 1.65 : 1;
-    this.#resolveOverlaps(dt, overlapIterations, pushScale);
+    this.#resolveOverlaps(dt, overlapIterations, pushScale, breathEnabled ? exhale : 0, breathThresholdR);
     this.#draw(false);
   }
 
@@ -769,8 +798,10 @@ export class DotField {
    * @param {number} dt
    * @param {number} iterations
    * @param {number} pushScale
+   * @param {number} breathExhale
+   * @param {number} breathThresholdR
    */
-  #resolveOverlaps(dt, iterations = 2, pushScale = 1) {
+  #resolveOverlaps(dt, iterations = 2, pushScale = 1, breathExhale = 0, breathThresholdR = Infinity) {
     if (this.#dots.length < 2) return;
 
     const maxR = this.#maxRadiusCssPx * this.#dpr * 1.06;
@@ -781,6 +812,7 @@ export class DotField {
 
     const physics = this.#physicsEnabled && !this.#gravityEnabled;
     const adhesionBand = physics ? 6 * this.#dpr : 0;
+    const breathBand = breathExhale > 0 ? 16 * this.#dpr : 0;
 
     for (let iter = 0; iter < iterations; iter++) {
       /** @type {Map<string, Dot[]>} */
@@ -818,6 +850,21 @@ export class DotField {
               const adhesionStrength = physics ? 0.05 * stick : 0;
               const coupleStrength = physics ? 0.9 * stick : 0;
               if (dist2 >= minDist2) {
+                if (breathBand > 0) {
+                  const band2 = (minDist + breathBand) * (minDist + breathBand);
+                  if (dist2 < band2 && (dot.r0 >= breathThresholdR || other.r0 >= breathThresholdR)) {
+                    const dist = Math.sqrt(Math.max(1e-6, dist2));
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    const gap = dist - minDist;
+                    const t = clamp(1 - gap / breathBand, 0, 1);
+                    const push = breathExhale * t * 0.55 * this.#dpr;
+                    dot.vx -= nx * push * dt;
+                    dot.vy -= ny * push * dt;
+                    other.vx += nx * push * dt;
+                    other.vy += ny * push * dt;
+                  }
+                }
                 const band2 = (minDist + adhesionBand) * (minDist + adhesionBand);
                 if (dist2 < band2) {
                   const dist = Math.sqrt(Math.max(1e-6, dist2));

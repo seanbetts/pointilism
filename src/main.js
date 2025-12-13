@@ -35,6 +35,7 @@ import { DotField } from './dotField.js';
     dotSizeCount: 10,
     dotDistribution: 1,
     speed: 1,
+    breathingEnabled: false,
   };
 
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -98,12 +99,20 @@ import { DotField } from './dotField.js';
     return defaults.speed;
   }
 
+  function getInitialBreathingEnabled() {
+    const stored = localStorage.getItem('breathingEnabled');
+    if (stored === 'true') return true;
+    if (stored === 'false') return false;
+    return defaults.breathingEnabled;
+  }
+
   let dotMinSize = getInitialMinSize();
   let dotMaxSize = Math.round(getInitialMaxSize());
   let dotDensity = getInitialDensity();
   let dotSizeCount = getInitialSizeCount();
   let dotDistribution = getInitialDistribution();
   let speed = getInitialSpeed();
+  let breathingEnabled = getInitialBreathingEnabled();
   const autoFit = true;
   const reactToUi = false;
 
@@ -131,6 +140,7 @@ import { DotField } from './dotField.js';
   dotField.setAutoFitDensity(autoFit);
   dotField.setReactToUi(reactToUi);
   dotField.setSpeed(speedInternal());
+  dotField.setBreathingEnabled(breathingEnabled);
 
   const headerEl = document.querySelector('.header');
   function updateTopExclusion() {
@@ -156,6 +166,8 @@ import { DotField } from './dotField.js';
   const dotDistributionValue = document.querySelector('#dotDistributionValue');
   const speedEl = document.querySelector('#speed');
   const speedValue = document.querySelector('#speedValue');
+  const breathingEnabledEl = document.querySelector('#breathingEnabled');
+  const breathingEnabledValue = document.querySelector('#breathingEnabledValue');
   const gravityDrop = document.querySelector('#gravityDrop');
   const restartControls = document.querySelector('#restartControls');
   const pauseControls = document.querySelector('#pauseControls');
@@ -181,6 +193,7 @@ import { DotField } from './dotField.js';
       dotField.setAutoFitDensity(autoFit);
       dotField.setReactToUi(reactToUi);
       dotField.setSpeed(speedInternal());
+      dotField.setBreathingEnabled(breathingEnabled);
     });
   }
 
@@ -301,6 +314,21 @@ import { DotField } from './dotField.js';
     });
   }
 
+  if (breathingEnabledEl instanceof HTMLInputElement) {
+    breathingEnabledEl.checked = breathingEnabled;
+    if (breathingEnabledValue instanceof HTMLOutputElement) {
+      breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
+    }
+    breathingEnabledEl.addEventListener('change', () => {
+      breathingEnabled = breathingEnabledEl.checked;
+      localStorage.setItem('breathingEnabled', String(breathingEnabled));
+      if (breathingEnabledValue instanceof HTMLOutputElement) {
+        breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
+      }
+      dotField.setBreathingEnabled(breathingEnabled);
+    });
+  }
+
   gravityDrop?.addEventListener('click', () => dotField.dropToBottom());
 
   function syncControlValues() {
@@ -317,6 +345,8 @@ import { DotField } from './dotField.js';
     if (dotDistributionValue instanceof HTMLOutputElement) dotDistributionValue.value = distributionLabel(dotDistribution);
     if (speedEl instanceof HTMLInputElement) speedEl.value = String(speed);
     if (speedValue instanceof HTMLOutputElement) speedValue.value = speed.toFixed(2);
+    if (breathingEnabledEl instanceof HTMLInputElement) breathingEnabledEl.checked = breathingEnabled;
+    if (breathingEnabledValue instanceof HTMLOutputElement) breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
   }
 
   restartControls?.addEventListener('click', () => {
@@ -326,6 +356,7 @@ import { DotField } from './dotField.js';
     dotSizeCount = defaults.dotSizeCount;
     dotDistribution = defaults.dotDistribution;
     speed = defaults.speed;
+    breathingEnabled = defaults.breathingEnabled;
 
     localStorage.removeItem('dotMinSize');
     localStorage.removeItem('dotMaxSize');
@@ -333,6 +364,7 @@ import { DotField } from './dotField.js';
     localStorage.removeItem('dotSizeCount');
     localStorage.removeItem('dotDistribution');
     localStorage.removeItem('speed');
+    localStorage.removeItem('breathingEnabled');
 
     syncControlValues();
     scheduleDotUpdate();
@@ -361,7 +393,6 @@ import { DotField } from './dotField.js';
   localStorage.removeItem('physicsEnabled');
   localStorage.removeItem('contactMode');
   localStorage.removeItem('gravityEnabled');
-  localStorage.removeItem('breathingEnabled');
   localStorage.removeItem('autoFit');
   localStorage.removeItem('reactToUi');
 
