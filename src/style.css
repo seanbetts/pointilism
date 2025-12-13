@@ -404,6 +404,7 @@ body {
   min-height: clamp(520px, 92vh, 860px);
   align-content: center;
   gap: 1.4rem;
+  position: relative;
 }
 
 .copy {
@@ -411,13 +412,15 @@ body {
 }
 
 .mini-panel {
-  width: min(520px, 92vw);
-  height: clamp(140px, 18vh, 220px);
+  position: absolute;
+  top: clamp(1rem, 3vh, 2rem);
+  left: clamp(1rem, 5vw, 3rem);
+  width: min(420px, 60vw);
+  height: clamp(120px, 16vh, 190px);
   border-radius: 0;
   border-bottom-right-radius: 2.4rem;
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: transparent;
-  position: relative;
   overflow: hidden;
   pointer-events: none;
 }
