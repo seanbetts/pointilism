@@ -6,6 +6,8 @@
   --focus: rgba(255, 255, 255, 0.9);
   --container-border: rgba(255, 255, 255, 0.85);
   --container-border-width: 1px;
+  --topbar-h: clamp(84px, 9vh, 110px);
+  --topbar-w: min(90ch, calc(100vw - 2rem));
   color-scheme: dark;
 }
 
@@ -462,55 +464,16 @@ body {
 .mini-panel {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100vw;
-  height: clamp(80px, 10.7vh, 127px);
+  left: 50%;
+  width: var(--topbar-w);
+  height: var(--topbar-h);
+  transform: translateX(-50%);
   z-index: 3;
   border-radius: 0;
   border: 0;
-  background: transparent;
+  background: var(--bg);
   overflow: hidden;
   pointer-events: none;
-}
-
-.mini-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--bg);
-  z-index: 0;
-}
-
-.topbar-fade {
-  position: fixed;
-  left: 0;
-  top: clamp(80px, 10.7vh, 127px);
-  width: 100vw;
-  height: 56px;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(to bottom, var(--bg), transparent);
-  filter: blur(10px);
-  transform: translateY(-10px);
-}
-
-@supports (background: color-mix(in srgb, #000 50%, transparent)) {
-  .mini-panel::before {
-    background: linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--bg) 96%, transparent) 0%,
-      color-mix(in srgb, var(--bg) 96%, transparent) 70%,
-      transparent 100%
-    );
-  }
-
-  .topbar-fade {
-    background: linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--bg) 70%, transparent) 0%,
-      transparent 100%
-    );
-  }
 }
 
 .mini-panel canvas {
@@ -519,7 +482,6 @@ body {
   width: 100%;
   height: 100%;
   display: block;
-  z-index: 1;
 }
 
 .shield {

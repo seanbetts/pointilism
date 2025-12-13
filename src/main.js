@@ -166,9 +166,41 @@ import { ContainedDotField } from './containedDotField.js';
   dotField.setSpeed(speedInternal());
   dotField.setBreathingEnabled(breathingEnabled);
 
-  // Allow main dots to move behind the top grid bar (it has an opaque background),
-  // so we don't exclude it from spawning.
-  dotField.setExclusionRects([]);
+  function updateExclusionRects() {
+    if (!(miniPanel instanceof HTMLElement)) {
+      dotField.setExclusionRects([]);
+      return;
+    }
+
+    const rect = miniPanel.getBoundingClientRect();
+    const visible =
+      rect.width > 1 &&
+      rect.height > 1 &&
+      rect.bottom > 0 &&
+      rect.right > 0 &&
+      rect.top < window.innerHeight &&
+      rect.left < window.innerWidth;
+    if (!visible) {
+      dotField.setExclusionRects([]);
+      return;
+    }
+
+    const pad = 2;
+    dotField.setExclusionRects([
+      {
+        left: rect.left - pad,
+        top: rect.top - pad,
+        right: rect.right + pad,
+        bottom: rect.bottom + pad,
+      },
+    ]);
+  }
+
+  updateExclusionRects();
+  const panelObserver = new ResizeObserver(() => updateExclusionRects());
+  if (miniPanel instanceof HTMLElement) panelObserver.observe(miniPanel);
+  window.addEventListener('scroll', () => updateExclusionRects(), { passive: true });
+  window.addEventListener('resize', () => updateExclusionRects(), { passive: true });
 
   const dotMinSizeEl = document.querySelector('#dotMinSize');
   const dotMinSizeValue = document.querySelector('#dotMinSizeValue');
