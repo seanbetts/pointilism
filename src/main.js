@@ -23,10 +23,13 @@ import { DotField } from './dotField.js';
     dotSizeCount: 5,
     dotDistribution: 3,
     autoFit: true,
-    motionStyle: 1,
-    motionAmount: 0.35,
     reactToUi: true,
-    contactFeel: 0.25,
+    motionEnabled: true,
+    physicsEnabled: true,
+    contactMode: 'bounce',
+    gravityEnabled: false,
+    breathingEnabled: false,
+    speed: 0.35,
   };
 
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -68,18 +71,6 @@ import { DotField } from './dotField.js';
     return defaults.autoFit;
   }
 
-  function getInitialMotionStyle() {
-    const stored = Number(localStorage.getItem('motionStyle'));
-    if (Number.isFinite(stored)) return stored;
-    return defaults.motionStyle;
-  }
-
-  function getInitialMotionAmount() {
-    const stored = Number(localStorage.getItem('motionAmount'));
-    if (Number.isFinite(stored)) return stored;
-    return defaults.motionAmount;
-  }
-
   function getInitialReactToUi() {
     const stored = localStorage.getItem('reactToUi');
     if (stored === 'true') return true;
@@ -87,10 +78,44 @@ import { DotField } from './dotField.js';
     return defaults.reactToUi;
   }
 
-  function getInitialContactFeel() {
-    const stored = Number(localStorage.getItem('contactFeel'));
+  function getInitialMotionEnabled() {
+    const stored = localStorage.getItem('motionEnabled');
+    if (stored === 'true') return true;
+    if (stored === 'false') return false;
+    return defaults.motionEnabled;
+  }
+
+  function getInitialPhysicsEnabled() {
+    const stored = localStorage.getItem('physicsEnabled');
+    if (stored === 'true') return true;
+    if (stored === 'false') return false;
+    return defaults.physicsEnabled;
+  }
+
+  function getInitialContactMode() {
+    const stored = localStorage.getItem('contactMode');
+    if (stored === 'bounce' || stored === 'stick' || stored === 'both') return stored;
+    return defaults.contactMode;
+  }
+
+  function getInitialGravityEnabled() {
+    const stored = localStorage.getItem('gravityEnabled');
+    if (stored === 'true') return true;
+    if (stored === 'false') return false;
+    return defaults.gravityEnabled;
+  }
+
+  function getInitialBreathingEnabled() {
+    const stored = localStorage.getItem('breathingEnabled');
+    if (stored === 'true') return true;
+    if (stored === 'false') return false;
+    return defaults.breathingEnabled;
+  }
+
+  function getInitialSpeed() {
+    const stored = Number(localStorage.getItem('speed'));
     if (Number.isFinite(stored)) return stored;
-    return defaults.contactFeel;
+    return defaults.speed;
   }
 
   let dotMinSize = getInitialMinSize();
@@ -99,10 +124,13 @@ import { DotField } from './dotField.js';
   let dotSizeCount = getInitialSizeCount();
   let dotDistribution = getInitialDistribution();
   let autoFit = getInitialAutoFit();
-  let motionStyle = getInitialMotionStyle();
-  let motionAmount = getInitialMotionAmount();
   let reactToUi = getInitialReactToUi();
-  let contactFeel = getInitialContactFeel();
+  let motionEnabled = getInitialMotionEnabled();
+  let physicsEnabled = getInitialPhysicsEnabled();
+  let contactMode = getInitialContactMode();
+  let gravityEnabled = getInitialGravityEnabled();
+  let breathingEnabled = getInitialBreathingEnabled();
+  let speed = getInitialSpeed();
 
   let dotField;
   try {
@@ -122,10 +150,13 @@ import { DotField } from './dotField.js';
   dotField.setSizeCount(dotSizeCount);
   dotField.setDistribution(dotDistribution);
   dotField.setAutoFitDensity(autoFit);
-  dotField.setMotionStyle(motionStyle);
-  dotField.setMotionAmount(motionAmount);
   dotField.setReactToUi(reactToUi);
-  dotField.setContactFeel(contactFeel);
+  dotField.setMotionEnabled(motionEnabled);
+  dotField.setPhysicsEnabled(physicsEnabled);
+  dotField.setContactMode(contactMode);
+  dotField.setGravityEnabled(gravityEnabled);
+  dotField.setBreathingEnabled(breathingEnabled);
+  dotField.setSpeed(speed);
 
   const headerEl = document.querySelector('.header');
   function updateTopExclusion() {
@@ -149,19 +180,25 @@ import { DotField } from './dotField.js';
   const dotSizeCountValue = document.querySelector('#dotSizeCountValue');
   const dotDistributionEl = document.querySelector('#dotDistribution');
   const dotDistributionValue = document.querySelector('#dotDistributionValue');
-  const motionStyleEl = document.querySelector('#motionStyle');
-  const motionStyleValue = document.querySelector('#motionStyleValue');
-  const motionAmountEl = document.querySelector('#motionAmount');
-  const motionAmountValue = document.querySelector('#motionAmountValue');
+  const motionEnabledEl = document.querySelector('#motionEnabled');
+  const motionEnabledValue = document.querySelector('#motionEnabledValue');
+  const physicsEnabledEl = document.querySelector('#physicsEnabled');
+  const physicsEnabledValue = document.querySelector('#physicsEnabledValue');
+  const contactModeGroup = document.querySelector('#contactModeGroup');
+  const contactModeEls = Array.from(document.querySelectorAll('input[name="contactMode"]'));
+  const gravityGroup = document.querySelector('#gravityGroup');
+  const gravityEnabledEl = document.querySelector('#gravityEnabled');
+  const gravityEnabledValue = document.querySelector('#gravityEnabledValue');
+  const breathingEnabledEl = document.querySelector('#breathingEnabled');
+  const breathingEnabledValue = document.querySelector('#breathingEnabledValue');
+  const speedEl = document.querySelector('#speed');
+  const speedValue = document.querySelector('#speedValue');
   const reactToUiEl = document.querySelector('#reactToUi');
   const reactToUiValue = document.querySelector('#reactToUiValue');
-  const contactFeelEl = document.querySelector('#contactFeel');
-  const contactFeelValue = document.querySelector('#contactFeelValue');
   const autoFitEl = document.querySelector('#autoFit');
   const autoFitValue = document.querySelector('#autoFitValue');
   const resetControls = document.querySelector('#resetControls');
   const restartControls = document.querySelector('#restartControls');
-  const pauseControls = document.querySelector('#pauseControls');
 
   let dotUpdateScheduled = false;
   function scheduleDotUpdate() {
@@ -175,9 +212,13 @@ import { DotField } from './dotField.js';
       dotField.setSizeCount(dotSizeCount);
       dotField.setDistribution(dotDistribution);
       dotField.setAutoFitDensity(autoFit);
-      dotField.setMotionAmount(motionAmount);
       dotField.setReactToUi(reactToUi);
-      dotField.setContactFeel(contactFeel);
+      dotField.setMotionEnabled(motionEnabled);
+      dotField.setPhysicsEnabled(physicsEnabled);
+      dotField.setContactMode(contactMode);
+      dotField.setGravityEnabled(gravityEnabled);
+      dotField.setBreathingEnabled(breathingEnabled);
+      dotField.setSpeed(speed);
     });
   }
 
@@ -285,46 +326,90 @@ import { DotField } from './dotField.js';
     });
   }
 
-  function motionStyleLabel(v) {
-    switch (v) {
-      case 0:
-        return 'Still';
-      case 1:
-        return 'Calm drift';
-      case 2:
-        return 'Settle';
-      case 3:
-        return 'Reactive';
-      case 4:
-        return 'Alive';
-      default:
-        return 'Calm drift';
+  function syncPhysicsGating() {
+    const disabled = !physicsEnabled;
+    if (contactModeGroup instanceof HTMLElement) contactModeGroup.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    for (const el of contactModeEls) {
+      if (el instanceof HTMLInputElement) el.disabled = disabled;
     }
+    if (gravityGroup instanceof HTMLElement) gravityGroup.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    if (gravityEnabledEl instanceof HTMLInputElement) gravityEnabledEl.disabled = disabled;
   }
 
-  if (motionStyleEl instanceof HTMLInputElement) {
-    motionStyleEl.value = String(motionStyle);
-    if (motionStyleValue instanceof HTMLOutputElement) motionStyleValue.value = motionStyleLabel(motionStyle);
-    motionStyleEl.addEventListener('input', () => {
-      const next = Number(motionStyleEl.value);
-      if (!Number.isFinite(next)) return;
-      motionStyle = next;
-      localStorage.setItem('motionStyle', String(motionStyle));
-      if (motionStyleValue instanceof HTMLOutputElement) motionStyleValue.value = motionStyleLabel(motionStyle);
-      dotField.setMotionStyle(motionStyle);
+  if (motionEnabledEl instanceof HTMLInputElement) {
+    motionEnabledEl.checked = motionEnabled;
+    if (motionEnabledValue instanceof HTMLOutputElement) motionEnabledValue.value = motionEnabled ? 'On' : 'Off';
+    motionEnabledEl.addEventListener('change', () => {
+      motionEnabled = motionEnabledEl.checked;
+      localStorage.setItem('motionEnabled', String(motionEnabled));
+      if (motionEnabledValue instanceof HTMLOutputElement) motionEnabledValue.value = motionEnabled ? 'On' : 'Off';
       scheduleDotUpdate();
     });
   }
 
-  if (motionAmountEl instanceof HTMLInputElement) {
-    motionAmountEl.value = String(motionAmount);
-    if (motionAmountValue instanceof HTMLOutputElement) motionAmountValue.value = motionAmount.toFixed(2);
-    motionAmountEl.addEventListener('input', () => {
-      const next = Number(motionAmountEl.value);
+  if (physicsEnabledEl instanceof HTMLInputElement) {
+    physicsEnabledEl.checked = physicsEnabled;
+    if (physicsEnabledValue instanceof HTMLOutputElement) physicsEnabledValue.value = physicsEnabled ? 'On' : 'Off';
+    physicsEnabledEl.addEventListener('change', () => {
+      physicsEnabled = physicsEnabledEl.checked;
+      if (!physicsEnabled) {
+        gravityEnabled = false;
+        contactMode = 'bounce';
+      }
+      localStorage.setItem('physicsEnabled', String(physicsEnabled));
+      localStorage.setItem('gravityEnabled', String(gravityEnabled));
+      localStorage.setItem('contactMode', contactMode);
+      if (physicsEnabledValue instanceof HTMLOutputElement) physicsEnabledValue.value = physicsEnabled ? 'On' : 'Off';
+      syncControlValues();
+      scheduleDotUpdate();
+    });
+  }
+
+  for (const el of contactModeEls) {
+    if (!(el instanceof HTMLInputElement)) continue;
+    el.checked = el.value === contactMode;
+    el.addEventListener('change', () => {
+      if (!physicsEnabled) return;
+      const next = el.value;
+      if (next !== 'bounce' && next !== 'stick' && next !== 'both') return;
+      contactMode = next;
+      localStorage.setItem('contactMode', contactMode);
+      scheduleDotUpdate();
+    });
+  }
+
+  if (gravityEnabledEl instanceof HTMLInputElement) {
+    gravityEnabledEl.checked = gravityEnabled;
+    if (gravityEnabledValue instanceof HTMLOutputElement) gravityEnabledValue.value = gravityEnabled ? 'On' : 'Off';
+    gravityEnabledEl.addEventListener('change', () => {
+      if (!physicsEnabled) return;
+      gravityEnabled = gravityEnabledEl.checked;
+      localStorage.setItem('gravityEnabled', String(gravityEnabled));
+      if (gravityEnabledValue instanceof HTMLOutputElement) gravityEnabledValue.value = gravityEnabled ? 'On' : 'Off';
+      scheduleDotUpdate();
+    });
+  }
+
+  if (breathingEnabledEl instanceof HTMLInputElement) {
+    breathingEnabledEl.checked = breathingEnabled;
+    if (breathingEnabledValue instanceof HTMLOutputElement) breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
+    breathingEnabledEl.addEventListener('change', () => {
+      breathingEnabled = breathingEnabledEl.checked;
+      localStorage.setItem('breathingEnabled', String(breathingEnabled));
+      if (breathingEnabledValue instanceof HTMLOutputElement) breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
+      scheduleDotUpdate();
+    });
+  }
+
+  if (speedEl instanceof HTMLInputElement) {
+    speedEl.value = String(speed);
+    if (speedValue instanceof HTMLOutputElement) speedValue.value = speed.toFixed(2);
+    speedEl.addEventListener('input', () => {
+      const next = Number(speedEl.value);
       if (!Number.isFinite(next)) return;
-      motionAmount = next;
-      localStorage.setItem('motionAmount', String(motionAmount));
-      if (motionAmountValue instanceof HTMLOutputElement) motionAmountValue.value = motionAmount.toFixed(2);
+      speed = next;
+      localStorage.setItem('speed', String(speed));
+      if (speedValue instanceof HTMLOutputElement) speedValue.value = speed.toFixed(2);
       scheduleDotUpdate();
     });
   }
@@ -336,19 +421,6 @@ import { DotField } from './dotField.js';
       reactToUi = reactToUiEl.checked;
       localStorage.setItem('reactToUi', String(reactToUi));
       if (reactToUiValue instanceof HTMLOutputElement) reactToUiValue.value = reactToUi ? 'On' : 'Off';
-      scheduleDotUpdate();
-    });
-  }
-
-  if (contactFeelEl instanceof HTMLInputElement) {
-    contactFeelEl.value = String(contactFeel);
-    if (contactFeelValue instanceof HTMLOutputElement) contactFeelValue.value = contactFeel.toFixed(2);
-    contactFeelEl.addEventListener('input', () => {
-      const next = Number(contactFeelEl.value);
-      if (!Number.isFinite(next)) return;
-      contactFeel = next;
-      localStorage.setItem('contactFeel', String(contactFeel));
-      if (contactFeelValue instanceof HTMLOutputElement) contactFeelValue.value = contactFeel.toFixed(2);
       scheduleDotUpdate();
     });
   }
@@ -376,16 +448,24 @@ import { DotField } from './dotField.js';
     if (dotSizeCountValue instanceof HTMLOutputElement) dotSizeCountValue.value = String(dotSizeCount);
     if (dotDistributionEl instanceof HTMLInputElement) dotDistributionEl.value = String(dotDistribution);
     if (dotDistributionValue instanceof HTMLOutputElement) dotDistributionValue.value = distributionLabel(dotDistribution);
-    if (motionStyleEl instanceof HTMLInputElement) motionStyleEl.value = String(motionStyle);
-    if (motionStyleValue instanceof HTMLOutputElement) motionStyleValue.value = motionStyleLabel(motionStyle);
-    if (motionAmountEl instanceof HTMLInputElement) motionAmountEl.value = String(motionAmount);
-    if (motionAmountValue instanceof HTMLOutputElement) motionAmountValue.value = motionAmount.toFixed(2);
+    if (motionEnabledEl instanceof HTMLInputElement) motionEnabledEl.checked = motionEnabled;
+    if (motionEnabledValue instanceof HTMLOutputElement) motionEnabledValue.value = motionEnabled ? 'On' : 'Off';
+    if (physicsEnabledEl instanceof HTMLInputElement) physicsEnabledEl.checked = physicsEnabled;
+    if (physicsEnabledValue instanceof HTMLOutputElement) physicsEnabledValue.value = physicsEnabled ? 'On' : 'Off';
+    for (const el of contactModeEls) {
+      if (el instanceof HTMLInputElement) el.checked = el.value === contactMode;
+    }
+    if (gravityEnabledEl instanceof HTMLInputElement) gravityEnabledEl.checked = gravityEnabled;
+    if (gravityEnabledValue instanceof HTMLOutputElement) gravityEnabledValue.value = gravityEnabled ? 'On' : 'Off';
+    if (breathingEnabledEl instanceof HTMLInputElement) breathingEnabledEl.checked = breathingEnabled;
+    if (breathingEnabledValue instanceof HTMLOutputElement) breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
+    if (speedEl instanceof HTMLInputElement) speedEl.value = String(speed);
+    if (speedValue instanceof HTMLOutputElement) speedValue.value = speed.toFixed(2);
     if (reactToUiEl instanceof HTMLInputElement) reactToUiEl.checked = reactToUi;
     if (reactToUiValue instanceof HTMLOutputElement) reactToUiValue.value = reactToUi ? 'On' : 'Off';
-    if (contactFeelEl instanceof HTMLInputElement) contactFeelEl.value = String(contactFeel);
-    if (contactFeelValue instanceof HTMLOutputElement) contactFeelValue.value = contactFeel.toFixed(2);
     if (autoFitEl instanceof HTMLInputElement) autoFitEl.checked = autoFit;
     if (autoFitValue instanceof HTMLOutputElement) autoFitValue.value = autoFit ? 'On' : 'Off';
+    syncPhysicsGating();
   }
 
   resetControls?.addEventListener('click', () => {
@@ -395,10 +475,13 @@ import { DotField } from './dotField.js';
     dotSizeCount = defaults.dotSizeCount;
     dotDistribution = defaults.dotDistribution;
     autoFit = defaults.autoFit;
-    motionStyle = defaults.motionStyle;
-    motionAmount = defaults.motionAmount;
     reactToUi = defaults.reactToUi;
-    contactFeel = defaults.contactFeel;
+    motionEnabled = defaults.motionEnabled;
+    physicsEnabled = defaults.physicsEnabled;
+    contactMode = defaults.contactMode;
+    gravityEnabled = defaults.gravityEnabled;
+    breathingEnabled = defaults.breathingEnabled;
+    speed = defaults.speed;
 
     localStorage.removeItem('dotMinSize');
     localStorage.removeItem('dotMaxSize');
@@ -406,41 +489,31 @@ import { DotField } from './dotField.js';
     localStorage.removeItem('dotSizeCount');
     localStorage.removeItem('dotDistribution');
     localStorage.removeItem('autoFit');
-    localStorage.removeItem('motionStyle');
-    localStorage.removeItem('motionAmount');
     localStorage.removeItem('reactToUi');
-    localStorage.removeItem('contactFeel');
+    localStorage.removeItem('motionEnabled');
+    localStorage.removeItem('physicsEnabled');
+    localStorage.removeItem('contactMode');
+    localStorage.removeItem('gravityEnabled');
+    localStorage.removeItem('breathingEnabled');
+    localStorage.removeItem('speed');
 
     syncControlValues();
-    dotField.setMotionStyle(motionStyle);
     scheduleDotUpdate();
   });
 
-  let paused = false;
-  function syncPauseButton() {
-    if (!(pauseControls instanceof HTMLButtonElement)) return;
-    pauseControls.textContent = paused ? 'Start' : 'Stop';
-  }
-  syncPauseButton();
-
   restartControls?.addEventListener('click', () => {
-    paused = false;
-    syncPauseButton();
     dotField.restart();
     dotField.heroIntro();
   });
-
-  pauseControls?.addEventListener('click', () => {
-    paused = !paused;
-    syncPauseButton();
-    if (paused) dotField.pause();
-    else dotField.resume();
-  });
+  syncControlValues();
 
   // Clean up legacy storage keys from earlier slider iterations.
   localStorage.removeItem('dotScale');
   localStorage.removeItem('dotVariance');
   localStorage.removeItem('dotSizeSteps');
+  localStorage.removeItem('motionStyle');
+  localStorage.removeItem('motionAmount');
+  localStorage.removeItem('contactFeel');
 
   const modeToggle = document.querySelector('#modeToggle');
   function syncModeToggle() {

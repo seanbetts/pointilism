@@ -58,67 +58,114 @@
 	              <input id="dotDistribution" class="control-input" type="range" min="0" max="6" step="1" value="2" />
 	              <output id="dotDistributionValue" class="control-value" for="dotDistribution"></output>
 	            </label>
-	            <label class="control">
-	              <span class="control-label">
-	                Density
-	                <button class="help" type="button" aria-label="Density help" title="Controls how many dots are on screen.">?</button>
-	              </span>
-	              <input id="dotDensity" class="control-input" type="range" min="0.2" max="2.5" step="0.05" value="1" />
-	              <output id="dotDensityValue" class="control-value" for="dotDensity"></output>
-	            </label>
-	            <label class="control">
-	              <span class="control-label">
-	                Motion style
-	                <button class="help" type="button" aria-label="Motion style help" title="Overall motion character (preset).">?</button>
-	              </span>
-	              <input id="motionStyle" class="control-input" type="range" min="0" max="4" step="1" value="1" />
-	              <output id="motionStyleValue" class="control-value" for="motionStyle"></output>
-	            </label>
-	            <label class="control">
-	              <span class="control-label">
-	                Motion amount
-	                <button class="help" type="button" aria-label="Motion amount help" title="Scales the intensity of the current motion style.">?</button>
-	              </span>
-	              <input id="motionAmount" class="control-input" type="range" min="0" max="1" step="0.05" value="0.35" />
-	              <output id="motionAmountValue" class="control-value" for="motionAmount"></output>
-	            </label>
-	            <label class="control">
-	              <span class="control-label">
-	                Contact feel
-	                <button class="help" type="button" aria-label="Contact feel help" title="Sticky dots settle into packed arrangements; bouncy dots rebound more.">?</button>
-	              </span>
-	              <input id="contactFeel" class="control-input" type="range" min="0" max="1" step="0.05" value="0.25" />
-	              <output id="contactFeelValue" class="control-value" for="contactFeel"></output>
-	            </label>
-	            <label class="control toggle">
-	              <span class="control-label">
-	                React to UI
-	                <button class="help" type="button" aria-label="React to UI help" title="Enables anchor-driven reactions to UI elements.">?</button>
-	              </span>
-	              <span class="toggle-row">
-	                <input id="reactToUi" type="checkbox" checked />
-	                <span class="toggle-switch" aria-hidden="true"></span>
-	              </span>
-	              <output id="reactToUiValue" class="control-value" for="reactToUi"></output>
-	            </label>
-	            <label class="control toggle">
-	              <span class="control-label">
-	                Auto-fit
-	                <button class="help" type="button" aria-label="Auto-fit help" title="If the requested settings can't pack without overlaps, reduces dot count until it fits.">?</button>
-	              </span>
-	              <span class="toggle-row">
-	                <input id="autoFit" type="checkbox" checked />
-	                <span class="toggle-switch" aria-hidden="true"></span>
-	              </span>
-	              <output id="autoFitValue" class="control-value" for="autoFit"></output>
-	            </label>
-	            <button id="pauseControls" class="pause-controls" type="button">Stop</button>
-	            <button id="restartControls" class="restart-controls" type="button">Reset</button>
-	            <button id="resetControls" class="reset-controls" type="button">Defaults</button>
-	            <button id="modeToggle" class="mode-toggle" type="button" aria-label="Toggle light or dark mode"></button>
-	          </div>
-	        </nav>
-	      </header>
+		            <label class="control">
+		              <span class="control-label">
+		                Density
+		                <button class="help" type="button" aria-label="Density help" title="Controls how many dots are on screen.">?</button>
+		              </span>
+		              <input id="dotDensity" class="control-input" type="range" min="0.2" max="2.5" step="0.05" value="1" />
+		              <output id="dotDensityValue" class="control-value" for="dotDensity"></output>
+		            </label>
+		            <label class="control toggle">
+		              <span class="control-label">
+		                Motion
+		                <button class="help" type="button" aria-label="Motion help" title="Master animation toggle.">?</button>
+		              </span>
+		              <span class="toggle-row">
+		                <input id="motionEnabled" type="checkbox" checked />
+		                <span class="toggle-switch" aria-hidden="true"></span>
+		              </span>
+		              <output id="motionEnabledValue" class="control-value" for="motionEnabled"></output>
+		            </label>
+		            <label class="control toggle">
+		              <span class="control-label">
+		                Physics
+		                <button class="help" type="button" aria-label="Physics help" title="Enables mass-based motion and contact physics.">?</button>
+		              </span>
+		              <span class="toggle-row">
+		                <input id="physicsEnabled" type="checkbox" checked />
+		                <span class="toggle-switch" aria-hidden="true"></span>
+		              </span>
+		              <output id="physicsEnabledValue" class="control-value" for="physicsEnabled"></output>
+		            </label>
+		            <label class="control grouped" id="contactModeGroup">
+		              <span class="control-label">
+		                Contact
+		                <button class="help" type="button" aria-label="Contact mode help" title="Only available when Physics is on.">?</button>
+		              </span>
+		              <div class="segmented" role="radiogroup" aria-label="Contact mode">
+		                <label class="segmented-option">
+		                  <input type="radio" name="contactMode" value="bounce" checked />
+		                  <span>Bounce</span>
+		                </label>
+		                <label class="segmented-option">
+		                  <input type="radio" name="contactMode" value="stick" />
+		                  <span>Stick</span>
+		                </label>
+		                <label class="segmented-option">
+		                  <input type="radio" name="contactMode" value="both" />
+		                  <span>Both</span>
+		                </label>
+		              </div>
+		            </label>
+		            <label class="control toggle" id="gravityGroup">
+		              <span class="control-label">
+		                Gravity
+		                <button class="help" type="button" aria-label="Gravity help" title="Only available when Physics is on. Applies a downward pull.">?</button>
+		              </span>
+		              <span class="toggle-row">
+		                <input id="gravityEnabled" type="checkbox" />
+		                <span class="toggle-switch" aria-hidden="true"></span>
+		              </span>
+		              <output id="gravityEnabledValue" class="control-value" for="gravityEnabled"></output>
+		            </label>
+		            <label class="control toggle">
+		              <span class="control-label">
+		                Breathing
+		                <button class="help" type="button" aria-label="Breathing help" title="Pulses dot size gently at a fixed rhythm.">?</button>
+		              </span>
+		              <span class="toggle-row">
+		                <input id="breathingEnabled" type="checkbox" />
+		                <span class="toggle-switch" aria-hidden="true"></span>
+		              </span>
+		              <output id="breathingEnabledValue" class="control-value" for="breathingEnabled"></output>
+		            </label>
+		            <label class="control">
+		              <span class="control-label">
+		                Speed
+		                <button class="help" type="button" aria-label="Speed help" title="Controls how quickly motion/physics/gravity evolves.">?</button>
+		              </span>
+		              <input id="speed" class="control-input" type="range" min="0" max="1" step="0.05" value="0.35" />
+		              <output id="speedValue" class="control-value" for="speed"></output>
+		            </label>
+		            <label class="control toggle">
+		              <span class="control-label">
+		                React to UI
+		                <button class="help" type="button" aria-label="React to UI help" title="Enables anchor-driven reactions to UI elements.">?</button>
+		              </span>
+		              <span class="toggle-row">
+		                <input id="reactToUi" type="checkbox" checked />
+		                <span class="toggle-switch" aria-hidden="true"></span>
+		              </span>
+		              <output id="reactToUiValue" class="control-value" for="reactToUi"></output>
+		            </label>
+		            <label class="control toggle">
+		              <span class="control-label">
+		                Auto-fit
+		                <button class="help" type="button" aria-label="Auto-fit help" title="If the requested settings can't pack without overlaps, reduces dot count until it fits.">?</button>
+		              </span>
+		              <span class="toggle-row">
+		                <input id="autoFit" type="checkbox" checked />
+		                <span class="toggle-switch" aria-hidden="true"></span>
+		              </span>
+		              <output id="autoFitValue" class="control-value" for="autoFit"></output>
+		            </label>
+		            <button id="restartControls" class="restart-controls" type="button">Reset</button>
+		            <button id="resetControls" class="reset-controls" type="button">Defaults</button>
+		            <button id="modeToggle" class="mode-toggle" type="button" aria-label="Toggle light or dark mode"></button>
+		          </div>
+		        </nav>
+		      </header>
 
       <main id="content" class="content" tabindex="-1">
         <section id="top" class="section hero" data-section="hero">

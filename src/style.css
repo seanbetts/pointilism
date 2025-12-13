@@ -183,6 +183,53 @@ body {
   align-items: center;
 }
 
+.control.grouped {
+  gap: 0.5rem;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--muted);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.segmented-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+  color: var(--muted);
+  user-select: none;
+}
+
+.segmented-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented-option span {
+  font-size: 0.85rem;
+}
+
+.segmented-option:has(input:checked) {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.segmented:has(.segmented-option input:focus-visible) {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+[aria-disabled='true'] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .control-label {
   line-height: 1.1;
   display: inline-flex;

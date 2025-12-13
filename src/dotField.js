@@ -18,7 +18,7 @@ function nowMs() {
 }
 
 /**
- * @typedef {{ x: number; y: number; vx: number; vy: number; r: number; a: number; ds: number }} Dot
+ * @typedef {{ x: number; y: number; vx: number; vy: number; r: number; r0: number; a: number; ds: number }} Dot
  */
 
 function keyForCell(cx, cy) {
@@ -171,10 +171,13 @@ export class DotField {
   #sizeCount = 5;
   #distribution = 'flat';
   #autoFit = true;
-  #motionStyle = 1;
-  #motionAmount = 0.35;
   #reactToUi = true;
-  #contactFeel = 0.25;
+  #motionEnabled = true;
+  #physicsEnabled = true;
+  #gravityEnabled = false;
+  #breathingEnabled = false;
+  #speed = 0.35;
+  #contactMode = 'bounce';
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -281,27 +284,49 @@ export class DotField {
     this.#scheduleSetup();
   }
 
-  /** @param {number} style */
-  setMotionStyle(style) {
-    this.#motionStyle = clampInt(style, 0, 4);
-    if (this.#motionStyle === 0) this.stop();
-    else if (this.#running && !this.#reducedMotion) this.start();
-    if (this.#reducedMotion || this.#motionStyle === 0) this.#draw(true);
-  }
-
-  /** @param {number} amount */
-  setMotionAmount(amount) {
-    this.#motionAmount = clamp(amount, 0, 1);
-  }
-
   /** @param {boolean} enabled */
   setReactToUi(enabled) {
     this.#reactToUi = Boolean(enabled);
   }
 
-  /** @param {number} feel */
-  setContactFeel(feel) {
-    this.#contactFeel = clamp(feel, 0, 1);
+  /** @param {boolean} enabled */
+  setMotionEnabled(enabled) {
+    this.#motionEnabled = Boolean(enabled);
+    if (!this.#motionEnabled) {
+      this.pause();
+      this.#draw(true);
+      return;
+    }
+    this.resume();
+  }
+
+  /** @param {boolean} enabled */
+  setPhysicsEnabled(enabled) {
+    this.#physicsEnabled = Boolean(enabled);
+    if (!this.#physicsEnabled) {
+      this.#gravityEnabled = false;
+      this.#contactMode = 'bounce';
+    }
+  }
+
+  /** @param {boolean} enabled */
+  setGravityEnabled(enabled) {
+    this.#gravityEnabled = Boolean(enabled);
+  }
+
+  /** @param {boolean} enabled */
+  setBreathingEnabled(enabled) {
+    this.#breathingEnabled = Boolean(enabled);
+  }
+
+  /** @param {number} speed */
+  setSpeed(speed) {
+    this.#speed = clamp(speed, 0, 1);
+  }
+
+  /** @param {'bounce' | 'stick' | 'both'} mode */
+  setContactMode(mode) {
+    this.#contactMode = mode === 'stick' || mode === 'both' ? mode : 'bounce';
   }
 
   /** @param {number} cssPx */
@@ -365,11 +390,7 @@ export class DotField {
       this.#draw(true);
       return;
     }
-    if (this.#motionStyle === 0) {
-      this.stop();
-      this.#draw(true);
-      return;
-    }
+    if (!this.#motionEnabled) return;
     if (this.#raf != null) return;
     this.#lastT = nowMs();
     this.#raf = requestAnimationFrame((t) => this.#frame(t));
@@ -387,7 +408,7 @@ export class DotField {
 
   restart() {
     this.#setup();
-    if (this.#paused || this.#reducedMotion || this.#motionStyle === 0) {
+    if (this.#paused || this.#reducedMotion || !this.#motionEnabled) {
       this.stop();
       this.#draw(true);
       return;
@@ -435,7 +456,7 @@ export class DotField {
   /** @param {number} target */
   #trySpawnDots(target) {
     const minR = this.#minRadiusCssPx * this.#dpr;
-    const maxR = this.#maxRadiusCssPx * this.#dpr;
+    const maxR = this.#maxRadiusCssPx * this.#dpr * 1.06;
     const maxRequired = 2 * maxR + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
@@ -494,6 +515,7 @@ export class DotField {
           vx: (Math.random() - 0.5) * 0.22,
           vy: (Math.random() - 0.5) * 0.22,
           r,
+          r0: r,
           a: 1,
           ds: lerp(0.75, 1.25, Math.random()),
         };
@@ -559,51 +581,14 @@ export class DotField {
   }
 
   #sectionTuning() {
-    const intro = this.#introUntilMs != null && nowMs() < this.#introUntilMs;
-
-    const amount = this.#motionAmount;
+    const speed = this.#speed;
     const react = this.#reactToUi;
 
-    // Presets define the character; amount scales intensity.
-    // 0: Still, 1: Calm drift, 2: Settle, 3: Reactive, 4: Alive.
-    switch (this.#motionStyle) {
-      case 1: {
-        this.#stability = lerp(0.975, 0.945, amount);
-        // Keep calm drift smooth; avoid per-frame random jitter.
-        this.#noise = 0;
-        this.#maxV = lerp(0.03, 0.25, amount);
-        this.#cohesion = react ? lerp(0.03, 0.09, amount) : 0;
-        break;
-      }
-      case 2: {
-        this.#stability = lerp(0.985, 0.955, amount);
-        this.#noise = intro ? lerp(0.18, 0.38, amount) : lerp(0.0, 0.08, amount);
-        this.#maxV = lerp(0.12, 0.5, amount);
-        this.#cohesion = react ? lerp(0.06, 0.14, amount) : 0;
-        break;
-      }
-      case 3: {
-        this.#stability = lerp(0.97, 0.93, amount);
-        this.#noise = lerp(0.02, 0.16, amount);
-        this.#maxV = lerp(0.18, 0.85, amount);
-        this.#cohesion = react ? lerp(0.09, 0.2, amount) : 0;
-        break;
-      }
-      case 4: {
-        this.#stability = lerp(0.955, 0.91, amount);
-        this.#noise = lerp(0.06, 0.28, amount);
-        this.#maxV = lerp(0.25, 1.25, amount);
-        this.#cohesion = react ? lerp(0.1, 0.22, amount) : 0;
-        break;
-      }
-      default: {
-        this.#stability = 0.98;
-        this.#noise = 0;
-        this.#maxV = 0;
-        this.#cohesion = 0;
-        break;
-      }
-    }
+    // Single baseline: calm drift + optional anchor pull.
+    this.#noise = 0;
+    this.#stability = lerp(0.988, 0.95, speed);
+    this.#maxV = lerp(0.01, 0.22, speed);
+    this.#cohesion = react ? lerp(0.0, 0.08, speed) : 0;
   }
 
   #frame(t) {
@@ -616,14 +601,14 @@ export class DotField {
     const anchors = this.#getAnchors();
     const { cohesion, stability, noise, maxV } = this;
 
+    const speed = this.#speed;
     let driftSeed0 = 0;
     let driftSeed1 = 0;
     let driftT = 0;
-    let driftAccel = 0;
     let driftScale = 1;
     let driftBandSeed = 0;
-    if (this.#motionStyle === 1 && this.#motionAmount > 0) {
-      // Calm drift: per-dot, slowly evolving vector field (no global rotation).
+    let driftForce = 0;
+    if (this.#motionEnabled && speed > 0) {
       const periodMs = 8000;
       const s0 = Math.floor(t / periodMs);
       const s1 = s0 + 1;
@@ -632,16 +617,27 @@ export class DotField {
       driftSeed1 = s1;
       driftT = smoothstep(tt);
       driftBandSeed = s0 * 8191 + 17;
-      driftAccel = lerp(0, 0.0325, this.#motionAmount) * this.#dpr;
       driftScale = 1 / (520 * this.#dpr);
+      driftForce = lerp(0, 0.03, speed) * this.#dpr;
     }
 
+    const breathingPeriodMs = 7000;
+    const breathingAmp = 0.06;
+    const breathingPhase = (t / breathingPeriodMs) * Math.PI * 2;
+    const breathe = this.#breathingEnabled && this.#motionEnabled;
+
     for (const dot of this.#dots) {
+      if (breathe) {
+        dot.r = dot.r0 * (1 + breathingAmp * Math.sin(breathingPhase));
+      } else {
+        dot.r = dot.r0;
+      }
+
       const jitter = (Math.random() - 0.5) * noise;
       dot.vx += jitter * 0.22 * dt;
       dot.vy += jitter * 0.22 * dt;
 
-      if (this.#motionStyle === 1 && this.#motionAmount > 0) {
+      if (this.#motionEnabled && speed > 0) {
         const sx = dot.x * driftScale;
         const sy = dot.y * driftScale;
         const n1a = noise2(sx, sy, driftSeed0);
@@ -656,9 +652,16 @@ export class DotField {
         const bandB = noise2(sx - 7.3, sy + 5.1, driftBandSeed + 1);
         const band = lerp(bandA, bandB, driftT);
         const speed = lerp(0.65, 1.25, band) * dot.ds;
-
-        dot.vx += (vx / len) * driftAccel * speed * dt;
-        dot.vy += (vy / len) * driftAccel * speed * dt;
+        const fx = (vx / len) * driftForce * speed;
+        const fy = (vy / len) * driftForce * speed;
+        if (this.#physicsEnabled) {
+          const mass = Math.max(1, dot.r0 * dot.r0);
+          dot.vx += (fx / mass) * dt;
+          dot.vy += (fy / mass) * dt;
+        } else {
+          dot.vx += fx * dt;
+          dot.vy += fy * dt;
+        }
       }
 
       if (anchors.length > 0) {
@@ -677,13 +680,21 @@ export class DotField {
         dot.vy += pullY * cohesion * dt;
       }
 
+      if (this.#motionEnabled && this.#physicsEnabled && this.#gravityEnabled && speed > 0) {
+        const gravityForce = 0.42 * this.#dpr * speed;
+        const mass = Math.max(1, dot.r0 * dot.r0);
+        dot.vy += (gravityForce / mass) * dt;
+      }
+
       dot.vx *= stability;
       dot.vy *= stability;
       dot.vx = clamp(dot.vx, -maxV, maxV);
       dot.vy = clamp(dot.vy, -maxV, maxV);
 
-      dot.x += dot.vx * this.#dpr * 2.2 * dt;
-      dot.y += dot.vy * this.#dpr * 2.2 * dt;
+      if (this.#motionEnabled) {
+        dot.x += dot.vx * this.#dpr * 2.2 * dt;
+        dot.y += dot.vy * this.#dpr * 2.2 * dt;
+      }
 
       const rScaled = dot.r;
       const excludeTop = this.#excludeTopCssPx * this.#dpr;
@@ -711,17 +722,31 @@ export class DotField {
   #resolveOverlaps(dt) {
     if (this.#dots.length < 2) return;
 
-    const maxR = this.#maxRadiusCssPx * this.#dpr;
+    const maxR = this.#maxRadiusCssPx * this.#dpr * 1.06;
     const maxRequired = 2 * maxR + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
 
-    const feel = this.#contactFeel;
-    const restitution = lerp(0.02, 0.85, feel);
-    const friction = lerp(0.12, 0.85, feel);
-    const adhesionBand = lerp(6, 1.5, feel) * this.#dpr;
-    const adhesionStrength = lerp(0.06, 0.0, feel);
-    const coupleStrength = Math.pow(1 - feel, 1.6);
+    const physics = this.#physicsEnabled;
+    const mode = this.#contactMode;
+
+    const restitution = !physics
+      ? 0
+      : mode === 'bounce'
+        ? 0.85
+        : mode === 'both'
+          ? 0.45
+          : 0.02;
+    const friction = !physics
+      ? 1
+      : mode === 'bounce'
+        ? 0.2
+        : mode === 'both'
+          ? 0.55
+          : 0.9;
+    const adhesionBand = (mode === 'stick' || mode === 'both') ? 6 * this.#dpr : 0;
+    const adhesionStrength = !physics ? 0 : mode === 'both' ? 0.02 : mode === 'stick' ? 0.05 : 0;
+    const coupleStrength = !physics ? 0 : mode === 'both' ? 0.4 : mode === 'stick' ? 0.9 : 0;
 
     for (let iter = 0; iter < 2; iter++) {
       /** @type {Map<string, Dot[]>} */
@@ -850,9 +875,9 @@ export class DotField {
     this.#ctx.fillStyle = this.#palette.dot;
     this.#ctx.globalAlpha = 1;
     for (const dot of this.#dots) {
-      const radius = Math.max(1, Math.round(dot.r));
+      const radius = Math.max(0.5, dot.r);
       this.#ctx.beginPath();
-      this.#ctx.arc(Math.round(dot.x), Math.round(dot.y), radius, 0, Math.PI * 2);
+      this.#ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
       this.#ctx.fill();
     }
   }
