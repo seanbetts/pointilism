@@ -1031,7 +1031,8 @@ export class DotField {
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
     const edgePad = this.#edgePaddingCssPx * this.#dpr;
 
-    const physics = this.#physicsEnabled && !this.#gravityEnabled;
+    // Grid mode is a deterministic layout: disable "stickiness" physics so dots don't form clusters.
+    const physics = this.#physicsEnabled && !this.#gravityEnabled && !this.#gridEnabled;
     const breathing = this.#breathingEnabled;
     const gridSnap = this.#gridEnabled;
     const allowCoupling = !breathing;
