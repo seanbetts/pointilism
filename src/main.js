@@ -570,6 +570,9 @@ import { DotField } from './dotField.js';
     });
   }
 
+  // Default state corresponds to the Default preset.
+  setActivePreset('default');
+
   function syncControlValues() {
     clampMinMaxSizes();
     if (dotMinSizeEl instanceof HTMLInputElement) dotMinSizeEl.value = String(dotMinSize);
