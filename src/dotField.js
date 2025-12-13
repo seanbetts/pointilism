@@ -409,8 +409,11 @@ export class DotField {
   /** @param {Mode} mode */
   invertWithDispersion(mode) {
     this.#mode = mode;
-    if (this.#reducedMotion) {
-      this.#palette = mode === 'light' ? { bg: '#fff', dot: '#000' } : { bg: '#000', dot: '#fff' };
+    const nextPalette = mode === 'light' ? { bg: '#fff', dot: '#000' } : { bg: '#000', dot: '#fff' };
+    // If we're not animating (paused) we still need to redraw immediately so the user sees the mode change.
+    if (this.#reducedMotion || this.#paused || this.#raf == null) {
+      this.#palette = nextPalette;
+      this.#canvas.style.background = this.#palette.bg;
       this.#draw(true);
       return;
     }
@@ -425,7 +428,8 @@ export class DotField {
     const tick = () => {
       const t = nowMs();
       if (!switched && t >= switchAt) {
-        this.#palette = mode === 'light' ? { bg: '#fff', dot: '#000' } : { bg: '#000', dot: '#fff' };
+        this.#palette = nextPalette;
+        this.#canvas.style.background = this.#palette.bg;
         switched = true;
       }
       if (t >= endAt) {

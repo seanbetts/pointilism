@@ -1,4 +1,4 @@
-import { DotField } from './dotField.js?v=2025-12-13-85';
+import { DotField } from './dotField.js?v=2025-12-13-90';
 
 (() => {
   const canvas = document.querySelector('#dotfield');
