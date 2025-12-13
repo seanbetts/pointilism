@@ -178,6 +178,18 @@ body {
   color: var(--fg);
 }
 
+.theme-button.is-active {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.theme-button.is-active:hover,
+.theme-button.is-active:focus-visible {
+  color: var(--bg);
+  filter: brightness(0.92);
+}
+
 .nav {
   display: flex;
   align-items: center;

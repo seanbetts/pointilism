@@ -512,6 +512,15 @@ import { DotField } from './dotField.js';
     },
   };
 
+  function setActivePreset(presetId) {
+    for (const button of presetButtons) {
+      if (!(button instanceof HTMLButtonElement)) continue;
+      const active = button.dataset.preset === presetId;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+  }
+
   function applyPreset(presetId) {
     const preset = presets[presetId];
     if (!preset) return;
@@ -521,6 +530,8 @@ import { DotField } from './dotField.js';
       dotField.resume();
       syncPauseControls();
     }
+
+    setActivePreset(presetId);
 
     dotMinSize = preset.dotMinSize;
     dotMaxSize = preset.dotMaxSize;
@@ -551,6 +562,7 @@ import { DotField } from './dotField.js';
 
   for (const button of presetButtons) {
     if (!(button instanceof HTMLButtonElement)) continue;
+    button.setAttribute('aria-pressed', 'false');
     button.addEventListener('click', () => {
       const presetId = button.dataset.preset;
       if (!presetId) return;
