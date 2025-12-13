@@ -6,7 +6,7 @@ import { DotField } from './dotField.js';
 
   const root = document.documentElement;
 
-  const SETTINGS_VERSION = '2025-12-13-defaults-v2';
+  const SETTINGS_VERSION = '2025-12-13-defaults-v3';
   const storedSettingsVersion = localStorage.getItem('settingsVersion');
   if (storedSettingsVersion !== SETTINGS_VERSION) {
     localStorage.removeItem('dotMinSize');
@@ -65,7 +65,7 @@ import { DotField } from './dotField.js';
 
   function getInitialDistribution() {
     const stored = Number(localStorage.getItem('dotDistribution'));
-    if (Number.isFinite(stored)) return stored;
+    if (Number.isFinite(stored)) return Math.max(0, Math.min(6, Math.round(stored)));
     return defaults.dotDistribution;
   }
 
