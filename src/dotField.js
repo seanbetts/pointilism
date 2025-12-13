@@ -306,9 +306,6 @@ export class DotField {
     this.#gravityEnabled = Boolean(enabled);
     if (!this.#gravityEnabled) {
       this.#gravityDropUntilMs = null;
-      this.#gravityMaskUntilMs = null;
-      this.#gravityMaskStartMs = null;
-      this.#gravityMaskSeed = 0;
       this.#gravityActiveUntilMs = null;
     }
   }
