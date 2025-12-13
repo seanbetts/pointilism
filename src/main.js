@@ -461,10 +461,10 @@ import { DotField } from './dotField.js';
       gridEnabled: false,
     },
     sparseGiants: {
-      dotMinSize: 6,
+      dotMinSize: 10,
       dotMaxSize: 90,
-      dotDensity: 0.25,
-      dotSizeCount: 6,
+      dotDensity: 0.2,
+      dotSizeCount: 5,
       dotDistribution: 6, // Large (curved)
       speed: 0.6,
       breathingEnabled: true,
