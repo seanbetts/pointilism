@@ -107,32 +107,29 @@ body {
   gap: 0.9rem;
 }
 
-.dot-size {
+.control {
   display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
   color: var(--muted);
   font-size: 0.9rem;
   user-select: none;
 }
 
-.dot-size-input {
+.control-label {
+  line-height: 1.1;
+}
+
+.control-input {
   width: min(220px, 40vw);
   accent-color: var(--fg);
 }
 
-.dot-density {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-  user-select: none;
-}
-
-.dot-density-input {
-  width: min(220px, 40vw);
-  accent-color: var(--fg);
+.control-value {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+  line-height: 1.1;
 }
 
 .brand {

@@ -26,29 +26,31 @@
         <nav class="nav" aria-label="Primary">
           <a class="brand" href="#top">Pointilism</a>
           <div class="controls">
-            <label class="dot-size">
-              <span class="dot-size-label">Dot size</span>
+            <label class="control">
+              <span class="control-label">Dot size</span>
               <input
                 id="dotSize"
-                class="dot-size-input"
+                class="control-input"
                 type="range"
                 min="0.6"
                 max="10"
                 step="0.05"
                 value="1"
               />
+              <output id="dotSizeValue" class="control-value" for="dotSize"></output>
             </label>
-            <label class="dot-density">
-              <span class="dot-density-label">Density</span>
+            <label class="control">
+              <span class="control-label">Density</span>
               <input
                 id="dotDensity"
-                class="dot-density-input"
+                class="control-input"
                 type="range"
                 min="0.2"
                 max="2.5"
                 step="0.05"
                 value="1"
               />
+              <output id="dotDensityValue" class="control-value" for="dotDensity"></output>
             </label>
             <button
               id="modeToggle"
