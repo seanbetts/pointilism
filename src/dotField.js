@@ -648,7 +648,7 @@ export class DotField {
 
       if (!this.#paused && this.#gravityEnabled && speed > 0) {
         const baseline = Math.max(0.35, speed);
-        const fallSpeed = (dropping ? lerp(0, 22.5, baseline) : lerp(0, 3.6, baseline)) * this.#dpr;
+        const fallSpeed = (dropping ? lerp(0, 225, baseline) : lerp(0, 36, baseline)) * this.#dpr;
         const t = clamp(0.18 * dt, 0, 1);
         dot.vy = lerp(dot.vy, fallSpeed, t);
       }
