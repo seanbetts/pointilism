@@ -456,6 +456,13 @@ import { DotField } from './dotField.js?v=2025-12-13-85';
       if (gridEnabledValue instanceof HTMLOutputElement) gridEnabledValue.value = gridEnabled ? 'On' : 'Off';
       dotField.setGridEnabled(gridEnabled);
     }
+    if (!breathingEnabled) {
+      breathingEnabled = true;
+      localStorage.setItem('breathingEnabled', String(breathingEnabled));
+      if (breathingEnabledEl instanceof HTMLInputElement) breathingEnabledEl.checked = breathingEnabled;
+      if (breathingEnabledValue instanceof HTMLOutputElement) breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
+      dotField.setBreathingEnabled(breathingEnabled);
+    }
     if (paused) {
       paused = false;
       dotField.resume();
