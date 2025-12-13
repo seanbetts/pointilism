@@ -106,6 +106,13 @@ import { DotField } from './dotField.js';
     return defaults.breathingEnabled;
   }
 
+  function getInitialGridEnabled() {
+    const stored = localStorage.getItem('gridEnabled');
+    if (stored === 'true') return true;
+    if (stored === 'false') return false;
+    return false;
+  }
+
   let dotMinSize = getInitialMinSize();
   let dotMaxSize = Math.round(getInitialMaxSize());
   let dotDensity = getInitialDensity();
@@ -113,6 +120,7 @@ import { DotField } from './dotField.js';
   let dotDistribution = getInitialDistribution();
   let speed = getInitialSpeed();
   let breathingEnabled = getInitialBreathingEnabled();
+  let gridEnabled = getInitialGridEnabled();
   const autoFit = true;
   const reactToUi = false;
 
@@ -144,6 +152,7 @@ import { DotField } from './dotField.js';
   dotField.setReactToUi(reactToUi);
   dotField.setSpeed(speedInternal());
   dotField.setBreathingEnabled(breathingEnabled);
+  dotField.setGridEnabled(gridEnabled);
 
   dotField.setExclusionRects([]);
 
@@ -161,6 +170,8 @@ import { DotField } from './dotField.js';
   const speedValue = document.querySelector('#speedValue');
   const breathingEnabledEl = document.querySelector('#breathingEnabled');
   const breathingEnabledValue = document.querySelector('#breathingEnabledValue');
+  const gridEnabledEl = document.querySelector('#gridEnabled');
+  const gridEnabledValue = document.querySelector('#gridEnabledValue');
   const gravityDrop = document.querySelector('#gravityDrop');
   const restartControls = document.querySelector('#restartControls');
   const pauseControls = document.querySelector('#pauseControls');
@@ -378,7 +389,32 @@ import { DotField } from './dotField.js';
       if (breathingEnabledValue instanceof HTMLOutputElement) {
         breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
       }
+      if (breathingEnabled) {
+        gridEnabled = false;
+        localStorage.setItem('gridEnabled', String(gridEnabled));
+        if (gridEnabledEl instanceof HTMLInputElement) gridEnabledEl.checked = gridEnabled;
+        if (gridEnabledValue instanceof HTMLOutputElement) gridEnabledValue.value = gridEnabled ? 'On' : 'Off';
+        dotField.setGridEnabled(gridEnabled);
+      }
       dotField.setBreathingEnabled(breathingEnabled);
+    });
+  }
+
+  if (gridEnabledEl instanceof HTMLInputElement) {
+    gridEnabledEl.checked = gridEnabled;
+    if (gridEnabledValue instanceof HTMLOutputElement) gridEnabledValue.value = gridEnabled ? 'On' : 'Off';
+    gridEnabledEl.addEventListener('change', () => {
+      gridEnabled = gridEnabledEl.checked;
+      localStorage.setItem('gridEnabled', String(gridEnabled));
+      if (gridEnabledValue instanceof HTMLOutputElement) gridEnabledValue.value = gridEnabled ? 'On' : 'Off';
+      if (gridEnabled) {
+        breathingEnabled = false;
+        localStorage.setItem('breathingEnabled', String(breathingEnabled));
+        if (breathingEnabledEl instanceof HTMLInputElement) breathingEnabledEl.checked = breathingEnabled;
+        if (breathingEnabledValue instanceof HTMLOutputElement) breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
+        dotField.setBreathingEnabled(breathingEnabled);
+      }
+      dotField.setGridEnabled(gridEnabled);
     });
   }
 
@@ -400,6 +436,8 @@ import { DotField } from './dotField.js';
     if (speedValue instanceof HTMLOutputElement) speedValue.value = speed.toFixed(2);
     if (breathingEnabledEl instanceof HTMLInputElement) breathingEnabledEl.checked = breathingEnabled;
     if (breathingEnabledValue instanceof HTMLOutputElement) breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
+    if (gridEnabledEl instanceof HTMLInputElement) gridEnabledEl.checked = gridEnabled;
+    if (gridEnabledValue instanceof HTMLOutputElement) gridEnabledValue.value = gridEnabled ? 'On' : 'Off';
   }
 
   restartControls?.addEventListener('click', () => {
@@ -410,6 +448,7 @@ import { DotField } from './dotField.js';
     dotDistribution = defaults.dotDistribution;
     speed = defaults.speed;
     breathingEnabled = defaults.breathingEnabled;
+    gridEnabled = false;
 
     localStorage.removeItem('dotMinSize');
     localStorage.removeItem('dotMaxSize');
@@ -418,9 +457,11 @@ import { DotField } from './dotField.js';
     localStorage.removeItem('dotDistribution');
     localStorage.removeItem('speed');
     localStorage.removeItem('breathingEnabled');
+    localStorage.removeItem('gridEnabled');
 
     syncControlValues();
     scheduleDotUpdate();
+    dotField.setGridEnabled(gridEnabled);
     dotField.restart();
     dotField.heroIntro();
     // no-op: title container removed

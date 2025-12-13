@@ -18,7 +18,7 @@ function nowMs() {
 }
 
 /**
- * @typedef {{ x: number; y: number; vx: number; vy: number; r: number; r0: number; a: number; ds: number; stick: number }} Dot
+ * @typedef {{ x: number; y: number; vx: number; vy: number; r: number; r0: number; a: number; ds: number; stick: number; ghx?: number; ghy?: number }} Dot
  */
 
 function keyForCell(cx, cy) {
@@ -182,6 +182,9 @@ export class DotField {
   /** @type {number | null} */
   #breathStartMs = null;
 
+  #gridEnabled = false;
+  #gridPull = 20;
+
   #gravityEnabled = false;
   /** @type {number | null} */
   #gravityDropUntilMs = null;
@@ -317,6 +320,21 @@ export class DotField {
     if (next === this.#breathingEnabled) return;
     this.#breathingEnabled = next;
     this.#breathStartMs = next ? nowMs() : null;
+  }
+
+  /** @param {boolean} enabled */
+  setGridEnabled(enabled) {
+    const next = Boolean(enabled);
+    if (next === this.#gridEnabled) return;
+    this.#gridEnabled = next;
+    if (!next) {
+      for (const dot of this.#dots) {
+        delete dot.ghx;
+        delete dot.ghy;
+      }
+      return;
+    }
+    this.#assignGridHomes();
   }
 
   /** @param {boolean} enabled */
@@ -468,7 +486,114 @@ export class DotField {
       area < 420_000 ? 420 : area < 1_000_000 ? 820 : area < 1_800_000 ? 1200 : 1650;
     const dots = Math.floor(baseDots * this.#densityScalar);
     this.#dots = this.#spawnDots(dots);
+    if (this.#gridEnabled) this.#assignGridHomes();
     this.#draw(true);
+  }
+
+  #assignGridHomes() {
+    if (this.#dots.length === 0) return;
+    const excludeTop = this.#excludeTopCssPx * this.#dpr;
+    const buffer = this.#bufferPx * this.#dpr;
+    const maxDotR = Math.max(...this.#dots.map((d) => d.r0));
+
+    // Keep grid points inside the safe drawable area for the *largest* dot,
+    // so the solver doesn't constantly fight overlaps at the edges.
+    const margin = (this.#edgePaddingCssPx * this.#dpr) + maxDotR;
+    const usableW = Math.max(1, this.#width - 2 * margin);
+    const usableH = Math.max(1, this.#height - excludeTop - 2 * margin);
+
+    const minStep = Math.max(6, 2 * maxDotR + buffer);
+    const maxCols = Math.max(1, Math.floor(usableW / minStep) + 1);
+    const maxRows = Math.max(1, Math.floor(usableH / minStep) + 1);
+
+    const count = this.#dots.length;
+    let cols = clampInt(Math.sqrt((count * usableW) / Math.max(1, usableH)), 1, maxCols);
+    let rows = Math.ceil(count / cols);
+    if (rows > maxRows) {
+      rows = maxRows;
+      cols = Math.min(maxCols, Math.ceil(count / rows));
+    }
+    if (cols * rows < count) {
+      cols = maxCols;
+      rows = maxRows;
+    }
+
+    const stepX = cols <= 1 ? 0 : usableW / (cols - 1);
+    const stepY = rows <= 1 ? 0 : usableH / (rows - 1);
+    const offsetX = margin;
+    const offsetY = excludeTop + margin;
+
+    const totalCells = cols * rows;
+
+    const cellCenter = (cx, cy) => ({
+      x: offsetX + cx * stepX,
+      y: offsetY + cy * stepY,
+    });
+
+    /** @type {Dot[][]} */
+    const buckets = Array.from({ length: totalCells }, () => []);
+    for (const dot of this.#dots) {
+      const gx = stepX <= 0 ? 0 : clampInt(Math.round((dot.x - offsetX) / stepX), 0, cols - 1);
+      const gy = stepY <= 0 ? 0 : clampInt(Math.round((dot.y - offsetY) / stepY), 0, rows - 1);
+      buckets[gy * cols + gx].push(dot);
+    }
+
+    /** @type {boolean[]} */
+    const used = new Array(totalCells).fill(false);
+    /** @type {{ dot: Dot; prefer: number }[]} */
+    const overflow = [];
+
+    for (let idx = 0; idx < totalCells; idx++) {
+      const bucket = buckets[idx];
+      if (bucket.length === 0) continue;
+      const cx = idx % cols;
+      const cy = Math.floor(idx / cols);
+      const p = cellCenter(cx, cy);
+      bucket.sort((a, b) => {
+        const da = (a.x - p.x) ** 2 + (a.y - p.y) ** 2;
+        const db = (b.x - p.x) ** 2 + (b.y - p.y) ** 2;
+        return da - db;
+      });
+      const first = bucket[0];
+      first.ghx = p.x;
+      first.ghy = p.y;
+      first.vx *= 0.2;
+      first.vy *= 0.2;
+      used[idx] = true;
+      for (let i = 1; i < bucket.length; i++) overflow.push({ dot: bucket[i], prefer: idx });
+    }
+
+    const findNearestFree = (startIdx) => {
+      if (!used[startIdx]) return startIdx;
+      const gx = startIdx % cols;
+      const gy = Math.floor(startIdx / cols);
+      const maxRings = Math.max(cols, rows);
+      for (let ring = 1; ring <= maxRings; ring++) {
+        for (let dy = -ring; dy <= ring; dy++) {
+          for (let dx = -ring; dx <= ring; dx++) {
+            if (Math.abs(dx) !== ring && Math.abs(dy) !== ring) continue;
+            const cx = gx + dx;
+            const cy = gy + dy;
+            if (cx < 0 || cy < 0 || cx >= cols || cy >= rows) continue;
+            const idx = cy * cols + cx;
+            if (!used[idx]) return idx;
+          }
+        }
+      }
+      return startIdx;
+    };
+
+    for (const item of overflow) {
+      const idx = findNearestFree(item.prefer);
+      used[idx] = true;
+      const cx = idx % cols;
+      const cy = Math.floor(idx / cols);
+      const p = cellCenter(cx, cy);
+      item.dot.ghx = p.x;
+      item.dot.ghy = p.y;
+      item.dot.vx *= 0.2;
+      item.dot.vy *= 0.2;
+    }
   }
 
   /** @param {number} count */
@@ -682,6 +807,13 @@ export class DotField {
     this.#stability = lerp(0.992, 0.94, speed);
     this.#maxV = lerp(0.02, 0.42, speed);
     this.#cohesion = react ? lerp(0.0, 0.08, speed) : 0;
+
+    if (this.#gridEnabled) {
+      this.#noise = 0;
+      this.#cohesion = 0;
+      this.#stability = lerp(0.992, 0.965, speed);
+      this.#maxV = lerp(0.25, 1.5, speed);
+    }
   }
 
   #frame(t) {
@@ -751,7 +883,7 @@ export class DotField {
       dot.vx += jitter * 0.22 * dt;
       dot.vy += jitter * 0.22 * dt;
 
-      if (!this.#paused && !dropping && !gravityActive && speed > 0) {
+      if (!this.#paused && !this.#gridEnabled && !dropping && !gravityActive && speed > 0) {
         const sx = dot.x * driftScale;
         const sy = dot.y * driftScale;
         const n1a = noise2(sx, sy, driftSeed0);
@@ -805,6 +937,15 @@ export class DotField {
         }
         dot.vx += pullX * cohesion * dt;
         dot.vy += pullY * cohesion * dt;
+      }
+
+      if (this.#gridEnabled && dot.ghx != null && dot.ghy != null && !dropping && !gravityActive) {
+        const dx = dot.ghx - dot.x;
+        const dy = dot.ghy - dot.y;
+        const k = this.#gridPull;
+        const c = 2 * Math.sqrt(Math.max(0.001, k)) * 1.1;
+        dot.vx += (dx * k - dot.vx * c) * dtSec;
+        dot.vy += (dy * k - dot.vy * c) * dtSec;
       }
 
       dot.vx *= stability;
