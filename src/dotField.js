@@ -917,7 +917,7 @@ export class DotField {
         }
       }
 
-      if (!this.#paused && gravityActive && speed > 0) {
+      if (!this.#paused && gravityActive) {
         // Gravity drop is positional so all dots fall at the same speed regardless of size.
         const baseline = Math.max(0.35, speed);
         const dropPxPerSec = dropping ? lerp(0, 9000, baseline) : lerp(0, 240, baseline);
