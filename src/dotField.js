@@ -175,6 +175,7 @@ export class DotField {
   #reactToUi = true;
   #speed = 0.35;
   #physicsEnabled = true;
+  #gravityEnabled = false;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -289,6 +290,11 @@ export class DotField {
   /** @param {number} speed */
   setSpeed(speed) {
     this.#speed = clamp(speed, 0, 1);
+  }
+
+  /** @param {boolean} enabled */
+  setGravityEnabled(enabled) {
+    this.#gravityEnabled = Boolean(enabled);
   }
 
   /** @param {number} cssPx */
@@ -620,6 +626,16 @@ export class DotField {
         } else {
           dot.vx += fx * sizeBias * dt;
           dot.vy += fy * sizeBias * dt;
+        }
+      }
+
+      if (!this.#paused && this.#gravityEnabled && speed > 0) {
+        const g = lerp(0, 0.09, speed) * this.#dpr;
+        if (this.#physicsEnabled) {
+          const mass = 1 + dot.r0 * dot.r0 * 0.025;
+          dot.vy += (g / mass) * dt;
+        } else {
+          dot.vy += g * dt;
         }
       }
 

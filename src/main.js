@@ -17,6 +17,7 @@ import { DotField } from './dotField.js';
     localStorage.removeItem('autoFit');
     localStorage.removeItem('reactToUi');
     localStorage.removeItem('speed');
+    localStorage.removeItem('gravityEnabled');
     localStorage.setItem('settingsVersion', SETTINGS_VERSION);
   }
 
@@ -39,6 +40,7 @@ import { DotField } from './dotField.js';
     autoFit: true,
     reactToUi: true,
     speed: 1,
+    gravityEnabled: false,
   };
 
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -87,6 +89,13 @@ import { DotField } from './dotField.js';
     return defaults.reactToUi;
   }
 
+  function getInitialGravityEnabled() {
+    const stored = localStorage.getItem('gravityEnabled');
+    if (stored === 'true') return true;
+    if (stored === 'false') return false;
+    return defaults.gravityEnabled;
+  }
+
   function getInitialSpeed() {
     const stored = Number(localStorage.getItem('speed'));
     if (Number.isFinite(stored)) {
@@ -106,6 +115,7 @@ import { DotField } from './dotField.js';
   let autoFit = getInitialAutoFit();
   let reactToUi = getInitialReactToUi();
   let speed = getInitialSpeed();
+  let gravityEnabled = getInitialGravityEnabled();
 
   function speedInternal() {
     return Math.max(0, Math.min(1, speed * 0.35));
@@ -131,6 +141,7 @@ import { DotField } from './dotField.js';
   dotField.setAutoFitDensity(autoFit);
   dotField.setReactToUi(reactToUi);
   dotField.setSpeed(speedInternal());
+  dotField.setGravityEnabled(gravityEnabled);
 
   const headerEl = document.querySelector('.header');
   function updateTopExclusion() {
@@ -156,6 +167,8 @@ import { DotField } from './dotField.js';
   const dotDistributionValue = document.querySelector('#dotDistributionValue');
   const speedEl = document.querySelector('#speed');
   const speedValue = document.querySelector('#speedValue');
+  const gravityEnabledEl = document.querySelector('#gravityEnabled');
+  const gravityEnabledValue = document.querySelector('#gravityEnabledValue');
   const reactToUiEl = document.querySelector('#reactToUi');
   const reactToUiValue = document.querySelector('#reactToUiValue');
   const autoFitEl = document.querySelector('#autoFit');
@@ -185,6 +198,7 @@ import { DotField } from './dotField.js';
       dotField.setAutoFitDensity(autoFit);
       dotField.setReactToUi(reactToUi);
       dotField.setSpeed(speedInternal());
+      dotField.setGravityEnabled(gravityEnabled);
     });
   }
 
@@ -305,6 +319,17 @@ import { DotField } from './dotField.js';
     });
   }
 
+  if (gravityEnabledEl instanceof HTMLInputElement) {
+    gravityEnabledEl.checked = gravityEnabled;
+    if (gravityEnabledValue instanceof HTMLOutputElement) gravityEnabledValue.value = gravityEnabled ? 'On' : 'Off';
+    gravityEnabledEl.addEventListener('change', () => {
+      gravityEnabled = gravityEnabledEl.checked;
+      localStorage.setItem('gravityEnabled', String(gravityEnabled));
+      if (gravityEnabledValue instanceof HTMLOutputElement) gravityEnabledValue.value = gravityEnabled ? 'On' : 'Off';
+      scheduleDotUpdate();
+    });
+  }
+
   if (reactToUiEl instanceof HTMLInputElement) {
     reactToUiEl.checked = reactToUi;
     if (reactToUiValue instanceof HTMLOutputElement) reactToUiValue.value = reactToUi ? 'On' : 'Off';
@@ -341,6 +366,8 @@ import { DotField } from './dotField.js';
     if (dotDistributionValue instanceof HTMLOutputElement) dotDistributionValue.value = distributionLabel(dotDistribution);
     if (speedEl instanceof HTMLInputElement) speedEl.value = String(speed);
     if (speedValue instanceof HTMLOutputElement) speedValue.value = speed.toFixed(2);
+    if (gravityEnabledEl instanceof HTMLInputElement) gravityEnabledEl.checked = gravityEnabled;
+    if (gravityEnabledValue instanceof HTMLOutputElement) gravityEnabledValue.value = gravityEnabled ? 'On' : 'Off';
     if (reactToUiEl instanceof HTMLInputElement) reactToUiEl.checked = reactToUi;
     if (reactToUiValue instanceof HTMLOutputElement) reactToUiValue.value = reactToUi ? 'On' : 'Off';
     if (autoFitEl instanceof HTMLInputElement) autoFitEl.checked = autoFit;
@@ -356,6 +383,7 @@ import { DotField } from './dotField.js';
     autoFit = defaults.autoFit;
     reactToUi = defaults.reactToUi;
     speed = defaults.speed;
+    gravityEnabled = defaults.gravityEnabled;
 
     localStorage.removeItem('dotMinSize');
     localStorage.removeItem('dotMaxSize');
@@ -365,6 +393,7 @@ import { DotField } from './dotField.js';
     localStorage.removeItem('autoFit');
     localStorage.removeItem('reactToUi');
     localStorage.removeItem('speed');
+    localStorage.removeItem('gravityEnabled');
 
     syncControlValues();
     scheduleDotUpdate();
