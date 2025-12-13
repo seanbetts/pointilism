@@ -178,6 +178,7 @@ import { DotField } from './dotField.js';
   const pauseControls = document.querySelector('#pauseControls');
   const controlsPanel = document.querySelector('#controlsPanel');
   const toggleControls = document.querySelector('#toggleControls');
+  const presetButtons = Array.from(document.querySelectorAll('.theme-button'));
 
   let paused = false;
   function syncPauseControls() {
@@ -446,6 +447,116 @@ import { DotField } from './dotField.js';
     }
     dotField.dropToBottom();
   });
+
+  /** @type {Record<string, { dotMinSize: number; dotMaxSize: number; dotDensity: number; dotSizeCount: number; dotDistribution: number; speed: number; breathingEnabled: boolean; gridEnabled: boolean }>} */
+  const presets = {
+    default: {
+      dotMinSize: defaults.dotMinSize,
+      dotMaxSize: defaults.dotMaxSize,
+      dotDensity: defaults.dotDensity,
+      dotSizeCount: defaults.dotSizeCount,
+      dotDistribution: defaults.dotDistribution,
+      speed: defaults.speed,
+      breathingEnabled: true,
+      gridEnabled: false,
+    },
+    sparseGiants: {
+      dotMinSize: 6,
+      dotMaxSize: 90,
+      dotDensity: 0.25,
+      dotSizeCount: 6,
+      dotDistribution: 6, // Large (curved)
+      speed: 0.6,
+      breathingEnabled: true,
+      gridEnabled: false,
+    },
+    micrograin: {
+      dotMinSize: 1.5,
+      dotMaxSize: 12,
+      dotDensity: 1.0,
+      dotSizeCount: 12,
+      dotDistribution: 3, // Flat
+      speed: 2.2,
+      breathingEnabled: false,
+      gridEnabled: false,
+    },
+    balancedBloom: {
+      dotMinSize: 3,
+      dotMaxSize: 40,
+      dotDensity: 0.7,
+      dotSizeCount: 15,
+      dotDistribution: 2, // Bell curve
+      speed: 1.1,
+      breathingEnabled: true,
+      gridEnabled: false,
+    },
+    highContrastMix: {
+      dotMinSize: 2,
+      dotMaxSize: 70,
+      dotDensity: 0.55,
+      dotSizeCount: 10,
+      dotDistribution: 4, // U-shaped
+      speed: 0.9,
+      breathingEnabled: false,
+      gridEnabled: false,
+    },
+    posterGrid: {
+      dotMinSize: 3,
+      dotMaxSize: 30,
+      dotDensity: 0.6,
+      dotSizeCount: 8,
+      dotDistribution: 0, // Small (linear)
+      speed: 0.0,
+      breathingEnabled: false,
+      gridEnabled: true,
+    },
+  };
+
+  function applyPreset(presetId) {
+    const preset = presets[presetId];
+    if (!preset) return;
+
+    if (paused) {
+      paused = false;
+      dotField.resume();
+      syncPauseControls();
+    }
+
+    dotMinSize = preset.dotMinSize;
+    dotMaxSize = preset.dotMaxSize;
+    dotDensity = preset.dotDensity;
+    dotSizeCount = preset.dotSizeCount;
+    dotDistribution = preset.dotDistribution;
+    speed = preset.speed;
+    breathingEnabled = preset.breathingEnabled;
+    gridEnabled = preset.gridEnabled;
+
+    if (gridEnabled) breathingEnabled = false;
+    if (breathingEnabled) gridEnabled = false;
+
+    clampMinMaxSizes();
+    localStorage.setItem('dotMinSize', String(dotMinSize));
+    localStorage.setItem('dotMaxSize', String(dotMaxSize));
+    localStorage.setItem('dotDensity', String(dotDensity));
+    localStorage.setItem('dotSizeCount', String(dotSizeCount));
+    localStorage.setItem('dotDistribution', String(dotDistribution));
+    localStorage.setItem('speed', String(speed));
+    localStorage.setItem('breathingEnabled', String(breathingEnabled));
+    localStorage.setItem('gridEnabled', String(gridEnabled));
+
+    syncControlValues();
+    scheduleDotUpdate();
+    dotField.setGridEnabled(gridEnabled);
+  }
+
+  for (const button of presetButtons) {
+    if (!(button instanceof HTMLButtonElement)) continue;
+    button.addEventListener('click', () => {
+      const presetId = button.dataset.preset;
+      if (!presetId) return;
+      applyPreset(presetId);
+    });
+  }
 
   function syncControlValues() {
     clampMinMaxSizes();
