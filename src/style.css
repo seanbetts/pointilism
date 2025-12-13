@@ -462,6 +462,18 @@ body {
   color: var(--fg);
 }
 
+.pause-controls[aria-pressed='true'] {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.pause-controls[aria-pressed='true']:hover,
+.pause-controls[aria-pressed='true']:focus-visible {
+  color: var(--bg);
+  filter: brightness(0.92);
+}
+
 .content {
   outline: none;
 }
