@@ -121,6 +121,7 @@ import { DotField } from './dotField.js';
   let speed = getInitialSpeed();
   let breathingEnabled = getInitialBreathingEnabled();
   let gridEnabled = getInitialGridEnabled();
+  let breathingBeforeGrid = breathingEnabled;
   const autoFit = true;
   const reactToUi = false;
 
@@ -408,7 +409,14 @@ import { DotField } from './dotField.js';
       localStorage.setItem('gridEnabled', String(gridEnabled));
       if (gridEnabledValue instanceof HTMLOutputElement) gridEnabledValue.value = gridEnabled ? 'On' : 'Off';
       if (gridEnabled) {
+        breathingBeforeGrid = breathingEnabled;
         breathingEnabled = false;
+        localStorage.setItem('breathingEnabled', String(breathingEnabled));
+        if (breathingEnabledEl instanceof HTMLInputElement) breathingEnabledEl.checked = breathingEnabled;
+        if (breathingEnabledValue instanceof HTMLOutputElement) breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
+        dotField.setBreathingEnabled(breathingEnabled);
+      } else if (!breathingEnabled) {
+        breathingEnabled = breathingBeforeGrid || defaults.breathingEnabled;
         localStorage.setItem('breathingEnabled', String(breathingEnabled));
         if (breathingEnabledEl instanceof HTMLInputElement) breathingEnabledEl.checked = breathingEnabled;
         if (breathingEnabledValue instanceof HTMLOutputElement) breathingEnabledValue.value = breathingEnabled ? 'On' : 'Off';
