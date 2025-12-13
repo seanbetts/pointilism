@@ -518,7 +518,8 @@ export class DotField {
     switch (this.#motionStyle) {
       case 1: {
         this.#stability = lerp(0.975, 0.945, amount);
-        this.#noise = lerp(0.0, 0.12, amount);
+        // Keep calm drift smooth; avoid per-frame random jitter.
+        this.#noise = 0;
         this.#maxV = lerp(0.12, 0.55, amount);
         this.#cohesion = react ? lerp(0.03, 0.09, amount) : 0;
         break;
@@ -564,17 +565,24 @@ export class DotField {
     const anchors = this.#getAnchors();
     const { cohesion, stability, noise, maxV } = this;
 
+    let driftVx = 0;
+    let driftVy = 0;
+    if (this.#motionStyle === 1 && this.#motionAmount > 0) {
+      // Calm drift: direction is unbiased and slowly rotates over time.
+      this.#driftAngle += 0.00045 * dtMs;
+      const base = lerp(0, 0.035, this.#motionAmount) * this.#dpr;
+      driftVx = Math.cos(this.#driftAngle) * base * dt;
+      driftVy = Math.sin(this.#driftAngle) * base * dt;
+    }
+
     for (const dot of this.#dots) {
       const jitter = (Math.random() - 0.5) * noise;
       dot.vx += jitter * 0.22 * dt;
       dot.vy += jitter * 0.22 * dt;
 
       if (this.#motionStyle === 1 && this.#motionAmount > 0) {
-        // Calm drift: direction is unbiased and slowly rotates over time.
-        this.#driftAngle += 0.00045 * dtMs;
-        const base = lerp(0, 0.035, this.#motionAmount) * this.#dpr;
-        dot.vx += Math.cos(this.#driftAngle) * base * dt;
-        dot.vy += Math.sin(this.#driftAngle) * base * dt;
+        dot.vx += driftVx;
+        dot.vy += driftVy;
       }
 
       if (anchors.length > 0) {
