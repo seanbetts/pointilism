@@ -178,6 +178,8 @@ export class DotField {
   #gravityEnabled = false;
   /** @type {number | null} */
   #gravityDropUntilMs = null;
+  /** @type {number | null} */
+  #gravityVisualUntilMs = null;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -297,7 +299,10 @@ export class DotField {
   /** @param {boolean} enabled */
   setGravityEnabled(enabled) {
     this.#gravityEnabled = Boolean(enabled);
-    if (!this.#gravityEnabled) this.#gravityDropUntilMs = null;
+    if (!this.#gravityEnabled) {
+      this.#gravityDropUntilMs = null;
+      this.#gravityVisualUntilMs = null;
+    }
   }
 
   dropToBottom() {
@@ -307,6 +312,7 @@ export class DotField {
       return;
     }
     this.#gravityDropUntilMs = nowMs() + 900;
+    this.#gravityVisualUntilMs = nowMs() + 1500;
 
     for (const dot of this.#dots) {
       dot.vy = Math.max(0, dot.vy);
@@ -586,7 +592,7 @@ export class DotField {
 
     this.#sectionTuning();
     const dropping = this.#gravityDropUntilMs != null && tNow < this.#gravityDropUntilMs;
-    const anchors = dropping ? [] : this.#getAnchors();
+    const anchors = dropping || this.#gravityEnabled ? [] : this.#getAnchors();
     const { cohesion, stability, noise, maxV } = this;
 
     const speed = this.#speed;
@@ -639,20 +645,21 @@ export class DotField {
         const denom = Math.max(1e-6, maxR - minR);
         const t = clamp((dot.r0 - minR) / denom, 0, 1);
         const sizeBias = lerp(0.6, 1.025, t);
+        const fyProjected = this.#gravityEnabled ? 0 : fy;
         if (this.#physicsEnabled) {
           const mass = 1 + dot.r0 * dot.r0 * 0.025;
           dot.vx += (fx / mass) * sizeBias * dt;
-          dot.vy += (fy / mass) * sizeBias * dt;
+          dot.vy += (fyProjected / mass) * sizeBias * dt;
         } else {
           dot.vx += fx * sizeBias * dt;
-          dot.vy += fy * sizeBias * dt;
+          dot.vy += fyProjected * sizeBias * dt;
         }
       }
 
       if (!this.#paused && this.#gravityEnabled && speed > 0) {
         // Gravity drop is positional so all dots fall at the same speed regardless of size.
         const baseline = Math.max(0.35, speed);
-        const dropPxPerSec = dropping ? lerp(0, 6000, baseline) : 0;
+        const dropPxPerSec = dropping ? lerp(0, 6000, baseline) : lerp(0, 240, baseline);
         dot.y += dropPxPerSec * dtSec * this.#dpr;
         dot.vy = 0;
         dot.vx *= Math.pow(0.94, dt);
@@ -719,12 +726,15 @@ export class DotField {
       }
     }
 
-    this.#resolveOverlaps(dt);
+    this.#resolveOverlaps(dt, dropping ? 10 : 2);
     this.#draw(false);
   }
 
-  /** @param {number} dt */
-  #resolveOverlaps(dt) {
+  /**
+   * @param {number} dt
+   * @param {number} iterations
+   */
+  #resolveOverlaps(dt, iterations = 2) {
     if (this.#dots.length < 2) return;
 
     const maxR = this.#maxRadiusCssPx * this.#dpr * 1.06;
@@ -736,7 +746,7 @@ export class DotField {
     const physics = this.#physicsEnabled && !this.#gravityEnabled;
     const adhesionBand = physics ? 6 * this.#dpr : 0;
 
-    for (let iter = 0; iter < 2; iter++) {
+    for (let iter = 0; iter < iterations; iter++) {
       /** @type {Map<string, Dot[]>} */
       const grid = new Map();
       for (const dot of this.#dots) {
@@ -868,11 +878,19 @@ export class DotField {
 
     this.#ctx.fillStyle = this.#palette.dot;
     this.#ctx.globalAlpha = 1;
+    const liquid = this.#gravityVisualUntilMs != null && nowMs() < this.#gravityVisualUntilMs;
+    if (liquid) {
+      this.#ctx.shadowColor = this.#palette.dot;
+      this.#ctx.shadowBlur = 16 * this.#dpr;
+    } else {
+      this.#ctx.shadowBlur = 0;
+    }
     for (const dot of this.#dots) {
       const radius = Math.max(0.5, dot.r);
       this.#ctx.beginPath();
       this.#ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
       this.#ctx.fill();
     }
+    if (liquid) this.#ctx.shadowBlur = 0;
   }
 }
