@@ -296,6 +296,32 @@ body {
   padding: 0.45rem 0.6rem;
   border-radius: 999px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+}
+
+.mode-toggle .mode-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-mode='dark'] .mode-toggle .mode-icon-sun {
+  display: inline-flex;
+}
+
+[data-mode='dark'] .mode-toggle .mode-icon-moon {
+  display: none;
+}
+
+[data-mode='light'] .mode-toggle .mode-icon-sun {
+  display: none;
+}
+
+[data-mode='light'] .mode-toggle .mode-icon-moon {
+  display: inline-flex;
 }
 
 .reset-controls,

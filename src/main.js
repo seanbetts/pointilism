@@ -368,7 +368,7 @@ import { DotField } from './dotField.js';
   const modeToggle = document.querySelector('#modeToggle');
   function syncModeToggle() {
     if (!modeToggle) return;
-    modeToggle.textContent = mode === 'dark' ? 'Switch to light' : 'Switch to dark';
+    modeToggle.setAttribute('aria-label', mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
     modeToggle.setAttribute('aria-pressed', mode === 'light' ? 'true' : 'false');
   }
   syncModeToggle();
