@@ -126,6 +126,8 @@ import { ContainedDotField } from './containedDotField.js';
   let miniField = null;
   /** @type {HTMLElement | null} */
   let miniPanel = null;
+  /** @type {HTMLElement | null} */
+  let controlsPanel = null;
   try {
     dotField = new DotField(canvas, {
       mode,
@@ -156,6 +158,9 @@ import { ContainedDotField } from './containedDotField.js';
     }
   }
 
+  const controlsPanelEl = document.querySelector('.controls-panel');
+  if (controlsPanelEl instanceof HTMLElement) controlsPanel = controlsPanelEl;
+
   dotField.setDensityScalar(dotDensity);
   dotField.setMinRadius(dotMinSize);
   dotField.setMaxRadius(dotMaxSize);
@@ -179,31 +184,53 @@ import { ContainedDotField } from './containedDotField.js';
   }
 
   function updateExclusionRects() {
-    if (!(miniPanel instanceof HTMLElement)) {
+    const rects = [];
+    if (miniPanel instanceof HTMLElement) {
+      const rect = miniPanel.getBoundingClientRect();
+      const visible =
+        rect.width > 1 &&
+        rect.height > 1 &&
+        rect.bottom > 0 &&
+        rect.right > 0 &&
+        rect.top < window.innerHeight &&
+        rect.left < window.innerWidth;
+      if (visible) {
+        const pad = 8;
+        rects.push({
+          left: rect.left - pad,
+          top: rect.top - pad,
+          right: rect.right + pad,
+          bottom: rect.bottom + pad,
+        });
+      }
+    }
+
+    if (controlsPanel instanceof HTMLElement) {
+      const rect = controlsPanel.getBoundingClientRect();
+      const visible =
+        rect.width > 1 &&
+        rect.height > 1 &&
+        rect.bottom > 0 &&
+        rect.right > 0 &&
+        rect.top < window.innerHeight &&
+        rect.left < window.innerWidth;
+      if (visible) {
+        const pad = 8;
+        rects.push({
+          left: rect.left - pad,
+          top: rect.top - pad,
+          right: rect.right + pad,
+          bottom: rect.bottom + pad,
+        });
+      }
+    }
+
+    if (rects.length === 0) {
       dotField.setExclusionRects([]);
       return;
     }
-    const rect = miniPanel.getBoundingClientRect();
-    const visible =
-      rect.width > 1 &&
-      rect.height > 1 &&
-      rect.bottom > 0 &&
-      rect.right > 0 &&
-      rect.top < window.innerHeight &&
-      rect.left < window.innerWidth;
-    if (!visible) {
-      dotField.setExclusionRects([]);
-      return;
-    }
-    const pad = 8;
-    dotField.setExclusionRects([
-      {
-        left: rect.left - pad,
-        top: rect.top - pad,
-        right: rect.right + pad,
-        bottom: rect.bottom + pad,
-      },
-    ]);
+
+    dotField.setExclusionRects(rects);
   }
 
   updateExclusionRects();
