@@ -610,7 +610,7 @@ export class DotField {
       driftSeed1 = s1;
       driftT = smoothstep(tt);
       driftBandSeed = s0 * 8191 + 17;
-      driftAccel = lerp(0, 0.065, this.#motionAmount) * this.#dpr;
+      driftAccel = lerp(0, 0.0325, this.#motionAmount) * this.#dpr;
       driftScale = 1 / (520 * this.#dpr);
     }
 
