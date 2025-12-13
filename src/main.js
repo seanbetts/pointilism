@@ -107,9 +107,6 @@ import { DotField } from './dotField.js';
   }
 
   function getInitialGridEnabled() {
-    const stored = localStorage.getItem('gridEnabled');
-    if (stored === 'true') return true;
-    if (stored === 'false') return false;
     return false;
   }
 
@@ -121,6 +118,9 @@ import { DotField } from './dotField.js';
   let speed = getInitialSpeed();
   let breathingEnabled = getInitialBreathingEnabled();
   let gridEnabled = getInitialGridEnabled();
+  // Grid is a transient "layout action" and shouldn't persist across refresh.
+  localStorage.removeItem('gridEnabled');
+  gridEnabled = false;
   let breathingBeforeGrid = breathingEnabled;
   const autoFit = true;
   const reactToUi = false;
