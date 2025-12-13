@@ -321,7 +321,7 @@ export class DotField {
     const t0 = nowMs();
     const dropMs = clamp(options?.dropMs ?? 900, 100, 20_000);
     const activeMs = clamp(options?.activeMs ?? 1000, dropMs, 30_000);
-    const liquidMs = clamp(options?.liquidMs ?? 20000, 0, 30_000);
+    const liquidMs = clamp(options?.liquidMs ?? 40000, 0, 60_000);
     this.#gravityDropUntilMs = t0 + dropMs;
     this.#gravityActiveUntilMs = t0 + activeMs;
     this.#gravityVisualUntilMs = t0 + liquidMs;
