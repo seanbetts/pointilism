@@ -435,9 +435,9 @@ body {
 }
 
 .gravity-drop {
-  border: 1px solid var(--fg);
-  background: var(--fg);
-  color: var(--bg);
+  border: 1px solid var(--muted);
+  background: transparent;
+  color: var(--muted);
   padding: 0.45rem 0.6rem;
   border-radius: 999px;
   cursor: pointer;
@@ -445,7 +445,8 @@ body {
 
 .gravity-drop:hover,
 .gravity-drop:focus-visible {
-  filter: brightness(0.92);
+  border-color: var(--fg);
+  color: var(--fg);
 }
 
 .reset-controls:hover,
