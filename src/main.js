@@ -471,12 +471,12 @@ import { DotField } from './dotField.js';
       gridEnabled: false,
     },
     micrograin: {
-      dotMinSize: 1.5,
-      dotMaxSize: 12,
+      dotMinSize: 1,
+      dotMaxSize: 5,
       dotDensity: 1.0,
-      dotSizeCount: 12,
-      dotDistribution: 3, // Flat
-      speed: 2.2,
+      dotSizeCount: 2,
+      dotDistribution: 0, // Small (linear)
+      speed: 3.0,
       breathingEnabled: false,
       gridEnabled: false,
     },
