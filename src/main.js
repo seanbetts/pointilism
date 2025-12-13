@@ -21,7 +21,7 @@ import { DotField } from './dotField.js';
     dotMaxSize: 3.5,
     dotDensity: 1,
     dotSizeCount: 5,
-    dotDistribution: 2,
+    dotDistribution: 3,
     autoFit: true,
   };
 
@@ -198,15 +198,19 @@ import { DotField } from './dotField.js';
   function distributionLabel(v) {
     switch (v) {
       case 0:
-        return 'Small-biased';
+        return 'Small (linear)';
       case 1:
-        return 'Bell curve';
+        return 'Small (curved)';
       case 2:
-        return 'Flat';
+        return 'Bell curve';
       case 3:
-        return 'U-shaped';
+        return 'Flat';
       case 4:
-        return 'Large-biased';
+        return 'U-shaped';
+      case 5:
+        return 'Large (linear)';
+      case 6:
+        return 'Large (curved)';
       default:
         return 'Flat';
     }

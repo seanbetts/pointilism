@@ -32,15 +32,19 @@ function clampInt(value, min, max) {
 function quantizeLabel(index) {
   switch (index) {
     case 0:
-      return 'small-biased';
+      return 'small-linear';
     case 1:
-      return 'bell';
+      return 'small-curved';
     case 2:
-      return 'flat';
+      return 'bell';
     case 3:
-      return 'u-shaped';
+      return 'flat';
     case 4:
-      return 'large-biased';
+      return 'u-shaped';
+    case 5:
+      return 'large-linear';
+    case 6:
+      return 'large-curved';
     default:
       return 'flat';
   }
@@ -56,8 +60,10 @@ function distributionWeights(mode, n) {
     const x = i - mid;
     if (mode === 'flat') w[i] = 1;
     else if (mode === 'bell') w[i] = Math.exp(-(x * x) / (2 * sigma * sigma));
-    else if (mode === 'small-biased') w[i] = Math.pow(n - i, 2);
-    else if (mode === 'large-biased') w[i] = Math.pow(i + 1, 2);
+    else if (mode === 'small-linear') w[i] = n - i;
+    else if (mode === 'small-curved') w[i] = Math.pow(n - i, 2);
+    else if (mode === 'large-linear') w[i] = i + 1;
+    else if (mode === 'large-curved') w[i] = Math.pow(i + 1, 2);
     else if (mode === 'u-shaped') w[i] = Math.pow(Math.abs(x) + 1, 2);
     else w[i] = 1;
   }
