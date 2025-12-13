@@ -480,8 +480,8 @@ import { DotField } from './dotField.js';
       breathingEnabled: true,
       gridEnabled: false,
     },
-    bellGrid: {
-      dotMinSize: 3,
+    bondGrid: {
+      dotMinSize: 5,
       dotMaxSize: 25,
       dotDensity: 1.0,
       dotSizeCount: 2,
