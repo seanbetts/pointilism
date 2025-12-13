@@ -549,7 +549,7 @@ export class DotField {
         this.#stability = lerp(0.975, 0.945, amount);
         // Keep calm drift smooth; avoid per-frame random jitter.
         this.#noise = 0;
-        this.#maxV = lerp(0.12, 0.55, amount);
+        this.#maxV = lerp(0.12, 0.4125, amount);
         this.#cohesion = react ? lerp(0.03, 0.09, amount) : 0;
         break;
       }
