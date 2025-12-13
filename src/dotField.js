@@ -480,7 +480,7 @@ export class DotField {
           r0: r,
           a: 1,
           ds: lerp(0.75, 1.25, Math.random()),
-          stick: Math.pow(Math.random(), 1.6),
+          stick: Math.random(),
         };
         const key = keyForCell(cx, cy);
         const bucket = grid.get(key);
@@ -716,10 +716,10 @@ export class DotField {
               const minDist = dot.r + other.r + this.#bufferPx * this.#dpr;
               const minDist2 = minDist * minDist;
               const stick = physics ? (dot.stick + other.stick) * 0.5 : 0;
-              const restitution = physics ? lerp(1.35, 0.05, stick) : 0;
-              const friction = physics ? lerp(0.02, 0.65, stick) : 1;
-              const adhesionStrength = physics ? 0.03 * stick : 0;
-              const coupleStrength = physics ? 0.5 * stick : 0;
+              const restitution = physics ? lerp(1.25, 0.05, stick) : 0;
+              const friction = physics ? lerp(0.06, 0.7, stick) : 1;
+              const adhesionStrength = physics ? 0.05 * stick : 0;
+              const coupleStrength = physics ? 0.9 * stick : 0;
               if (dist2 >= minDist2) {
                 const band2 = (minDist + adhesionBand) * (minDist + adhesionBand);
                 if (dist2 < band2) {
@@ -779,7 +779,7 @@ export class DotField {
               other.vx -= tvx * (0.5 - friction * 0.5);
               other.vy -= tvy * (0.5 - friction * 0.5);
 
-              const dampBase = !physics ? 1 : lerp(0.997, 0.985, friction);
+              const dampBase = !physics ? 1 : lerp(0.99, 0.94, friction);
               const damp = Math.pow(dampBase, dt);
               dot.vx *= damp;
               dot.vy *= damp;
@@ -791,13 +791,10 @@ export class DotField {
       }
     }
 
-    const maxV = this.#maxV * 2.5;
     for (const dot of this.#dots) {
       const rScaled = dot.r;
       dot.x = clamp(dot.x, rScaled + edgePad, this.#width - rScaled - edgePad);
       dot.y = clamp(dot.y, excludeTop + rScaled + edgePad, this.#height - rScaled - edgePad);
-      dot.vx = clamp(dot.vx, -maxV, maxV);
-      dot.vy = clamp(dot.vy, -maxV, maxV);
     }
   }
 
