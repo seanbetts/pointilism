@@ -137,7 +137,7 @@ export class DotField {
   #bufferPx = 1.5;
   #excludeTopCssPx = 0;
   #minRadiusCssPx = 1.5;
-  #maxRadiusCssPx = 3.5;
+  #maxRadiusCssPx = 4;
   #sizeCount = 5;
   #distribution = 'flat';
   #autoFit = true;

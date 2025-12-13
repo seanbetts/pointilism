@@ -18,7 +18,7 @@ import { DotField } from './dotField.js';
 
   const defaults = {
     dotMinSize: 1.5,
-    dotMaxSize: 3.5,
+    dotMaxSize: 4,
     dotDensity: 1,
     dotSizeCount: 5,
     dotDistribution: 3,
