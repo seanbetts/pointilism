@@ -1,4 +1,5 @@
 import { DotField } from './dotField.js';
+import { ContainedDotField } from './containedDotField.js';
 
 (() => {
   const canvas = document.querySelector('#dotfield');
@@ -121,6 +122,8 @@ import { DotField } from './dotField.js';
   }
 
   let dotField;
+  /** @type {ContainedDotField | null} */
+  let miniField = null;
   try {
     dotField = new DotField(canvas, {
       mode,
@@ -130,6 +133,23 @@ import { DotField } from './dotField.js';
     root.dataset.dotfield = 'unavailable';
     canvas.remove();
     return;
+  }
+
+  const miniCanvas = document.querySelector('#miniDotfield');
+  if (miniCanvas instanceof HTMLCanvasElement) {
+    const panel = miniCanvas.parentElement;
+    if (panel instanceof HTMLElement) {
+      try {
+        miniField = new ContainedDotField(miniCanvas, panel, {
+          mode,
+          reducedMotion: prefersReducedMotion.matches,
+        });
+        miniField.start();
+      } catch {
+        miniField = null;
+        panel.remove();
+      }
+    }
   }
 
   dotField.setDensityScalar(dotDensity);
@@ -371,12 +391,18 @@ import { DotField } from './dotField.js';
     scheduleDotUpdate();
     dotField.restart();
     dotField.heroIntro();
+    miniField?.restart();
   });
 
   pauseControls?.addEventListener('click', () => {
     paused = !paused;
-    if (paused) dotField.pause();
-    else dotField.resume();
+    if (paused) {
+      dotField.pause();
+      miniField?.pause();
+    } else {
+      dotField.resume();
+      miniField?.resume();
+    }
     syncPauseControls();
   });
 
@@ -410,11 +436,13 @@ import { DotField } from './dotField.js';
     localStorage.setItem('mode', mode);
     root.dataset.mode = mode;
     dotField.invertWithDispersion(mode);
+    miniField?.setMode(mode);
     syncModeToggle();
   });
 
   prefersReducedMotion.addEventListener('change', (event) => {
     dotField.setReducedMotion(event.matches);
+    miniField?.setReducedMotion(event.matches);
   });
 
   dotField.start();
