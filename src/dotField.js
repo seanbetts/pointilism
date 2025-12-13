@@ -176,6 +176,8 @@ export class DotField {
   #speed = 0.35;
   #physicsEnabled = true;
   #gravityEnabled = false;
+  /** @type {number | null} */
+  #gravityDropUntilMs = null;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -295,6 +297,24 @@ export class DotField {
   /** @param {boolean} enabled */
   setGravityEnabled(enabled) {
     this.#gravityEnabled = Boolean(enabled);
+    if (!this.#gravityEnabled) this.#gravityDropUntilMs = null;
+  }
+
+  dropToBottom() {
+    this.#gravityEnabled = true;
+    if (this.#reducedMotion) {
+      this.#draw(true);
+      return;
+    }
+    this.#gravityDropUntilMs = nowMs() + 1600;
+
+    const edgePad = this.#edgePaddingCssPx * this.#dpr;
+    for (const dot of this.#dots) {
+      const bottom = this.#height - dot.r - edgePad;
+      const dist = Math.max(0, bottom - dot.y);
+      const impulse = clamp(dist / (120 * this.#dpr), 0, 2.2) * this.#dpr;
+      dot.vy += impulse * lerp(0.7, 1.05, Math.random());
+    }
   }
 
   /** @param {number} cssPx */
@@ -567,7 +587,8 @@ export class DotField {
     const dt = dtMs / 16.6667;
 
     this.#sectionTuning();
-    const anchors = this.#getAnchors();
+    const dropping = this.#gravityDropUntilMs != null && nowMs() < this.#gravityDropUntilMs;
+    const anchors = dropping ? [] : this.#getAnchors();
     const { cohesion, stability, noise, maxV } = this;
 
     const speed = this.#speed;
@@ -599,7 +620,7 @@ export class DotField {
       dot.vx += jitter * 0.22 * dt;
       dot.vy += jitter * 0.22 * dt;
 
-      if (!this.#paused && speed > 0) {
+      if (!this.#paused && !dropping && speed > 0) {
         const sx = dot.x * driftScale;
         const sy = dot.y * driftScale;
         const n1a = noise2(sx, sy, driftSeed0);
@@ -630,7 +651,8 @@ export class DotField {
       }
 
       if (!this.#paused && this.#gravityEnabled && speed > 0) {
-        const g = lerp(0, 0.09, speed) * this.#dpr;
+        const baseline = Math.max(0.35, speed);
+        const g = (dropping ? lerp(0, 1.35, baseline) : lerp(0, 0.09, baseline)) * this.#dpr;
         if (this.#physicsEnabled) {
           const mass = 1 + dot.r0 * dot.r0 * 0.025;
           dot.vy += (g / mass) * dt;

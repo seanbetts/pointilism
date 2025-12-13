@@ -315,7 +315,7 @@ import { DotField } from './dotField.js';
       speed = next;
       localStorage.setItem('speed', String(speed));
       if (speedValue instanceof HTMLOutputElement) speedValue.value = speed.toFixed(2);
-      scheduleDotUpdate();
+      dotField.setSpeed(speedInternal());
     });
   }
 
@@ -326,7 +326,8 @@ import { DotField } from './dotField.js';
       gravityEnabled = gravityEnabledEl.checked;
       localStorage.setItem('gravityEnabled', String(gravityEnabled));
       if (gravityEnabledValue instanceof HTMLOutputElement) gravityEnabledValue.value = gravityEnabled ? 'On' : 'Off';
-      scheduleDotUpdate();
+      if (gravityEnabled) dotField.dropToBottom();
+      else dotField.setGravityEnabled(false);
     });
   }
 
@@ -337,7 +338,7 @@ import { DotField } from './dotField.js';
       reactToUi = reactToUiEl.checked;
       localStorage.setItem('reactToUi', String(reactToUi));
       if (reactToUiValue instanceof HTMLOutputElement) reactToUiValue.value = reactToUi ? 'On' : 'Off';
-      scheduleDotUpdate();
+      dotField.setReactToUi(reactToUi);
     });
   }
 
@@ -424,7 +425,6 @@ import { DotField } from './dotField.js';
   localStorage.removeItem('motionEnabled');
   localStorage.removeItem('physicsEnabled');
   localStorage.removeItem('contactMode');
-  localStorage.removeItem('gravityEnabled');
   localStorage.removeItem('breathingEnabled');
 
   const modeToggle = document.querySelector('#modeToggle');
