@@ -408,6 +408,13 @@ import { DotField } from './dotField.js';
       gridEnabled = gridEnabledEl.checked;
       localStorage.setItem('gridEnabled', String(gridEnabled));
       if (gridEnabledValue instanceof HTMLOutputElement) gridEnabledValue.value = gridEnabled ? 'On' : 'Off';
+
+      if (paused) {
+        paused = false;
+        dotField.resume();
+        syncPauseControls();
+      }
+
       if (gridEnabled) {
         breathingBeforeGrid = breathingEnabled;
         breathingEnabled = false;
