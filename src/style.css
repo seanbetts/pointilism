@@ -110,7 +110,8 @@ body {
 .mode-toggle,
 .reset-controls,
 .restart-controls,
-.pause-controls {
+.pause-controls,
+.gravity-drop {
   align-self: center;
 }
 
