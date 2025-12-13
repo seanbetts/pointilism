@@ -912,7 +912,7 @@ export class DotField {
       this.#ctx.fillStyle = this.#palette.dot;
       this.#ctx.globalAlpha = 1;
 
-      const bins = 60;
+      const bins = 120;
       /** @type {number[]} */
       const topYs = new Array(bins).fill(Number.POSITIVE_INFINITY);
       const cutoffY = this.#height * 0.45;
