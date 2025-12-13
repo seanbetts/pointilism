@@ -21,6 +21,10 @@ function nowMs() {
  * @typedef {{ x: number; y: number; vx: number; vy: number; r: number; a: number }} Dot
  */
 
+function keyForCell(cx, cy) {
+  return `${cx},${cy}`;
+}
+
 export class DotField {
   /** @type {HTMLCanvasElement} */
   #canvas;
@@ -38,6 +42,7 @@ export class DotField {
   #dpr = 1;
   #width = 0;
   #height = 0;
+  #setupScheduled = false;
 
   #lastT = nowMs();
   /** @type {number | null} */
@@ -62,6 +67,7 @@ export class DotField {
   #maxV = 0.9;
   #densityScalar = 1;
   #dotScale = 1;
+  #bufferPx = 1.5;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -129,7 +135,23 @@ export class DotField {
   setDotScale(scale) {
     const next = clamp(scale, 0.4, 10);
     this.#dotScale = next;
-    if (this.#reducedMotion) this.#draw(true);
+    this.#scheduleSetup();
+  }
+
+  /** @param {number} scalar */
+  setDensityScalar(scalar) {
+    const next = clamp(scalar, 0.1, 3);
+    this.#densityScalar = next;
+    this.#scheduleSetup();
+  }
+
+  #scheduleSetup() {
+    if (this.#setupScheduled) return;
+    this.#setupScheduled = true;
+    requestAnimationFrame(() => {
+      this.#setupScheduled = false;
+      this.#setup();
+    });
   }
 
   /** @param {Mode} mode */
@@ -204,19 +226,63 @@ export class DotField {
 
   /** @param {number} count */
   #spawnDots(count) {
+    const maxR = 1.8 * this.#dpr;
+    const maxRequired = 2 * maxR * this.#dotScale + this.#bufferPx * this.#dpr;
+    const cellSize = Math.max(6, maxRequired);
+
+    /** @type {Map<string, Dot[]>} */
+    const grid = new Map();
     /** @type {Dot[]} */
     const dots = [];
-    for (let i = 0; i < count; i++) {
-      const baseR = lerp(0.8, 1.8, Math.random()) * this.#dpr;
-      dots.push({
-        x: Math.random() * this.#width,
-        y: Math.random() * this.#height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        r: baseR,
+
+    const maxAttempts = Math.max(4000, count * 90);
+    let attempts = 0;
+
+    while (dots.length < count && attempts < maxAttempts) {
+      attempts++;
+
+      const r = lerp(0.8, 1.8, Math.random()) * this.#dpr;
+      const rScaled = r * this.#dotScale;
+      const x = lerp(rScaled, this.#width - rScaled, Math.random());
+      const y = lerp(rScaled, this.#height - rScaled, Math.random());
+
+      const cx = Math.floor(x / cellSize);
+      const cy = Math.floor(y / cellSize);
+
+      let ok = true;
+      for (let oy = -1; oy <= 1 && ok; oy++) {
+        for (let ox = -1; ox <= 1 && ok; ox++) {
+          const bucket = grid.get(keyForCell(cx + ox, cy + oy));
+          if (!bucket) continue;
+          for (const other of bucket) {
+            const dx = x - other.x;
+            const dy = y - other.y;
+            const minDist = (r + other.r) * this.#dotScale + this.#bufferPx * this.#dpr;
+            if (dx * dx + dy * dy < minDist * minDist) {
+              ok = false;
+              break;
+            }
+          }
+        }
+      }
+      if (!ok) continue;
+
+      /** @type {Dot} */
+      const dot = {
+        x,
+        y,
+        vx: (Math.random() - 0.5) * 0.22,
+        vy: (Math.random() - 0.5) * 0.22,
+        r,
         a: 1,
-      });
+      };
+      const key = keyForCell(cx, cy);
+      const bucket = grid.get(key);
+      if (bucket) bucket.push(dot);
+      else grid.set(key, [dot]);
+      dots.push(dot);
     }
+
     return dots;
   }
 
@@ -341,17 +407,92 @@ export class DotField {
       dot.x += dot.vx * this.#dpr * 2.2 * dt;
       dot.y += dot.vy * this.#dpr * 2.2 * dt;
 
-      if (this.#activeSection === 'footer') {
-        dot.y += this.#dpr * 0.6 * dt;
+      const rScaled = dot.r * this.#dotScale;
+      if (dot.x < rScaled) {
+        dot.x = rScaled;
+        dot.vx = Math.abs(dot.vx) * 0.5;
+      } else if (dot.x > this.#width - rScaled) {
+        dot.x = this.#width - rScaled;
+        dot.vx = -Math.abs(dot.vx) * 0.5;
       }
-
-      if (dot.x < 0) dot.x += this.#width;
-      if (dot.x > this.#width) dot.x -= this.#width;
-      if (dot.y < 0) dot.y += this.#height;
-      if (dot.y > this.#height) dot.y -= this.#height;
+      if (dot.y < rScaled) {
+        dot.y = rScaled;
+        dot.vy = Math.abs(dot.vy) * 0.5;
+      } else if (dot.y > this.#height - rScaled) {
+        dot.y = this.#height - rScaled;
+        dot.vy = -Math.abs(dot.vy) * 0.5;
+      }
     }
 
+    this.#resolveOverlaps();
     this.#draw(false);
+  }
+
+  #resolveOverlaps() {
+    if (this.#dots.length < 2) return;
+
+    const maxR = 1.8 * this.#dpr;
+    const maxRequired = 2 * maxR * this.#dotScale + this.#bufferPx * this.#dpr;
+    const cellSize = Math.max(6, maxRequired);
+
+    for (let iter = 0; iter < 2; iter++) {
+      /** @type {Map<string, Dot[]>} */
+      const grid = new Map();
+      for (const dot of this.#dots) {
+        const cx = Math.floor(dot.x / cellSize);
+        const cy = Math.floor(dot.y / cellSize);
+        const key = keyForCell(cx, cy);
+        const bucket = grid.get(key);
+        if (bucket) bucket.push(dot);
+        else grid.set(key, [dot]);
+      }
+
+      for (const dot of this.#dots) {
+        const cx = Math.floor(dot.x / cellSize);
+        const cy = Math.floor(dot.y / cellSize);
+
+        for (let oy = -1; oy <= 1; oy++) {
+          for (let ox = -1; ox <= 1; ox++) {
+            const bucket = grid.get(keyForCell(cx + ox, cy + oy));
+            if (!bucket) continue;
+            for (const other of bucket) {
+              if (other === dot) continue;
+              if (other.x < dot.x) continue;
+              if (other.x === dot.x && other.y <= dot.y) continue;
+
+              const dx = other.x - dot.x;
+              const dy = other.y - dot.y;
+              const dist2 = dx * dx + dy * dy;
+              const minDist = (dot.r + other.r) * this.#dotScale + this.#bufferPx * this.#dpr;
+              const minDist2 = minDist * minDist;
+              if (dist2 >= minDist2) continue;
+
+              const dist = Math.sqrt(Math.max(1e-6, dist2));
+              const overlap = minDist - dist;
+              const nx = dx / dist;
+              const ny = dy / dist;
+              const push = overlap * 0.5;
+
+              dot.x -= nx * push;
+              dot.y -= ny * push;
+              other.x += nx * push;
+              other.y += ny * push;
+
+              dot.vx *= 0.92;
+              dot.vy *= 0.92;
+              other.vx *= 0.92;
+              other.vy *= 0.92;
+            }
+          }
+        }
+      }
+    }
+
+    for (const dot of this.#dots) {
+      const rScaled = dot.r * this.#dotScale;
+      dot.x = clamp(dot.x, rScaled, this.#width - rScaled);
+      dot.y = clamp(dot.y, rScaled, this.#height - rScaled);
+    }
   }
 
   get cohesion() {
@@ -374,9 +515,9 @@ export class DotField {
     this.#ctx.fillStyle = this.#palette.dot;
     this.#ctx.globalAlpha = 1;
     for (const dot of this.#dots) {
-      const radius = dot.r * this.#dotScale;
+      const radius = Math.max(1, Math.round(dot.r * this.#dotScale));
       this.#ctx.beginPath();
-      this.#ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
+      this.#ctx.arc(Math.round(dot.x), Math.round(dot.y), radius, 0, Math.PI * 2);
       this.#ctx.fill();
     }
   }

@@ -24,7 +24,14 @@ import { DotField } from './dotField.js';
     return 1;
   }
 
+  function getInitialDensity() {
+    const stored = Number(localStorage.getItem('dotDensity'));
+    if (Number.isFinite(stored) && stored > 0) return stored;
+    return 1;
+  }
+
   let dotScale = getInitialDotScale();
+  let dotDensity = getInitialDensity();
 
   let dotField;
   try {
@@ -39,8 +46,22 @@ import { DotField } from './dotField.js';
   }
 
   dotField.setDotScale(dotScale);
+  dotField.setDensityScalar(dotDensity);
 
   const dotSize = document.querySelector('#dotSize');
+  const dotDensityEl = document.querySelector('#dotDensity');
+
+  let dotUpdateScheduled = false;
+  function scheduleDotUpdate() {
+    if (dotUpdateScheduled) return;
+    dotUpdateScheduled = true;
+    requestAnimationFrame(() => {
+      dotUpdateScheduled = false;
+      dotField.setDotScale(dotScale);
+      dotField.setDensityScalar(dotDensity);
+    });
+  }
+
   if (dotSize instanceof HTMLInputElement) {
     dotSize.value = String(dotScale);
     dotSize.addEventListener('input', () => {
@@ -48,7 +69,18 @@ import { DotField } from './dotField.js';
       if (!Number.isFinite(next)) return;
       dotScale = next;
       localStorage.setItem('dotScale', String(dotScale));
-      dotField.setDotScale(dotScale);
+      scheduleDotUpdate();
+    });
+  }
+
+  if (dotDensityEl instanceof HTMLInputElement) {
+    dotDensityEl.value = String(dotDensity);
+    dotDensityEl.addEventListener('input', () => {
+      const next = Number(dotDensityEl.value);
+      if (!Number.isFinite(next)) return;
+      dotDensity = next;
+      localStorage.setItem('dotDensity', String(dotDensity));
+      scheduleDotUpdate();
     });
   }
 

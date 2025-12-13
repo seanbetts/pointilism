@@ -121,6 +121,20 @@ body {
   accent-color: var(--fg);
 }
 
+.dot-density {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.dot-density-input {
+  width: min(220px, 40vw);
+  accent-color: var(--fg);
+}
+
 .brand {
   color: var(--fg);
   text-decoration: none;
