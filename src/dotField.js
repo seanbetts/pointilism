@@ -750,8 +750,8 @@ export class DotField {
     }
 
     const settling = this.#settleBoostUntilMs != null && tNow < this.#settleBoostUntilMs;
-    const overlapIterations = dropping ? 18 : settling ? 10 : 2;
-    const pushScale = dropping ? 1.6 : settling ? 1.35 : 1;
+    const overlapIterations = dropping ? 28 : settling ? 16 : 2;
+    const pushScale = dropping ? 1.95 : settling ? 1.65 : 1;
     this.#resolveOverlaps(dt, overlapIterations, pushScale);
     this.#draw(false);
   }
