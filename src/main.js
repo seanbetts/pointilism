@@ -433,7 +433,14 @@ import { DotField } from './dotField.js';
     });
   }
 
-  gravityDrop?.addEventListener('click', () => dotField.dropToBottom());
+  gravityDrop?.addEventListener('click', () => {
+    if (paused) {
+      paused = false;
+      dotField.resume();
+      syncPauseControls();
+    }
+    dotField.dropToBottom();
+  });
 
   function syncControlValues() {
     clampMinMaxSizes();
