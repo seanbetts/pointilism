@@ -814,6 +814,7 @@ export class DotField {
     const edgePad = this.#edgePaddingCssPx * this.#dpr;
 
     const physics = this.#physicsEnabled && !this.#gravityEnabled;
+    const allowCoupling = !this.#breathingEnabled;
     const adhesionBand = physics ? 6 * this.#dpr : 0;
     const breathBand = breathExhale > 0 ? 18 * this.#dpr : 0;
 
@@ -851,7 +852,7 @@ export class DotField {
               const restitution = physics ? lerp(1.25, 0.05, stick) : 0;
               const friction = physics ? lerp(0.06, 0.7, stick) : 1;
               const adhesionStrength = physics ? 0.05 * stick : 0;
-              const coupleStrength = physics ? 0.9 * stick : 0;
+              const coupleStrength = physics && allowCoupling ? 0.9 * stick : 0;
               if (dist2 >= minDist2) {
                 if (breathBand > 0) {
                   const band2 = (minDist + breathBand) * (minDist + breathBand);
