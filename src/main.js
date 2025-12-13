@@ -600,6 +600,8 @@ import { DotField } from './dotField.js';
       syncPauseControls();
     }
 
+    setActivePreset('default');
+
     dotMinSize = defaults.dotMinSize;
     dotMaxSize = defaults.dotMaxSize;
     dotDensity = defaults.dotDensity;
