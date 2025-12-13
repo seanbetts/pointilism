@@ -145,6 +145,7 @@ export class DotField {
   /** @type {number | null} */
   #raf = null;
   #running = false;
+  #paused = false;
   /** @type {number | null} */
   #introUntilMs = null;
 
@@ -192,7 +193,7 @@ export class DotField {
     window.addEventListener('resize', () => this.#setup(), { passive: true });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.stop();
-      else if (this.#running) this.start();
+      else if (this.#running && !this.#paused) this.start();
     });
   }
 
@@ -359,6 +360,7 @@ export class DotField {
 
   start() {
     this.#running = true;
+    this.#paused = false;
     if (this.#reducedMotion) {
       this.#draw(true);
       return;
@@ -371,6 +373,26 @@ export class DotField {
     if (this.#raf != null) return;
     this.#lastT = nowMs();
     this.#raf = requestAnimationFrame((t) => this.#frame(t));
+  }
+
+  pause() {
+    this.#paused = true;
+    this.stop();
+  }
+
+  resume() {
+    this.#paused = false;
+    this.start();
+  }
+
+  restart() {
+    this.#setup();
+    if (this.#paused || this.#reducedMotion || this.#motionStyle === 0) {
+      this.stop();
+      this.#draw(true);
+      return;
+    }
+    this.start();
   }
 
   stop() {

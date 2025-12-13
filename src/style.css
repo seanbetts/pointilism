@@ -108,7 +108,9 @@ body {
 }
 
 .mode-toggle,
-.reset-controls {
+.reset-controls,
+.restart-controls,
+.pause-controls {
   align-self: center;
 }
 
@@ -248,7 +250,9 @@ body {
   cursor: pointer;
 }
 
-.reset-controls {
+.reset-controls,
+.restart-controls,
+.pause-controls {
   border: 1px solid var(--muted);
   background: transparent;
   color: var(--muted);
@@ -265,6 +269,14 @@ body {
 
 .reset-controls:hover,
 .reset-controls:focus-visible {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.restart-controls:hover,
+.restart-controls:focus-visible,
+.pause-controls:hover,
+.pause-controls:focus-visible {
   border-color: var(--fg);
   color: var(--fg);
 }

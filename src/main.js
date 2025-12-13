@@ -160,6 +160,8 @@ import { DotField } from './dotField.js';
   const autoFitEl = document.querySelector('#autoFit');
   const autoFitValue = document.querySelector('#autoFitValue');
   const resetControls = document.querySelector('#resetControls');
+  const restartControls = document.querySelector('#restartControls');
+  const pauseControls = document.querySelector('#pauseControls');
 
   let dotUpdateScheduled = false;
   function scheduleDotUpdate() {
@@ -412,6 +414,27 @@ import { DotField } from './dotField.js';
     syncControlValues();
     dotField.setMotionStyle(motionStyle);
     scheduleDotUpdate();
+  });
+
+  let paused = false;
+  function syncPauseButton() {
+    if (!(pauseControls instanceof HTMLButtonElement)) return;
+    pauseControls.textContent = paused ? 'Start' : 'Stop';
+  }
+  syncPauseButton();
+
+  restartControls?.addEventListener('click', () => {
+    paused = false;
+    syncPauseButton();
+    dotField.restart();
+    dotField.heroIntro();
+  });
+
+  pauseControls?.addEventListener('click', () => {
+    paused = !paused;
+    syncPauseButton();
+    if (paused) dotField.pause();
+    else dotField.resume();
   });
 
   // Clean up legacy storage keys from earlier slider iterations.
