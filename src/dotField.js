@@ -612,7 +612,7 @@ export class DotField {
         const fy = (vy / len) * driftForce * speed;
         const denom = Math.max(1e-6, maxR - minR);
         const t = clamp((dot.r0 - minR) / denom, 0, 1);
-        const sizeBias = lerp(0.95, 1.05, t);
+        const sizeBias = lerp(0.975, 1.025, t);
         if (this.#physicsEnabled) {
           const mass = 1 + dot.r0 * dot.r0 * 0.05;
           dot.vx += (fx / mass) * sizeBias * dt;
