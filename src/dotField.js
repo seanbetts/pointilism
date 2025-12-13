@@ -167,6 +167,8 @@ export class DotField {
   #bufferPx = 1.5;
   #edgePaddingCssPx = 2;
   #excludeTopCssPx = 0;
+  /** @type {{ left: number; top: number; right: number; bottom: number }[]} */
+  #excludeRectsCssPx = [];
   #minRadiusCssPx = 1.5;
   #maxRadiusCssPx = 4;
   #sizeCount = 5;
@@ -363,6 +365,12 @@ export class DotField {
     this.#scheduleSetup();
   }
 
+  /** @param {{ left: number; top: number; right: number; bottom: number }[]} rects */
+  setExclusionRects(rects) {
+    this.#excludeRectsCssPx = Array.isArray(rects) ? rects.map((r) => ({ ...r })) : [];
+    this.#scheduleSetup();
+  }
+
   #scheduleSetup() {
     if (this.#setupScheduled) return;
     this.#setupScheduled = true;
@@ -486,6 +494,12 @@ export class DotField {
     const cellSize = Math.max(6, maxRequired);
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
     const edgePad = this.#edgePaddingCssPx * this.#dpr;
+    const excludeRects = this.#excludeRectsCssPx.map((r) => ({
+      left: r.left * this.#dpr,
+      top: r.top * this.#dpr,
+      right: r.right * this.#dpr,
+      bottom: r.bottom * this.#dpr,
+    }));
 
     const sizes = Array.from({ length: this.#sizeCount }, (_, i) => {
       return minR + (i * (maxR - minR)) / (this.#sizeCount - 1);
@@ -517,6 +531,15 @@ export class DotField {
         const cy = Math.floor(y / cellSize);
 
         let ok = true;
+        if (excludeRects.length > 0) {
+          for (const rect of excludeRects) {
+            const pad = r + this.#bufferPx * this.#dpr;
+            if (x >= rect.left - pad && x <= rect.right + pad && y >= rect.top - pad && y <= rect.bottom + pad) {
+              ok = false;
+              break;
+            }
+          }
+        }
         for (let oy = -1; oy <= 1 && ok; oy++) {
           for (let ox = -1; ox <= 1 && ok; ox++) {
             const bucket = grid.get(keyForCell(cx + ox, cy + oy));
@@ -558,6 +581,49 @@ export class DotField {
     }
 
     return dots;
+  }
+
+  #pushOutOfExclusions() {
+    if (this.#excludeRectsCssPx.length === 0) return;
+
+    const rects = this.#excludeRectsCssPx.map((r) => ({
+      left: r.left * this.#dpr,
+      top: r.top * this.#dpr,
+      right: r.right * this.#dpr,
+      bottom: r.bottom * this.#dpr,
+    }));
+
+    const buffer = this.#bufferPx * this.#dpr;
+    for (const dot of this.#dots) {
+      for (const rect of rects) {
+        const pad = dot.r + buffer;
+        const left = rect.left - pad;
+        const right = rect.right + pad;
+        const top = rect.top - pad;
+        const bottom = rect.bottom + pad;
+        if (dot.x < left || dot.x > right || dot.y < top || dot.y > bottom) continue;
+
+        const toLeft = dot.x - left;
+        const toRight = right - dot.x;
+        const toTop = dot.y - top;
+        const toBottom = bottom - dot.y;
+        const m = Math.min(toLeft, toRight, toTop, toBottom);
+
+        if (m === toLeft) {
+          dot.x = left - 0.5;
+          dot.vx = Math.min(0, dot.vx);
+        } else if (m === toRight) {
+          dot.x = right + 0.5;
+          dot.vx = Math.max(0, dot.vx);
+        } else if (m === toTop) {
+          dot.y = top - 0.5;
+          dot.vy = Math.min(0, dot.vy);
+        } else {
+          dot.y = bottom + 0.5;
+          dot.vy = Math.max(0, dot.vy);
+        }
+      }
+    }
   }
 
   #getAnchors() {
@@ -786,6 +852,8 @@ export class DotField {
       }
     }
 
+    this.#pushOutOfExclusions();
+
     const settling =
       this.#settleBoostStartMs != null &&
       this.#settleBoostUntilMs != null &&
@@ -794,6 +862,7 @@ export class DotField {
     const overlapIterations = dropping ? 28 : settling ? 16 : 2;
     const pushScale = dropping ? 1.95 : settling ? 1.65 : 1;
     this.#resolveOverlaps(dt, overlapIterations, pushScale, breathEnabled ? exhaleForce : 0, breathThresholdR);
+    this.#pushOutOfExclusions();
     this.#draw(false);
   }
 
@@ -948,6 +1017,8 @@ export class DotField {
       dot.x = clamp(dot.x, rScaled + edgePad, this.#width - rScaled - edgePad);
       dot.y = clamp(dot.y, excludeTop + rScaled + edgePad, this.#height - rScaled - edgePad);
     }
+
+    this.#pushOutOfExclusions();
   }
 
   get cohesion() {

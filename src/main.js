@@ -124,6 +124,8 @@ import { ContainedDotField } from './containedDotField.js';
   let dotField;
   /** @type {ContainedDotField | null} */
   let miniField = null;
+  /** @type {HTMLElement | null} */
+  let miniPanel = null;
   try {
     dotField = new DotField(canvas, {
       mode,
@@ -140,6 +142,7 @@ import { ContainedDotField } from './containedDotField.js';
     const panel = miniCanvas.parentElement;
     if (panel instanceof HTMLElement) {
       try {
+        miniPanel = panel;
         miniField = new ContainedDotField(miniCanvas, panel, {
           mode,
           reducedMotion: prefersReducedMotion.matches,
@@ -147,6 +150,7 @@ import { ContainedDotField } from './containedDotField.js';
         miniField.start();
       } catch {
         miniField = null;
+        miniPanel = null;
         panel.remove();
       }
     }
@@ -173,6 +177,42 @@ import { ContainedDotField } from './containedDotField.js';
     const headerObserver = new ResizeObserver(() => updateTopExclusion());
     headerObserver.observe(headerEl);
   }
+
+  function updateExclusionRects() {
+    if (!(miniPanel instanceof HTMLElement)) {
+      dotField.setExclusionRects([]);
+      return;
+    }
+    const rect = miniPanel.getBoundingClientRect();
+    const visible =
+      rect.width > 1 &&
+      rect.height > 1 &&
+      rect.bottom > 0 &&
+      rect.right > 0 &&
+      rect.top < window.innerHeight &&
+      rect.left < window.innerWidth;
+    if (!visible) {
+      dotField.setExclusionRects([]);
+      return;
+    }
+    const pad = 8;
+    dotField.setExclusionRects([
+      {
+        left: rect.left - pad,
+        top: rect.top - pad,
+        right: rect.right + pad,
+        bottom: rect.bottom + pad,
+      },
+    ]);
+  }
+
+  updateExclusionRects();
+  if (miniPanel instanceof HTMLElement) {
+    const panelObserver = new ResizeObserver(() => updateExclusionRects());
+    panelObserver.observe(miniPanel);
+  }
+  window.addEventListener('scroll', () => updateExclusionRects(), { passive: true });
+  window.addEventListener('resize', () => updateExclusionRects(), { passive: true });
 
   const dotMinSizeEl = document.querySelector('#dotMinSize');
   const dotMinSizeValue = document.querySelector('#dotMinSizeValue');
