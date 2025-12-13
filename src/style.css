@@ -113,17 +113,6 @@ body {
   padding: 0.75rem clamp(1rem, 5vw, 3rem);
 }
 
-.hero-ui {
-  position: absolute;
-  top: clamp(1rem, 3vh, 2rem);
-  left: clamp(1rem, 5vw, 3rem);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.85rem;
-  z-index: 2;
-}
-
 .header-row {
   display: flex;
   align-items: center;
@@ -132,7 +121,7 @@ body {
 }
 
 .controls-panel {
-  margin-top: 0;
+  margin-top: 0.65rem;
   padding: 0.75rem 0.85rem;
   border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -443,6 +432,9 @@ body {
 }
 
 .mini-panel {
+  position: absolute;
+  top: clamp(1rem, 3vh, 2rem);
+  left: clamp(1rem, 5vw, 3rem);
   width: min(420px, 60vw);
   height: clamp(120px, 16vh, 190px);
   border-radius: 0;

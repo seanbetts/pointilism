@@ -8,7 +8,7 @@
       name="description"
       content="A monochrome, pointillist dot-field system demonstrating state, intent, and transformation."
     />
-    <link rel="stylesheet" href="src/style.css?v=2025-12-13-12" />
+    <link rel="stylesheet" href="src/style.css?v=2025-12-13-11" />
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -46,83 +46,77 @@
             </button>
           </nav>
         </div>
+
+        <div class="controls-panel" role="region" aria-label="Dot controls">
+          <div class="controls">
+            <label class="control">
+              <span class="control-label">
+                Min size
+                <button class="help" type="button" aria-label="Min size help" title="Minimum dot radius (in CSS pixels).">?</button>
+              </span>
+              <input id="dotMinSize" class="control-input" type="range" min="1" max="10" step="0.5" value="4.5" />
+              <output id="dotMinSizeValue" class="control-value" for="dotMinSize"></output>
+            </label>
+            <label class="control">
+              <span class="control-label">
+                Max size
+                <button class="help" type="button" aria-label="Max size help" title="Maximum dot radius (in CSS pixels).">?</button>
+              </span>
+              <input id="dotMaxSize" class="control-input" type="range" min="5" max="100" step="1" value="50" />
+              <output id="dotMaxSizeValue" class="control-value" for="dotMaxSize"></output>
+            </label>
+            <label class="control">
+              <span class="control-label">
+                Size count
+                <button class="help" type="button" aria-label="Size count help" title="Number of discrete dot sizes between min and max (evenly spaced).">?</button>
+              </span>
+              <input id="dotSizeCount" class="control-input" type="range" min="2" max="15" step="1" value="10" />
+              <output id="dotSizeCountValue" class="control-value" for="dotSizeCount"></output>
+            </label>
+            <label class="control">
+              <span class="control-label">
+                Size distribution
+                <button class="help" type="button" aria-label="Size distribution help" title="How dot sizes are distributed across the size buckets.">?</button>
+              </span>
+              <input id="dotDistribution" class="control-input" type="range" min="0" max="6" step="1" value="1" />
+              <output id="dotDistributionValue" class="control-value" for="dotDistribution"></output>
+            </label>
+            <label class="control">
+              <span class="control-label">
+                Density
+                <button class="help" type="button" aria-label="Density help" title="Controls how many dots are on screen.">?</button>
+              </span>
+              <input id="dotDensity" class="control-input" type="range" min="0.2" max="1" step="0.05" value="0.5" />
+              <output id="dotDensityValue" class="control-value" for="dotDensity"></output>
+            </label>
+            <label class="control">
+              <span class="control-label">
+                Speed
+                <button class="help" type="button" aria-label="Speed help" title="Controls how quickly the dots drift and settle. (1.0 is the baseline)">?</button>
+              </span>
+              <input id="speed" class="control-input" type="range" min="0" max="3" step="0.05" value="1" />
+              <output id="speedValue" class="control-value" for="speed"></output>
+            </label>
+            <label class="control toggle">
+              <span class="control-label">
+                Breathing
+                <button class="help" type="button" aria-label="Breathing help" title="Big dots gently breathe (fixed tempo), and expand to nudge nearby dots.">?</button>
+              </span>
+              <span class="toggle-row">
+                <input id="breathingEnabled" type="checkbox" checked />
+                <span class="toggle-switch" aria-hidden="true"></span>
+              </span>
+              <output id="breathingEnabledValue" class="control-value" for="breathingEnabled"></output>
+            </label>
+            <button id="gravityDrop" class="gravity-drop" type="button" title="Drop all dots to the bottom for a few seconds.">Drop</button>
+            <button id="restartControls" class="restart-controls" type="button">Reset</button>
+            <button id="pauseControls" class="pause-controls" type="button">Stop</button>
+          </div>
+        </div>
 		      </header>
 
       <main id="content" class="content" tabindex="-1">
         <section id="top" class="section hero" data-section="hero">
-          <div class="hero-ui" aria-hidden="false">
-            <div class="mini-panel" aria-hidden="true">
-              <canvas id="miniDotfield"></canvas>
-            </div>
-
-            <div class="controls-panel" role="region" aria-label="Dot controls">
-              <div class="controls">
-                <label class="control">
-                  <span class="control-label">
-                    Min size
-                    <button class="help" type="button" aria-label="Min size help" title="Minimum dot radius (in CSS pixels).">?</button>
-                  </span>
-                  <input id="dotMinSize" class="control-input" type="range" min="1" max="10" step="0.5" value="4.5" />
-                  <output id="dotMinSizeValue" class="control-value" for="dotMinSize"></output>
-                </label>
-                <label class="control">
-                  <span class="control-label">
-                    Max size
-                    <button class="help" type="button" aria-label="Max size help" title="Maximum dot radius (in CSS pixels).">?</button>
-                  </span>
-                  <input id="dotMaxSize" class="control-input" type="range" min="5" max="100" step="1" value="50" />
-                  <output id="dotMaxSizeValue" class="control-value" for="dotMaxSize"></output>
-                </label>
-                <label class="control">
-                  <span class="control-label">
-                    Size count
-                    <button class="help" type="button" aria-label="Size count help" title="Number of discrete dot sizes between min and max (evenly spaced).">?</button>
-                  </span>
-                  <input id="dotSizeCount" class="control-input" type="range" min="2" max="15" step="1" value="10" />
-                  <output id="dotSizeCountValue" class="control-value" for="dotSizeCount"></output>
-                </label>
-                <label class="control">
-                  <span class="control-label">
-                    Size distribution
-                    <button class="help" type="button" aria-label="Size distribution help" title="How dot sizes are distributed across the size buckets.">?</button>
-                  </span>
-                  <input id="dotDistribution" class="control-input" type="range" min="0" max="6" step="1" value="1" />
-                  <output id="dotDistributionValue" class="control-value" for="dotDistribution"></output>
-                </label>
-                <label class="control">
-                  <span class="control-label">
-                    Density
-                    <button class="help" type="button" aria-label="Density help" title="Controls how many dots are on screen.">?</button>
-                  </span>
-                  <input id="dotDensity" class="control-input" type="range" min="0.2" max="1" step="0.05" value="0.5" />
-                  <output id="dotDensityValue" class="control-value" for="dotDensity"></output>
-                </label>
-                <label class="control">
-                  <span class="control-label">
-                    Speed
-                    <button class="help" type="button" aria-label="Speed help" title="Controls how quickly the dots drift and settle. (1.0 is the baseline)">?</button>
-                  </span>
-                  <input id="speed" class="control-input" type="range" min="0" max="3" step="0.05" value="1" />
-                  <output id="speedValue" class="control-value" for="speed"></output>
-                </label>
-                <label class="control toggle">
-                  <span class="control-label">
-                    Breathing
-                    <button class="help" type="button" aria-label="Breathing help" title="Big dots gently breathe (fixed tempo), and expand to nudge nearby dots.">?</button>
-                  </span>
-                  <span class="toggle-row">
-                    <input id="breathingEnabled" type="checkbox" checked />
-                    <span class="toggle-switch" aria-hidden="true"></span>
-                  </span>
-                  <output id="breathingEnabledValue" class="control-value" for="breathingEnabled"></output>
-                </label>
-                <button id="gravityDrop" class="gravity-drop" type="button" title="Drop all dots to the bottom for a few seconds.">Drop</button>
-                <button id="restartControls" class="restart-controls" type="button">Reset</button>
-                <button id="pauseControls" class="pause-controls" type="button">Stop</button>
-              </div>
-            </div>
-          </div>
-
           <div class="copy shield">
             <p class="eyebrow">Intelligence, resolved.</p>
             <h1>A monochrome, stateful surface for ideas.</h1>
@@ -135,10 +129,13 @@
             </div>
           </div>
 
+          <div class="mini-panel" aria-hidden="true">
+            <canvas id="miniDotfield"></canvas>
+          </div>
         </section>
       </main>
     </div>
 
-    <script type="module" src="src/main.js?v=2025-12-13-12"></script>
+    <script type="module" src="src/main.js?v=2025-12-13-11"></script>
   </body>
 </html>
