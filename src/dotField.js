@@ -902,22 +902,15 @@ export class DotField {
       const localT = clamp((tNow - maskStart) / dur, 0, 1);
 
       const growFrac = 0.2;
-      const fadeFrac = 0.55;
-      const holdFrac = Math.max(0, 1 - growFrac - fadeFrac);
 
       let reveal = 1;
-      let alpha = 1;
       if (localT < growFrac) {
         const p = smoothstep(clamp(localT / growFrac, 0, 1));
         reveal = p;
-        alpha = p;
-      } else if (localT > growFrac + holdFrac) {
-        const p = smoothstep(clamp((localT - (growFrac + holdFrac)) / fadeFrac, 0, 1));
-        alpha = 1 - p;
       }
 
       this.#ctx.fillStyle = this.#palette.dot;
-      this.#ctx.globalAlpha = clamp(alpha, 0, 1);
+      this.#ctx.globalAlpha = 1;
 
       const bins = clampInt(Math.floor(this.#width / (70 * this.#dpr)), 18, 48);
       /** @type {number[]} */
