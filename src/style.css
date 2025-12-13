@@ -166,6 +166,10 @@ body {
   user-select: none;
 }
 
+.control.toggle {
+  align-items: center;
+}
+
 .control-label {
   line-height: 1.1;
   display: inline-flex;
