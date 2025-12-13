@@ -654,6 +654,8 @@ export class DotField {
     const phase = ((tNow - breathT0) / breathPeriodMs) * Math.PI * 2 + Math.PI;
     const breath = Math.sin(phase);
     const exhale = Math.max(0, breath);
+    // Soft-start the exhale force so it ramps up gently and doesn't spike near the peak.
+    const exhaleForce = exhale * exhale;
     let driftSeed0 = 0;
     let driftSeed1 = 0;
     let driftT = 0;
@@ -791,7 +793,7 @@ export class DotField {
       tNow < this.#settleBoostUntilMs;
     const overlapIterations = dropping ? 28 : settling ? 16 : 2;
     const pushScale = dropping ? 1.95 : settling ? 1.65 : 1;
-    this.#resolveOverlaps(dt, overlapIterations, pushScale, breathEnabled ? exhale : 0, breathThresholdR);
+    this.#resolveOverlaps(dt, overlapIterations, pushScale, breathEnabled ? exhaleForce : 0, breathThresholdR);
     this.#draw(false);
   }
 
@@ -861,7 +863,7 @@ export class DotField {
                     const t = clamp(1 - gap / breathBand, 0, 1);
                     // Progressive "exhale" pressure: gently separate nearby dots as the breathing dot expands,
                     // so we don't get a single snap when the radius peaks.
-                    const push = breathExhale * t * 0.9 * this.#dpr * dt;
+                    const push = breathExhale * t * 0.55 * this.#dpr * dt;
                     dot.x -= nx * push;
                     dot.y -= ny * push;
                     other.x += nx * push;
