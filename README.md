@@ -1,4 +1,4 @@
-# Pointillist Monochrome Homepage
+# Pointilism (Monochrome Dot Field)
 
 A lightweight example homepage demonstrating a **monochrome, pointillist dot-field system** used as an interface surface rather than a decorative effect.
 
@@ -71,18 +71,28 @@ If motion draws attention to itself, it is too strong.
 
 ## Controls
 
-The header contains a small set of controls:
+The dot controls live in an **Explore** panel (hidden by default):
 
+- **Presets**: curated one-click states to show range (presets don’t change light/dark mode).
+  - `Origin` (defaults)
+  - `Breathe`
+  - `Grains`
+  - `BOND`
+  - `Teseract`
+  - `Matrix`
 - **Min size / Max size**: dot radius bounds (CSS pixels).
 - **Size count**: number of discrete sizes between min/max.
 - **Size distribution**: how sizes are allocated across those buckets (e.g. small-biased).
 - **Density**: how many dots are spawned.
 - **Speed**: how quickly drift settles (breathing is independent).
 - **Breathing**: larger dots oscillate at a fixed tempo; exhale nudges nearby dots.
-- **Drop**: applies a brief “gravity drop” to stack dots at the bottom.
-- **Reset**: resets sliders to defaults and respawns.
-- **Stop/Start**: pauses/resumes animation.
-- **Light/Dark**: polarity inversion (icon toggle).
+- **Grid**: snaps dots into a screen-wide grid (breathing is disabled while grid is on).
+- **DROP**: applies a brief “gravity drop” to stack dots at the bottom (also unfreezes, turns off grid, and turns on breathing).
+- **RESET**: restores defaults (Origin), respawns, and unfreezes.
+- **FREEZE / UNFREEZE**: pauses/resumes animation.
+- **Mode**: light/dark polarity inversion.
+
+Any manual change to a slider/toggle clears the active preset highlight (mode toggle excluded).
 
 ---
 
@@ -114,9 +124,9 @@ Global parameters control:
 
 The engine enforces strict layout constraints:
 
-- Dots are **strictly non-overlapping** with a buffer.
-- Dots avoid the header area (a top exclusion band).
+- Dots are **non-overlapping** with a small buffer by default.
 - Dots avoid the screen edges (edge padding).
+- In **grid mode**, collisions are softened/temporarily disabled so dots can reach their assigned grid homes without getting stuck.
 
 Collisions are resolved via a spatial hash + iterative separation, with a contact feel that mixes bounce/stick (and disables stickiness/coupling while breathing).
 
