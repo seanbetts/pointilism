@@ -37,6 +37,12 @@ body {
   transition: background-color 320ms ease, color 320ms ease;
 }
 
+:where(body, body *) {
+  transition-property: background-color, color, border-color, text-decoration-color, fill, stroke;
+  transition-duration: 320ms;
+  transition-timing-function: ease;
+}
+
 .header,
 .noscript,
 .controls-panel,
@@ -587,6 +593,10 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :where(body, body *) {
+    transition: none !important;
+  }
+
   .skip-link {
     transition: none;
   }
