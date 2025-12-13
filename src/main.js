@@ -40,6 +40,14 @@ import { DotField } from './dotField.js?v=2025-12-13-85';
 
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
+  // Always start from the Origin preset on refresh.
+  localStorage.removeItem('dotMinSize');
+  localStorage.removeItem('dotMaxSize');
+  localStorage.removeItem('dotDensity');
+  localStorage.removeItem('dotSizeCount');
+  localStorage.removeItem('dotDistribution');
+  localStorage.removeItem('speed');
+
   function getInitialMinSize() {
     const stored = Number(localStorage.getItem('dotMinSize'));
     if (Number.isFinite(stored) && stored > 0) return stored;
