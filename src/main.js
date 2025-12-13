@@ -476,7 +476,7 @@ import { DotField } from './dotField.js';
       dotDensity: 1.0,
       dotSizeCount: 2,
       dotDistribution: 0, // Small (linear)
-      speed: 3.0,
+      speed: 2.0,
       breathingEnabled: true,
       gridEnabled: false,
     },
