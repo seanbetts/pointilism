@@ -470,9 +470,9 @@ import { DotField } from './dotField.js';
     },
     sparseGiants: {
       dotMinSize: 10,
-      dotMaxSize: 90,
+      dotMaxSize: 100,
       dotDensity: 0.2,
-      dotSizeCount: 5,
+      dotSizeCount: 15,
       dotDistribution: 6, // Large (curved)
       speed: 0.6,
       breathingEnabled: true,
