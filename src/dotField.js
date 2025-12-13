@@ -650,7 +650,8 @@ export class DotField {
 
       if (!this.#paused && this.#gravityEnabled && speed > 0) {
         const baseline = Math.max(0.35, speed);
-        const fallSpeed = (dropping ? lerp(0, 225000, baseline) : lerp(0, 36000, baseline)) * this.#dpr;
+        // Gravity uses a target velocity rather than an acceleration; keep it fast but bounded.
+        const fallSpeed = (dropping ? lerp(0, 12, baseline) : lerp(0, 4, baseline)) * this.#dpr;
         const bottom = this.#height - dot.r - edgePad;
         const grounded = dot.y >= bottom - 0.5 * this.#dpr;
         if (!grounded) {
@@ -677,8 +678,13 @@ export class DotField {
 
       dot.vx *= stability;
       dot.vy *= stability;
-      dot.vx = clamp(dot.vx, -maxV, maxV);
-      dot.vy = clamp(dot.vy, -maxV, maxV);
+      const baseline = Math.max(0.35, speed);
+      const gravityMaxV =
+        this.#gravityEnabled && speed > 0
+          ? (dropping ? lerp(1.5, 18, baseline) : lerp(1.0, 10, baseline)) * this.#dpr
+          : maxV;
+      dot.vx = clamp(dot.vx, -gravityMaxV, gravityMaxV);
+      dot.vy = clamp(dot.vy, -gravityMaxV, gravityMaxV);
 
       if (!this.#paused) {
         dot.x += dot.vx * this.#dpr * 2.2 * dt;
