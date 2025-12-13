@@ -907,16 +907,16 @@ export class DotField {
       const dur = Math.max(1, maskEnd - maskStart);
       const localT = clamp((tNow - maskStart) / dur, 0, 1);
 
-      const growFrac = 0.22;
-      const shrinkFrac = 0.22;
+      const growFrac = 0.25;
+      const shrinkFrac = 0.5;
       const holdFrac = Math.max(0, 1 - growFrac - shrinkFrac);
 
       let h = barMaxH;
       if (localT < growFrac) {
-        const p = smoothstep(localT / growFrac);
+        const p = smoothstep(clamp(localT / growFrac, 0, 1));
         h = barMaxH * p;
       } else if (localT > growFrac + holdFrac) {
-        const p = smoothstep((localT - (growFrac + holdFrac)) / shrinkFrac);
+        const p = smoothstep(clamp((localT - (growFrac + holdFrac)) / shrinkFrac, 0, 1));
         h = barMaxH * (1 - p);
       }
 
