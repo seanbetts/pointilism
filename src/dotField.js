@@ -565,6 +565,8 @@ export class DotField {
     const { cohesion, stability, noise, maxV } = this;
 
     const speed = this.#speed;
+    const minR = this.#minRadiusCssPx * this.#dpr;
+    const maxR = this.#maxRadiusCssPx * this.#dpr * 1.06;
     let driftSeed0 = 0;
     let driftSeed1 = 0;
     let driftT = 0;
@@ -608,13 +610,16 @@ export class DotField {
         const speed = lerp(0.65, 1.25, band) * dot.ds;
         const fx = (vx / len) * driftForce * speed;
         const fy = (vy / len) * driftForce * speed;
+        const denom = Math.max(1e-6, maxR - minR);
+        const t = clamp((dot.r0 - minR) / denom, 0, 1);
+        const sizeBias = lerp(0.8, 1.2, t);
         if (this.#physicsEnabled) {
           const mass = 1 + dot.r0 * dot.r0 * 0.05;
-          dot.vx += (fx / mass) * dt;
-          dot.vy += (fy / mass) * dt;
+          dot.vx += (fx / mass) * sizeBias * dt;
+          dot.vy += (fy / mass) * sizeBias * dt;
         } else {
-          dot.vx += fx * dt;
-          dot.vy += fy * dt;
+          dot.vx += fx * sizeBias * dt;
+          dot.vy += fy * sizeBias * dt;
         }
       }
 
