@@ -6,6 +6,20 @@ import { DotField } from './dotField.js';
 
   const root = document.documentElement;
 
+  const SETTINGS_VERSION = '2025-12-13-defaults-v2';
+  const storedSettingsVersion = localStorage.getItem('settingsVersion');
+  if (storedSettingsVersion !== SETTINGS_VERSION) {
+    localStorage.removeItem('dotMinSize');
+    localStorage.removeItem('dotMaxSize');
+    localStorage.removeItem('dotDensity');
+    localStorage.removeItem('dotSizeCount');
+    localStorage.removeItem('dotDistribution');
+    localStorage.removeItem('autoFit');
+    localStorage.removeItem('reactToUi');
+    localStorage.removeItem('speed');
+    localStorage.setItem('settingsVersion', SETTINGS_VERSION);
+  }
+
   function getInitialMode() {
     const stored = localStorage.getItem('mode');
     if (stored === 'dark' || stored === 'light') return stored;
