@@ -456,6 +456,12 @@ import { DotField } from './dotField.js';
   }
 
   restartControls?.addEventListener('click', () => {
+    if (paused) {
+      paused = false;
+      dotField.resume();
+      syncPauseControls();
+    }
+
     dotMinSize = defaults.dotMinSize;
     dotMaxSize = defaults.dotMaxSize;
     dotDensity = defaults.dotDensity;
