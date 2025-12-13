@@ -586,8 +586,8 @@ export class DotField {
 
     // Single baseline: calm drift + optional anchor pull.
     this.#noise = 0;
-    this.#stability = lerp(0.988, 0.95, speed);
-    this.#maxV = lerp(0.01, 0.22, speed);
+    this.#stability = lerp(0.992, 0.94, speed);
+    this.#maxV = lerp(0.02, 0.42, speed);
     this.#cohesion = react ? lerp(0.0, 0.08, speed) : 0;
   }
 
@@ -618,7 +618,7 @@ export class DotField {
       driftT = smoothstep(tt);
       driftBandSeed = s0 * 8191 + 17;
       driftScale = 1 / (520 * this.#dpr);
-      driftForce = lerp(0, 0.03, speed) * this.#dpr;
+      driftForce = lerp(0, 0.095, speed) * this.#dpr;
     }
 
     const breathingPeriodMs = 7000;
@@ -681,7 +681,7 @@ export class DotField {
       }
 
       if (this.#motionEnabled && this.#physicsEnabled && this.#gravityEnabled && speed > 0) {
-        const gravityForce = 0.42 * this.#dpr * speed;
+        const gravityForce = 1.2 * this.#dpr * speed;
         const mass = Math.max(1, dot.r0 * dot.r0);
         dot.vy += (gravityForce / mass) * dt;
       }
