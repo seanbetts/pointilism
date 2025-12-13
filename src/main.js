@@ -17,18 +17,24 @@ import { DotField } from './dotField.js';
   root.dataset.mode = mode;
 
   const defaults = {
-    dotScale: 1,
+    dotMinSize: 1.5,
+    dotMaxSize: 3.5,
     dotDensity: 1,
-    dotVariance: 1,
-    dotSizeSteps: 0,
+    dotSizeCount: 5,
   };
 
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
-  function getInitialDotScale() {
-    const stored = Number(localStorage.getItem('dotScale'));
+  function getInitialMinSize() {
+    const stored = Number(localStorage.getItem('dotMinSize'));
     if (Number.isFinite(stored) && stored > 0) return stored;
-    return defaults.dotScale;
+    return defaults.dotMinSize;
+  }
+
+  function getInitialMaxSize() {
+    const stored = Number(localStorage.getItem('dotMaxSize'));
+    if (Number.isFinite(stored) && stored > 0) return stored;
+    return defaults.dotMaxSize;
   }
 
   function getInitialDensity() {
@@ -37,22 +43,16 @@ import { DotField } from './dotField.js';
     return defaults.dotDensity;
   }
 
-  function getInitialVariance() {
-    const stored = Number(localStorage.getItem('dotVariance'));
-    if (Number.isFinite(stored) && stored >= 0) return stored;
-    return defaults.dotVariance;
+  function getInitialSizeCount() {
+    const stored = Number(localStorage.getItem('dotSizeCount'));
+    if (Number.isFinite(stored) && stored >= 2) return stored;
+    return defaults.dotSizeCount;
   }
 
-  function getInitialSizeSteps() {
-    const stored = Number(localStorage.getItem('dotSizeSteps'));
-    if (Number.isFinite(stored) && stored >= 0) return stored;
-    return defaults.dotSizeSteps;
-  }
-
-  let dotScale = getInitialDotScale();
+  let dotMinSize = getInitialMinSize();
+  let dotMaxSize = getInitialMaxSize();
   let dotDensity = getInitialDensity();
-  let dotVariance = getInitialVariance();
-  let dotSizeSteps = getInitialSizeSteps();
+  let dotSizeCount = getInitialSizeCount();
 
   let dotField;
   try {
@@ -66,10 +66,10 @@ import { DotField } from './dotField.js';
     return;
   }
 
-  dotField.setDotScale(dotScale);
   dotField.setDensityScalar(dotDensity);
-  dotField.setSizeVariance(dotVariance);
-  dotField.setSizeSteps(dotSizeSteps);
+  dotField.setMinRadius(dotMinSize);
+  dotField.setMaxRadius(dotMaxSize);
+  dotField.setSizeCount(dotSizeCount);
 
   const headerEl = document.querySelector('.header');
   function updateTopExclusion() {
@@ -83,14 +83,14 @@ import { DotField } from './dotField.js';
     headerObserver.observe(headerEl);
   }
 
-  const dotSize = document.querySelector('#dotSize');
-  const dotSizeValue = document.querySelector('#dotSizeValue');
+  const dotMinSizeEl = document.querySelector('#dotMinSize');
+  const dotMinSizeValue = document.querySelector('#dotMinSizeValue');
+  const dotMaxSizeEl = document.querySelector('#dotMaxSize');
+  const dotMaxSizeValue = document.querySelector('#dotMaxSizeValue');
   const dotDensityEl = document.querySelector('#dotDensity');
   const dotDensityValue = document.querySelector('#dotDensityValue');
-  const dotVarianceEl = document.querySelector('#dotVariance');
-  const dotVarianceValue = document.querySelector('#dotVarianceValue');
-  const dotSizeStepsEl = document.querySelector('#dotSizeSteps');
-  const dotSizeStepsValue = document.querySelector('#dotSizeStepsValue');
+  const dotSizeCountEl = document.querySelector('#dotSizeCount');
+  const dotSizeCountValue = document.querySelector('#dotSizeCountValue');
   const resetControls = document.querySelector('#resetControls');
 
   let dotUpdateScheduled = false;
@@ -99,22 +99,48 @@ import { DotField } from './dotField.js';
     dotUpdateScheduled = true;
     requestAnimationFrame(() => {
       dotUpdateScheduled = false;
-      dotField.setDotScale(dotScale);
       dotField.setDensityScalar(dotDensity);
-      dotField.setSizeVariance(dotVariance);
-      dotField.setSizeSteps(dotSizeSteps);
+      dotField.setMinRadius(dotMinSize);
+      dotField.setMaxRadius(dotMaxSize);
+      dotField.setSizeCount(dotSizeCount);
     });
   }
 
-  if (dotSize instanceof HTMLInputElement) {
-    dotSize.value = String(dotScale);
-    if (dotSizeValue instanceof HTMLOutputElement) dotSizeValue.value = dotScale.toFixed(1);
-    dotSize.addEventListener('input', () => {
-      const next = Number(dotSize.value);
+  function clampMinMaxSizes() {
+    if (dotMinSize > dotMaxSize) dotMaxSize = dotMinSize;
+    if (dotMaxSize < dotMinSize) dotMinSize = dotMaxSize;
+  }
+
+  if (dotMinSizeEl instanceof HTMLInputElement) {
+    dotMinSizeEl.value = String(dotMinSize);
+    if (dotMinSizeValue instanceof HTMLOutputElement) dotMinSizeValue.value = dotMinSize.toFixed(1);
+    dotMinSizeEl.addEventListener('input', () => {
+      const next = Number(dotMinSizeEl.value);
       if (!Number.isFinite(next)) return;
-      dotScale = next;
-      localStorage.setItem('dotScale', String(dotScale));
-      if (dotSizeValue instanceof HTMLOutputElement) dotSizeValue.value = dotScale.toFixed(1);
+      dotMinSize = next;
+      clampMinMaxSizes();
+      localStorage.setItem('dotMinSize', String(dotMinSize));
+      localStorage.setItem('dotMaxSize', String(dotMaxSize));
+      if (dotMinSizeValue instanceof HTMLOutputElement) dotMinSizeValue.value = dotMinSize.toFixed(1);
+      if (dotMaxSizeEl instanceof HTMLInputElement) dotMaxSizeEl.value = String(dotMaxSize);
+      if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(1);
+      scheduleDotUpdate();
+    });
+  }
+
+  if (dotMaxSizeEl instanceof HTMLInputElement) {
+    dotMaxSizeEl.value = String(dotMaxSize);
+    if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(1);
+    dotMaxSizeEl.addEventListener('input', () => {
+      const next = Number(dotMaxSizeEl.value);
+      if (!Number.isFinite(next)) return;
+      dotMaxSize = next;
+      clampMinMaxSizes();
+      localStorage.setItem('dotMinSize', String(dotMinSize));
+      localStorage.setItem('dotMaxSize', String(dotMaxSize));
+      if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(1);
+      if (dotMinSizeEl instanceof HTMLInputElement) dotMinSizeEl.value = String(dotMinSize);
+      if (dotMinSizeValue instanceof HTMLOutputElement) dotMinSizeValue.value = dotMinSize.toFixed(1);
       scheduleDotUpdate();
     });
   }
@@ -132,66 +158,50 @@ import { DotField } from './dotField.js';
     });
   }
 
-  if (dotVarianceEl instanceof HTMLInputElement) {
-    dotVarianceEl.value = String(dotVariance);
-    if (dotVarianceValue instanceof HTMLOutputElement) dotVarianceValue.value = dotVariance.toFixed(1);
-    dotVarianceEl.addEventListener('input', () => {
-      const next = Number(dotVarianceEl.value);
+  if (dotSizeCountEl instanceof HTMLInputElement) {
+    dotSizeCountEl.value = String(dotSizeCount);
+    if (dotSizeCountValue instanceof HTMLOutputElement) dotSizeCountValue.value = String(dotSizeCount);
+    dotSizeCountEl.addEventListener('input', () => {
+      const next = Number(dotSizeCountEl.value);
       if (!Number.isFinite(next)) return;
-      dotVariance = next;
-      localStorage.setItem('dotVariance', String(dotVariance));
-      if (dotVarianceValue instanceof HTMLOutputElement) dotVarianceValue.value = dotVariance.toFixed(1);
-      scheduleDotUpdate();
-    });
-  }
-
-  function formatSizeSteps(value) {
-    if (value <= 0) return 'smooth';
-    return String(value);
-  }
-
-  if (dotSizeStepsEl instanceof HTMLInputElement) {
-    dotSizeStepsEl.value = String(dotSizeSteps);
-    if (dotSizeStepsValue instanceof HTMLOutputElement) {
-      dotSizeStepsValue.value = formatSizeSteps(dotSizeSteps);
-    }
-    dotSizeStepsEl.addEventListener('input', () => {
-      const next = Number(dotSizeStepsEl.value);
-      if (!Number.isFinite(next)) return;
-      dotSizeSteps = next;
-      localStorage.setItem('dotSizeSteps', String(dotSizeSteps));
-      if (dotSizeStepsValue instanceof HTMLOutputElement) {
-        dotSizeStepsValue.value = formatSizeSteps(dotSizeSteps);
-      }
+      dotSizeCount = next;
+      localStorage.setItem('dotSizeCount', String(dotSizeCount));
+      if (dotSizeCountValue instanceof HTMLOutputElement) dotSizeCountValue.value = String(dotSizeCount);
       scheduleDotUpdate();
     });
   }
 
   function syncControlValues() {
-    if (dotSize instanceof HTMLInputElement) dotSize.value = String(dotScale);
-    if (dotSizeValue instanceof HTMLOutputElement) dotSizeValue.value = dotScale.toFixed(1);
+    clampMinMaxSizes();
+    if (dotMinSizeEl instanceof HTMLInputElement) dotMinSizeEl.value = String(dotMinSize);
+    if (dotMinSizeValue instanceof HTMLOutputElement) dotMinSizeValue.value = dotMinSize.toFixed(1);
+    if (dotMaxSizeEl instanceof HTMLInputElement) dotMaxSizeEl.value = String(dotMaxSize);
+    if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(1);
     if (dotDensityEl instanceof HTMLInputElement) dotDensityEl.value = String(dotDensity);
     if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(1);
-    if (dotVarianceEl instanceof HTMLInputElement) dotVarianceEl.value = String(dotVariance);
-    if (dotVarianceValue instanceof HTMLOutputElement) dotVarianceValue.value = dotVariance.toFixed(1);
-    if (dotSizeStepsEl instanceof HTMLInputElement) dotSizeStepsEl.value = String(dotSizeSteps);
-    if (dotSizeStepsValue instanceof HTMLOutputElement) dotSizeStepsValue.value = formatSizeSteps(dotSizeSteps);
+    if (dotSizeCountEl instanceof HTMLInputElement) dotSizeCountEl.value = String(dotSizeCount);
+    if (dotSizeCountValue instanceof HTMLOutputElement) dotSizeCountValue.value = String(dotSizeCount);
   }
 
   resetControls?.addEventListener('click', () => {
-    dotScale = defaults.dotScale;
+    dotMinSize = defaults.dotMinSize;
+    dotMaxSize = defaults.dotMaxSize;
     dotDensity = defaults.dotDensity;
-    dotVariance = defaults.dotVariance;
-    dotSizeSteps = defaults.dotSizeSteps;
+    dotSizeCount = defaults.dotSizeCount;
 
-    localStorage.removeItem('dotScale');
+    localStorage.removeItem('dotMinSize');
+    localStorage.removeItem('dotMaxSize');
     localStorage.removeItem('dotDensity');
-    localStorage.removeItem('dotVariance');
-    localStorage.removeItem('dotSizeSteps');
+    localStorage.removeItem('dotSizeCount');
 
     syncControlValues();
     scheduleDotUpdate();
   });
+
+  // Clean up legacy storage keys from earlier slider iterations.
+  localStorage.removeItem('dotScale');
+  localStorage.removeItem('dotVariance');
+  localStorage.removeItem('dotSizeSteps');
 
   const modeToggle = document.querySelector('#modeToggle');
   function syncModeToggle() {

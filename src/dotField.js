@@ -66,11 +66,11 @@ export class DotField {
   #noise = 0.22;
   #maxV = 0.9;
   #densityScalar = 1;
-  #dotScale = 1;
   #bufferPx = 1.5;
   #excludeTopCssPx = 0;
-  #sizeVariance = 1;
-  #sizeSteps = 0;
+  #minRadiusCssPx = 1.5;
+  #maxRadiusCssPx = 3.5;
+  #sizeCount = 5;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -134,13 +134,6 @@ export class DotField {
     if (this.#reducedMotion) this.#draw(true);
   }
 
-  /** @param {number} scale */
-  setDotScale(scale) {
-    const next = clamp(scale, 0.4, 100);
-    this.#dotScale = next;
-    this.#scheduleSetup();
-  }
-
   /** @param {number} scalar */
   setDensityScalar(scalar) {
     const next = clamp(scalar, 0.1, 3);
@@ -148,17 +141,26 @@ export class DotField {
     this.#scheduleSetup();
   }
 
-  /** @param {number} variance */
-  setSizeVariance(variance) {
-    const next = clamp(variance, 0, 50);
-    this.#sizeVariance = next;
+  /** @param {number} cssPx */
+  setMinRadius(cssPx) {
+    const next = clamp(cssPx, 0.5, 200);
+    this.#minRadiusCssPx = next;
+    if (this.#minRadiusCssPx > this.#maxRadiusCssPx) this.#maxRadiusCssPx = this.#minRadiusCssPx;
     this.#scheduleSetup();
   }
 
-  /** @param {number} steps */
-  setSizeSteps(steps) {
-    const next = Math.round(clamp(steps, 0, 256));
-    this.#sizeSteps = next;
+  /** @param {number} cssPx */
+  setMaxRadius(cssPx) {
+    const next = clamp(cssPx, 0.5, 400);
+    this.#maxRadiusCssPx = next;
+    if (this.#maxRadiusCssPx < this.#minRadiusCssPx) this.#minRadiusCssPx = this.#maxRadiusCssPx;
+    this.#scheduleSetup();
+  }
+
+  /** @param {number} count */
+  setSizeCount(count) {
+    const next = Math.round(clamp(count, 2, 10));
+    this.#sizeCount = next;
     this.#scheduleSetup();
   }
 
@@ -251,15 +253,15 @@ export class DotField {
 
   /** @param {number} count */
   #spawnDots(count) {
-    const maxR = 1.8 * this.#dpr;
-    const maxRequired = 2 * maxR * this.#dotScale + this.#bufferPx * this.#dpr;
+    const minR = this.#minRadiusCssPx * this.#dpr;
+    const maxR = this.#maxRadiusCssPx * this.#dpr;
+    const maxRequired = 2 * maxR + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
-    const meanR = 1.3 * this.#dpr;
-    const halfRange = 0.5 * this.#dpr;
-    const minR = 0.8 * this.#dpr;
-    const maxBaseR = 1.8 * this.#dpr;
-    const steps = this.#sizeSteps;
+    const sizes = Array.from({ length: this.#sizeCount }, (_, i) => {
+      if (this.#sizeCount === 1) return minR;
+      return minR + (i * (maxR - minR)) / (this.#sizeCount - 1);
+    });
 
     /** @type {Map<string, Dot[]>} */
     const grid = new Map();
@@ -272,24 +274,9 @@ export class DotField {
     while (dots.length < count && attempts < maxAttempts) {
       attempts++;
 
-      const r = clamp(
-        meanR + (Math.random() - 0.5) * 2 * halfRange * this.#sizeVariance,
-        minR,
-        maxBaseR
-      );
-      const quantizedR =
-        steps <= 0
-          ? r
-          : steps === 1
-            ? meanR
-            : (() => {
-                const t = clamp((r - minR) / (maxBaseR - minR), 0, 1);
-                const idx = Math.round(t * (steps - 1));
-                return minR + (idx * (maxBaseR - minR)) / (steps - 1);
-              })();
-      const rScaled = quantizedR * this.#dotScale;
-      const x = lerp(rScaled, this.#width - rScaled, Math.random());
-      const y = lerp(excludeTop + rScaled, this.#height - rScaled, Math.random());
+      const r = sizes[Math.floor(Math.random() * sizes.length)];
+      const x = lerp(r, this.#width - r, Math.random());
+      const y = lerp(excludeTop + r, this.#height - r, Math.random());
 
       const cx = Math.floor(x / cellSize);
       const cy = Math.floor(y / cellSize);
@@ -302,7 +289,7 @@ export class DotField {
           for (const other of bucket) {
             const dx = x - other.x;
             const dy = y - other.y;
-            const minDist = (quantizedR + other.r) * this.#dotScale + this.#bufferPx * this.#dpr;
+            const minDist = r + other.r + this.#bufferPx * this.#dpr;
             if (dx * dx + dy * dy < minDist * minDist) {
               ok = false;
               break;
@@ -318,7 +305,7 @@ export class DotField {
         y,
         vx: (Math.random() - 0.5) * 0.22,
         vy: (Math.random() - 0.5) * 0.22,
-        r: quantizedR,
+        r,
         a: 1,
       };
       const key = keyForCell(cx, cy);
@@ -452,7 +439,7 @@ export class DotField {
       dot.x += dot.vx * this.#dpr * 2.2 * dt;
       dot.y += dot.vy * this.#dpr * 2.2 * dt;
 
-      const rScaled = dot.r * this.#dotScale;
+      const rScaled = dot.r;
       const excludeTop = this.#excludeTopCssPx * this.#dpr;
       if (dot.x < rScaled) {
         dot.x = rScaled;
@@ -477,8 +464,8 @@ export class DotField {
   #resolveOverlaps() {
     if (this.#dots.length < 2) return;
 
-    const maxR = 1.8 * this.#dpr;
-    const maxRequired = 2 * maxR * this.#dotScale + this.#bufferPx * this.#dpr;
+    const maxR = this.#maxRadiusCssPx * this.#dpr;
+    const maxRequired = 2 * maxR + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
 
@@ -507,12 +494,12 @@ export class DotField {
               if (other.x < dot.x) continue;
               if (other.x === dot.x && other.y <= dot.y) continue;
 
-              const dx = other.x - dot.x;
-              const dy = other.y - dot.y;
-              const dist2 = dx * dx + dy * dy;
-              const minDist = (dot.r + other.r) * this.#dotScale + this.#bufferPx * this.#dpr;
-              const minDist2 = minDist * minDist;
-              if (dist2 >= minDist2) continue;
+            const dx = other.x - dot.x;
+            const dy = other.y - dot.y;
+            const dist2 = dx * dx + dy * dy;
+            const minDist = dot.r + other.r + this.#bufferPx * this.#dpr;
+            const minDist2 = minDist * minDist;
+            if (dist2 >= minDist2) continue;
 
               const dist = Math.sqrt(Math.max(1e-6, dist2));
               const overlap = minDist - dist;
@@ -536,7 +523,7 @@ export class DotField {
     }
 
     for (const dot of this.#dots) {
-      const rScaled = dot.r * this.#dotScale;
+      const rScaled = dot.r;
       dot.x = clamp(dot.x, rScaled, this.#width - rScaled);
       dot.y = clamp(dot.y, excludeTop + rScaled, this.#height - rScaled);
     }
@@ -562,7 +549,7 @@ export class DotField {
     this.#ctx.fillStyle = this.#palette.dot;
     this.#ctx.globalAlpha = 1;
     for (const dot of this.#dots) {
-      const radius = Math.max(1, Math.round(dot.r * this.#dotScale));
+      const radius = Math.max(1, Math.round(dot.r));
       this.#ctx.beginPath();
       this.#ctx.arc(Math.round(dot.x), Math.round(dot.y), radius, 0, Math.PI * 2);
       this.#ctx.fill();

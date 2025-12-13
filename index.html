@@ -28,26 +28,49 @@
 	          <div class="controls">
 	            <label class="control">
 	              <span class="control-label">
-	                Dot size
+	                Min size
 	                <button
 	                  class="help"
 	                  type="button"
-	                  aria-label="Dot size help"
-	                  title="Scales the radius of every dot."
+	                  aria-label="Min size help"
+	                  title="Minimum dot radius (in CSS pixels)."
 	                >
 	                  ?
 	                </button>
 	              </span>
 	              <input
-	                id="dotSize"
+	                id="dotMinSize"
 	                class="control-input"
 	                type="range"
-                min="0.6"
-                max="100"
-                step="0.05"
-                value="1"
-              />
-	              <output id="dotSizeValue" class="control-value" for="dotSize"></output>
+	                min="0.5"
+	                max="60"
+	                step="0.5"
+	                value="1.5"
+	              />
+	              <output id="dotMinSizeValue" class="control-value" for="dotMinSize"></output>
+	            </label>
+	            <label class="control">
+	              <span class="control-label">
+	                Max size
+	                <button
+	                  class="help"
+	                  type="button"
+	                  aria-label="Max size help"
+	                  title="Maximum dot radius (in CSS pixels)."
+	                >
+	                  ?
+	                </button>
+	              </span>
+	              <input
+	                id="dotMaxSize"
+	                class="control-input"
+	                type="range"
+	                min="0.5"
+	                max="200"
+	                step="0.5"
+	                value="3.5"
+	              />
+	              <output id="dotMaxSizeValue" class="control-value" for="dotMaxSize"></output>
 	            </label>
 	            <label class="control">
 	              <span class="control-label">
@@ -74,53 +97,26 @@
 	            </label>
 	            <label class="control">
 	              <span class="control-label">
-	                Size variance
+	                Size count
 	                <button
 	                  class="help"
 	                  type="button"
-	                  aria-label="Size variance help"
-	                  title="Increases the spread of dot sizes (from uniform to very mixed)."
+	                  aria-label="Size count help"
+	                  title="Number of discrete dot sizes between min and max (evenly spaced)."
 	                >
 	                  ?
 	                </button>
 	              </span>
 	              <input
-	                id="dotVariance"
+	                id="dotSizeCount"
 	                class="control-input"
 	                type="range"
-	                min="0"
-	                max="50"
-	                step="0.05"
-	                value="1"
-	              />
-	              <output id="dotVarianceValue" class="control-value" for="dotVariance"></output>
-	            </label>
-	            <label class="control">
-	              <span class="control-label">
-	                Size steps
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="Size steps help"
-	                  title="Quantizes sizes into discrete steps: 0=smooth, 1=single size, higher=more distinct sizes."
-	                >
-	                  ?
-	                </button>
-	              </span>
-	              <input
-	                id="dotSizeSteps"
-	                class="control-input"
-	                type="range"
-	                min="0"
-	                max="64"
+	                min="2"
+	                max="10"
 	                step="1"
-	                value="0"
+	                value="5"
 	              />
-	              <output
-	                id="dotSizeStepsValue"
-	                class="control-value"
-	                for="dotSizeSteps"
-	              ></output>
+	              <output id="dotSizeCountValue" class="control-value" for="dotSizeCount"></output>
 	            </label>
 	            <button id="resetControls" class="reset-controls" type="button">
 	              Reset
