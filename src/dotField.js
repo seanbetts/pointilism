@@ -70,6 +70,7 @@ export class DotField {
   #bufferPx = 1.5;
   #excludeTopCssPx = 0;
   #sizeVariance = 1;
+  #sizeSteps = 0;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -151,6 +152,13 @@ export class DotField {
   setSizeVariance(variance) {
     const next = clamp(variance, 0, 50);
     this.#sizeVariance = next;
+    this.#scheduleSetup();
+  }
+
+  /** @param {number} steps */
+  setSizeSteps(steps) {
+    const next = Math.round(clamp(steps, 0, 256));
+    this.#sizeSteps = next;
     this.#scheduleSetup();
   }
 
@@ -249,6 +257,9 @@ export class DotField {
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
     const meanR = 1.3 * this.#dpr;
     const halfRange = 0.5 * this.#dpr;
+    const minR = 0.8 * this.#dpr;
+    const maxBaseR = 1.8 * this.#dpr;
+    const steps = this.#sizeSteps;
 
     /** @type {Map<string, Dot[]>} */
     const grid = new Map();
@@ -263,10 +274,20 @@ export class DotField {
 
       const r = clamp(
         meanR + (Math.random() - 0.5) * 2 * halfRange * this.#sizeVariance,
-        0.8 * this.#dpr,
-        1.8 * this.#dpr
+        minR,
+        maxBaseR
       );
-      const rScaled = r * this.#dotScale;
+      const quantizedR =
+        steps <= 0
+          ? r
+          : steps === 1
+            ? meanR
+            : (() => {
+                const t = clamp((r - minR) / (maxBaseR - minR), 0, 1);
+                const idx = Math.round(t * (steps - 1));
+                return minR + (idx * (maxBaseR - minR)) / (steps - 1);
+              })();
+      const rScaled = quantizedR * this.#dotScale;
       const x = lerp(rScaled, this.#width - rScaled, Math.random());
       const y = lerp(excludeTop + rScaled, this.#height - rScaled, Math.random());
 
@@ -281,7 +302,7 @@ export class DotField {
           for (const other of bucket) {
             const dx = x - other.x;
             const dy = y - other.y;
-            const minDist = (r + other.r) * this.#dotScale + this.#bufferPx * this.#dpr;
+            const minDist = (quantizedR + other.r) * this.#dotScale + this.#bufferPx * this.#dpr;
             if (dx * dx + dy * dy < minDist * minDist) {
               ok = false;
               break;
@@ -297,7 +318,7 @@ export class DotField {
         y,
         vx: (Math.random() - 0.5) * 0.22,
         vy: (Math.random() - 0.5) * 0.22,
-        r,
+        r: quantizedR,
         a: 1,
       };
       const key = keyForCell(cx, cy);

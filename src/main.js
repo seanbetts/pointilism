@@ -36,9 +36,16 @@ import { DotField } from './dotField.js';
     return 1;
   }
 
+  function getInitialSizeSteps() {
+    const stored = Number(localStorage.getItem('dotSizeSteps'));
+    if (Number.isFinite(stored) && stored >= 0) return stored;
+    return 0;
+  }
+
   let dotScale = getInitialDotScale();
   let dotDensity = getInitialDensity();
   let dotVariance = getInitialVariance();
+  let dotSizeSteps = getInitialSizeSteps();
 
   let dotField;
   try {
@@ -55,6 +62,7 @@ import { DotField } from './dotField.js';
   dotField.setDotScale(dotScale);
   dotField.setDensityScalar(dotDensity);
   dotField.setSizeVariance(dotVariance);
+  dotField.setSizeSteps(dotSizeSteps);
 
   const headerEl = document.querySelector('.header');
   function updateTopExclusion() {
@@ -74,6 +82,8 @@ import { DotField } from './dotField.js';
   const dotDensityValue = document.querySelector('#dotDensityValue');
   const dotVarianceEl = document.querySelector('#dotVariance');
   const dotVarianceValue = document.querySelector('#dotVarianceValue');
+  const dotSizeStepsEl = document.querySelector('#dotSizeSteps');
+  const dotSizeStepsValue = document.querySelector('#dotSizeStepsValue');
 
   let dotUpdateScheduled = false;
   function scheduleDotUpdate() {
@@ -84,6 +94,7 @@ import { DotField } from './dotField.js';
       dotField.setDotScale(dotScale);
       dotField.setDensityScalar(dotDensity);
       dotField.setSizeVariance(dotVariance);
+      dotField.setSizeSteps(dotSizeSteps);
     });
   }
 
@@ -122,6 +133,28 @@ import { DotField } from './dotField.js';
       dotVariance = next;
       localStorage.setItem('dotVariance', String(dotVariance));
       if (dotVarianceValue instanceof HTMLOutputElement) dotVarianceValue.value = dotVariance.toFixed(1);
+      scheduleDotUpdate();
+    });
+  }
+
+  function formatSizeSteps(value) {
+    if (value <= 0) return 'smooth';
+    return String(value);
+  }
+
+  if (dotSizeStepsEl instanceof HTMLInputElement) {
+    dotSizeStepsEl.value = String(dotSizeSteps);
+    if (dotSizeStepsValue instanceof HTMLOutputElement) {
+      dotSizeStepsValue.value = formatSizeSteps(dotSizeSteps);
+    }
+    dotSizeStepsEl.addEventListener('input', () => {
+      const next = Number(dotSizeStepsEl.value);
+      if (!Number.isFinite(next)) return;
+      dotSizeSteps = next;
+      localStorage.setItem('dotSizeSteps', String(dotSizeSteps));
+      if (dotSizeStepsValue instanceof HTMLOutputElement) {
+        dotSizeStepsValue.value = formatSizeSteps(dotSizeSteps);
+      }
       scheduleDotUpdate();
     });
   }
