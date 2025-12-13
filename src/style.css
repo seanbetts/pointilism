@@ -151,6 +151,35 @@ body {
   gap: 0.9rem;
 }
 
+.controls-panel .controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 0.9rem 1.2rem;
+  align-items: start;
+}
+
+.controls-panel .control-input {
+  width: 100%;
+  max-width: 260px;
+}
+
+.controls-panel .controls > button {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 980px) {
+  .controls-panel .controls {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .controls-panel .controls {
+    grid-template-columns: 1fr;
+  }
+}
+
 .mode-toggle,
 .reset-controls,
 .restart-controls,

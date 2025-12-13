@@ -8,7 +8,7 @@
       name="description"
       content="A monochrome, pointillist dot-field system demonstrating state, intent, and transformation."
     />
-    <link rel="stylesheet" href="src/style.css?v=2025-12-13-12" />
+    <link rel="stylesheet" href="src/style.css?v=2025-12-13-13" />
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -123,6 +123,22 @@
                 </span>
                 <output id="breathingEnabledValue" class="control-value" for="breathingEnabled"></output>
               </label>
+              <label class="control toggle">
+                <span class="control-label">Dummy toggle</span>
+                <span class="toggle-row">
+                  <input id="dummyToggle1" type="checkbox" />
+                  <span class="toggle-switch" aria-hidden="true"></span>
+                </span>
+                <output class="control-value" for="dummyToggle1">Off</output>
+              </label>
+              <label class="control toggle">
+                <span class="control-label">Dummy toggle</span>
+                <span class="toggle-row">
+                  <input id="dummyToggle2" type="checkbox" />
+                  <span class="toggle-switch" aria-hidden="true"></span>
+                </span>
+                <output class="control-value" for="dummyToggle2">Off</output>
+              </label>
               <button id="gravityDrop" class="gravity-drop" type="button" title="Drop all dots to the bottom for a few seconds.">Drop</button>
               <button id="restartControls" class="restart-controls" type="button">Reset</button>
               <button id="pauseControls" class="pause-controls" type="button">Stop</button>
@@ -136,6 +152,6 @@
       </main>
     </div>
 
-    <script type="module" src="src/main.js?v=2025-12-13-12"></script>
+    <script type="module" src="src/main.js?v=2025-12-13-13"></script>
   </body>
 </html>
