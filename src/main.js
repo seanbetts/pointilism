@@ -14,8 +14,6 @@ import { DotField } from './dotField.js';
     localStorage.removeItem('dotDensity');
     localStorage.removeItem('dotSizeCount');
     localStorage.removeItem('dotDistribution');
-    localStorage.removeItem('autoFit');
-    localStorage.removeItem('reactToUi');
     localStorage.removeItem('speed');
     localStorage.setItem('settingsVersion', SETTINGS_VERSION);
   }
@@ -36,8 +34,6 @@ import { DotField } from './dotField.js';
     dotDensity: 1,
     dotSizeCount: 10,
     dotDistribution: 1,
-    autoFit: true,
-    reactToUi: true,
     speed: 1,
   };
 
@@ -77,14 +73,14 @@ import { DotField } from './dotField.js';
     const stored = localStorage.getItem('autoFit');
     if (stored === 'true') return true;
     if (stored === 'false') return false;
-    return defaults.autoFit;
+    return true;
   }
 
   function getInitialReactToUi() {
     const stored = localStorage.getItem('reactToUi');
     if (stored === 'true') return true;
     if (stored === 'false') return false;
-    return defaults.reactToUi;
+    return false;
   }
 
   function getInitialSpeed() {
@@ -103,9 +99,9 @@ import { DotField } from './dotField.js';
   let dotDensity = getInitialDensity();
   let dotSizeCount = getInitialSizeCount();
   let dotDistribution = getInitialDistribution();
-  let autoFit = getInitialAutoFit();
-  let reactToUi = getInitialReactToUi();
   let speed = getInitialSpeed();
+  const autoFit = true;
+  const reactToUi = false;
 
   function speedInternal() {
     return Math.max(0, Math.min(1, speed * 0.35));
@@ -157,11 +153,6 @@ import { DotField } from './dotField.js';
   const speedEl = document.querySelector('#speed');
   const speedValue = document.querySelector('#speedValue');
   const gravityDrop = document.querySelector('#gravityDrop');
-  const reactToUiEl = document.querySelector('#reactToUi');
-  const reactToUiValue = document.querySelector('#reactToUiValue');
-  const autoFitEl = document.querySelector('#autoFit');
-  const autoFitValue = document.querySelector('#autoFitValue');
-  const resetControls = document.querySelector('#resetControls');
   const restartControls = document.querySelector('#restartControls');
   const pauseControls = document.querySelector('#pauseControls');
 
@@ -308,28 +299,6 @@ import { DotField } from './dotField.js';
 
   gravityDrop?.addEventListener('click', () => dotField.dropToBottom());
 
-  if (reactToUiEl instanceof HTMLInputElement) {
-    reactToUiEl.checked = reactToUi;
-    if (reactToUiValue instanceof HTMLOutputElement) reactToUiValue.value = reactToUi ? 'On' : 'Off';
-    reactToUiEl.addEventListener('change', () => {
-      reactToUi = reactToUiEl.checked;
-      localStorage.setItem('reactToUi', String(reactToUi));
-      if (reactToUiValue instanceof HTMLOutputElement) reactToUiValue.value = reactToUi ? 'On' : 'Off';
-      dotField.setReactToUi(reactToUi);
-    });
-  }
-
-  if (autoFitEl instanceof HTMLInputElement) {
-    autoFitEl.checked = autoFit;
-    if (autoFitValue instanceof HTMLOutputElement) autoFitValue.value = autoFit ? 'On' : 'Off';
-    autoFitEl.addEventListener('change', () => {
-      autoFit = autoFitEl.checked;
-      localStorage.setItem('autoFit', String(autoFit));
-      if (autoFitValue instanceof HTMLOutputElement) autoFitValue.value = autoFit ? 'On' : 'Off';
-      scheduleDotUpdate();
-    });
-  }
-
   function syncControlValues() {
     clampMinMaxSizes();
     if (dotMinSizeEl instanceof HTMLInputElement) dotMinSizeEl.value = String(dotMinSize);
@@ -344,20 +313,14 @@ import { DotField } from './dotField.js';
     if (dotDistributionValue instanceof HTMLOutputElement) dotDistributionValue.value = distributionLabel(dotDistribution);
     if (speedEl instanceof HTMLInputElement) speedEl.value = String(speed);
     if (speedValue instanceof HTMLOutputElement) speedValue.value = speed.toFixed(2);
-    if (reactToUiEl instanceof HTMLInputElement) reactToUiEl.checked = reactToUi;
-    if (reactToUiValue instanceof HTMLOutputElement) reactToUiValue.value = reactToUi ? 'On' : 'Off';
-    if (autoFitEl instanceof HTMLInputElement) autoFitEl.checked = autoFit;
-    if (autoFitValue instanceof HTMLOutputElement) autoFitValue.value = autoFit ? 'On' : 'Off';
   }
 
-  resetControls?.addEventListener('click', () => {
+  restartControls?.addEventListener('click', () => {
     dotMinSize = defaults.dotMinSize;
     dotMaxSize = defaults.dotMaxSize;
     dotDensity = defaults.dotDensity;
     dotSizeCount = defaults.dotSizeCount;
     dotDistribution = defaults.dotDistribution;
-    autoFit = defaults.autoFit;
-    reactToUi = defaults.reactToUi;
     speed = defaults.speed;
 
     localStorage.removeItem('dotMinSize');
@@ -365,15 +328,10 @@ import { DotField } from './dotField.js';
     localStorage.removeItem('dotDensity');
     localStorage.removeItem('dotSizeCount');
     localStorage.removeItem('dotDistribution');
-    localStorage.removeItem('autoFit');
-    localStorage.removeItem('reactToUi');
     localStorage.removeItem('speed');
 
     syncControlValues();
     scheduleDotUpdate();
-  });
-
-  restartControls?.addEventListener('click', () => {
     dotField.restart();
     dotField.heroIntro();
   });
@@ -400,6 +358,8 @@ import { DotField } from './dotField.js';
   localStorage.removeItem('contactMode');
   localStorage.removeItem('gravityEnabled');
   localStorage.removeItem('breathingEnabled');
+  localStorage.removeItem('autoFit');
+  localStorage.removeItem('reactToUi');
 
   const modeToggle = document.querySelector('#modeToggle');
   function syncModeToggle() {
@@ -421,70 +381,6 @@ import { DotField } from './dotField.js';
     dotField.setReducedMotion(event.matches);
   });
 
-  dotField.setNavActive(true);
-
-  const anchorElements = Array.from(document.querySelectorAll('[data-section], a, button'));
-
-  function collectAnchors() {
-    const anchors = anchorElements
-      .filter((el) => el.offsetParent !== null)
-      .flatMap((el) => {
-        const rect = el.getBoundingClientRect();
-        if (rect.width < 1 || rect.height < 1) return [];
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const role = el.tagName.toLowerCase();
-        return [{ x: cx, y: cy, strength: role === 'section' ? 0.9 : 0.6 }];
-      });
-    dotField.setInteractiveAnchors(anchors);
-  }
-
-  let anchorsScheduled = false;
-  function scheduleCollectAnchors() {
-    if (anchorsScheduled) return;
-    anchorsScheduled = true;
-    requestAnimationFrame(() => {
-      anchorsScheduled = false;
-      collectAnchors();
-    });
-  }
-
-  const observer = new ResizeObserver(() => scheduleCollectAnchors());
-  anchorElements.forEach((el) => observer.observe(el));
-  window.addEventListener('scroll', () => scheduleCollectAnchors(), { passive: true });
-
-  const sections = Array.from(document.querySelectorAll('[data-section]'));
-  const io = new IntersectionObserver(
-    (entries) => {
-      const visible = entries
-        .filter((e) => e.isIntersecting)
-        .sort((a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0))[0];
-      if (!visible) return;
-      const section = visible.target;
-      dotField.setActiveSection(section.dataset.section ?? null);
-      const rect = section.getBoundingClientRect();
-      dotField.setSectionAnchor({
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-        strength: 1.05,
-      });
-    },
-    { threshold: [0.2, 0.35, 0.5, 0.65] }
-  );
-  sections.forEach((s) => io.observe(s));
-
-  function bindHoverAnchors() {
-    const interactive = Array.from(document.querySelectorAll('a, button'));
-    for (const el of interactive) {
-      el.addEventListener('pointerenter', () => dotField.setHotElement(el));
-      el.addEventListener('pointerleave', () => dotField.setHotElement(null));
-      el.addEventListener('focus', () => dotField.setHotElement(el));
-      el.addEventListener('blur', () => dotField.setHotElement(null));
-    }
-  }
-
-  bindHoverAnchors();
-  collectAnchors();
   dotField.start();
   dotField.heroIntro();
 })();
