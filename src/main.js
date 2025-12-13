@@ -491,11 +491,11 @@ import { DotField } from './dotField.js';
       gridEnabled: true,
     },
     highContrastMix: {
-      dotMinSize: 1,
-      dotMaxSize: 100,
-      dotDensity: 0.75,
+      dotMinSize: 4,
+      dotMaxSize: 50,
+      dotDensity: 0.5,
       dotSizeCount: 15,
-      dotDistribution: 4, // U-shaped
+      dotDistribution: 3, // Flat
       speed: 0.0,
       breathingEnabled: false,
       gridEnabled: true,
