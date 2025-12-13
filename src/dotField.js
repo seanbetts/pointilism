@@ -642,15 +642,16 @@ export class DotField {
     const edgePad = this.#edgePaddingCssPx * this.#dpr;
 
     const breathEnabled = this.#breathingEnabled && !this.#reducedMotion && !gravityActive;
-    const breathPeriodMs = 6500;
-    const breathAmp = 0.18;
+    const breathPeriodMs = 4200;
+    const breathAmp = 0.08;
     const breathThresholdCss = Math.min(
       this.#maxRadiusCssPx,
       Math.max(this.#minRadiusCssPx + 2, this.#maxRadiusCssPx * 0.25)
     );
     const breathThresholdR = breathThresholdCss * this.#dpr;
     const breathT0 = this.#breathStartMs ?? tNow;
-    const phase = ((tNow - breathT0) / breathPeriodMs) * Math.PI * 2 - Math.PI / 2;
+    // Start at peak (expanded) then move into the downward curve (inward breath).
+    const phase = ((tNow - breathT0) / breathPeriodMs) * Math.PI * 2 + Math.PI / 2;
     const breath = Math.sin(phase);
     const exhale = Math.max(0, breath);
     let driftSeed0 = 0;
