@@ -900,7 +900,7 @@ export class DotField {
     const maskEnd = this.#gravityMaskUntilMs;
     const maskActive = maskStart != null && maskEnd != null && tNow >= maskStart && tNow < maskEnd;
     if (maskActive && maskStart != null && maskEnd != null) {
-      const barMaxH = Math.min(this.#height * 0.12, 180 * this.#dpr);
+      const barMaxH = Math.min(this.#height * 0.18, 270 * this.#dpr);
       const dur = Math.max(1, maskEnd - maskStart);
       const localT = clamp((tNow - maskStart) / dur, 0, 1);
 
