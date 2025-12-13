@@ -813,7 +813,7 @@ export class DotField {
 
     const physics = this.#physicsEnabled && !this.#gravityEnabled;
     const adhesionBand = physics ? 6 * this.#dpr : 0;
-    const breathBand = breathExhale > 0 ? 16 * this.#dpr : 0;
+    const breathBand = breathExhale > 0 ? 18 * this.#dpr : 0;
 
     for (let iter = 0; iter < iterations; iter++) {
       /** @type {Map<string, Dot[]>} */
@@ -859,11 +859,13 @@ export class DotField {
                     const ny = dy / dist;
                     const gap = dist - minDist;
                     const t = clamp(1 - gap / breathBand, 0, 1);
-                    const push = breathExhale * t * 0.55 * this.#dpr;
-                    dot.vx -= nx * push * dt;
-                    dot.vy -= ny * push * dt;
-                    other.vx += nx * push * dt;
-                    other.vy += ny * push * dt;
+                    // Progressive "exhale" pressure: gently separate nearby dots as the breathing dot expands,
+                    // so we don't get a single snap when the radius peaks.
+                    const push = breathExhale * t * 0.9 * this.#dpr * dt;
+                    dot.x -= nx * push;
+                    dot.y -= ny * push;
+                    other.x += nx * push;
+                    other.y += ny * push;
                   }
                 }
                 const band2 = (minDist + adhesionBand) * (minDist + adhesionBand);
