@@ -165,6 +165,7 @@ export class DotField {
   #maxV = 0.9;
   #densityScalar = 1;
   #bufferPx = 1.5;
+  #edgePaddingCssPx = 2;
   #excludeTopCssPx = 0;
   #minRadiusCssPx = 1.5;
   #maxRadiusCssPx = 4;
@@ -420,6 +421,7 @@ export class DotField {
     const maxRequired = 2 * maxR + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
+    const edgePad = this.#edgePaddingCssPx * this.#dpr;
 
     const sizes = Array.from({ length: this.#sizeCount }, (_, i) => {
       return minR + (i * (maxR - minR)) / (this.#sizeCount - 1);
@@ -445,8 +447,8 @@ export class DotField {
     for (const r of radii) {
       let placed = false;
       for (let tries = 0; tries < perDotAttempts; tries++) {
-        const x = lerp(r, this.#width - r, Math.random());
-        const y = lerp(excludeTop + r, this.#height - r, Math.random());
+        const x = lerp(r + edgePad, this.#width - r - edgePad, Math.random());
+        const y = lerp(excludeTop + r + edgePad, this.#height - r - edgePad, Math.random());
         const cx = Math.floor(x / cellSize);
         const cy = Math.floor(y / cellSize);
 
@@ -644,18 +646,19 @@ export class DotField {
 
       const rScaled = dot.r;
       const excludeTop = this.#excludeTopCssPx * this.#dpr;
+      const edgePad = this.#edgePaddingCssPx * this.#dpr;
       if (dot.x < rScaled) {
-        dot.x = rScaled;
+        dot.x = rScaled + edgePad;
         dot.vx = Math.abs(dot.vx) * 0.5;
-      } else if (dot.x > this.#width - rScaled) {
-        dot.x = this.#width - rScaled;
+      } else if (dot.x > this.#width - rScaled - edgePad) {
+        dot.x = this.#width - rScaled - edgePad;
         dot.vx = -Math.abs(dot.vx) * 0.5;
       }
-      if (dot.y < excludeTop + rScaled) {
-        dot.y = excludeTop + rScaled;
+      if (dot.y < excludeTop + rScaled + edgePad) {
+        dot.y = excludeTop + rScaled + edgePad;
         dot.vy = Math.abs(dot.vy) * 0.5;
-      } else if (dot.y > this.#height - rScaled) {
-        dot.y = this.#height - rScaled;
+      } else if (dot.y > this.#height - rScaled - edgePad) {
+        dot.y = this.#height - rScaled - edgePad;
         dot.vy = -Math.abs(dot.vy) * 0.5;
       }
     }
@@ -672,6 +675,7 @@ export class DotField {
     const maxRequired = 2 * maxR + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
+    const edgePad = this.#edgePaddingCssPx * this.#dpr;
 
     const physics = this.#physicsEnabled;
     const adhesionBand = physics ? 6 * this.#dpr : 0;
@@ -784,8 +788,8 @@ export class DotField {
 
     for (const dot of this.#dots) {
       const rScaled = dot.r;
-      dot.x = clamp(dot.x, rScaled, this.#width - rScaled);
-      dot.y = clamp(dot.y, excludeTop + rScaled, this.#height - rScaled);
+      dot.x = clamp(dot.x, rScaled + edgePad, this.#width - rScaled - edgePad);
+      dot.y = clamp(dot.y, excludeTop + rScaled + edgePad, this.#height - rScaled - edgePad);
     }
   }
 
