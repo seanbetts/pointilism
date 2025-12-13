@@ -448,6 +448,14 @@ import { DotField } from './dotField.js';
   }
 
   gravityDrop?.addEventListener('click', () => {
+    if (activePresetId) clearActivePreset();
+    if (gridEnabled) {
+      gridEnabled = false;
+      localStorage.setItem('gridEnabled', String(gridEnabled));
+      if (gridEnabledEl instanceof HTMLInputElement) gridEnabledEl.checked = gridEnabled;
+      if (gridEnabledValue instanceof HTMLOutputElement) gridEnabledValue.value = gridEnabled ? 'On' : 'Off';
+      dotField.setGridEnabled(gridEnabled);
+    }
     if (paused) {
       paused = false;
       dotField.resume();
