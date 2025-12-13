@@ -180,6 +180,8 @@ export class DotField {
   #gravityDropUntilMs = null;
   /** @type {number | null} */
   #gravityVisualUntilMs = null;
+  /** @type {number | null} */
+  #gravityActiveUntilMs = null;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -302,17 +304,24 @@ export class DotField {
     if (!this.#gravityEnabled) {
       this.#gravityDropUntilMs = null;
       this.#gravityVisualUntilMs = null;
+      this.#gravityActiveUntilMs = null;
     }
   }
 
-  dropToBottom() {
+  /** @param {{ activeMs?: number; dropMs?: number; liquidMs?: number }=} options */
+  dropToBottom(options) {
     this.#gravityEnabled = true;
     if (this.#reducedMotion) {
       this.#draw(true);
       return;
     }
-    this.#gravityDropUntilMs = nowMs() + 900;
-    this.#gravityVisualUntilMs = nowMs() + 1500;
+    const t0 = nowMs();
+    const dropMs = clamp(options?.dropMs ?? 900, 100, 20_000);
+    const activeMs = clamp(options?.activeMs ?? 2600, dropMs, 30_000);
+    const liquidMs = clamp(options?.liquidMs ?? 1500, 0, 30_000);
+    this.#gravityDropUntilMs = t0 + dropMs;
+    this.#gravityActiveUntilMs = t0 + activeMs;
+    this.#gravityVisualUntilMs = t0 + liquidMs;
 
     for (const dot of this.#dots) {
       dot.vy = Math.max(0, dot.vy);
@@ -592,7 +601,12 @@ export class DotField {
 
     this.#sectionTuning();
     const dropping = this.#gravityDropUntilMs != null && tNow < this.#gravityDropUntilMs;
-    const anchors = dropping || this.#gravityEnabled ? [] : this.#getAnchors();
+    const gravityActive =
+      this.#gravityEnabled && (this.#gravityActiveUntilMs == null || tNow < this.#gravityActiveUntilMs);
+    if (this.#gravityEnabled && !gravityActive) {
+      this.setGravityEnabled(false);
+    }
+    const anchors = dropping || gravityActive ? [] : this.#getAnchors();
     const { cohesion, stability, noise, maxV } = this;
 
     const speed = this.#speed;
@@ -645,7 +659,7 @@ export class DotField {
         const denom = Math.max(1e-6, maxR - minR);
         const t = clamp((dot.r0 - minR) / denom, 0, 1);
         const sizeBias = lerp(0.6, 1.025, t);
-        const fyProjected = this.#gravityEnabled ? 0 : fy;
+        const fyProjected = gravityActive ? 0 : fy;
         if (this.#physicsEnabled) {
           const mass = 1 + dot.r0 * dot.r0 * 0.025;
           dot.vx += (fx / mass) * sizeBias * dt;
@@ -656,7 +670,7 @@ export class DotField {
         }
       }
 
-      if (!this.#paused && this.#gravityEnabled && speed > 0) {
+      if (!this.#paused && gravityActive && speed > 0) {
         // Gravity drop is positional so all dots fall at the same speed regardless of size.
         const baseline = Math.max(0.35, speed);
         const dropPxPerSec = dropping ? lerp(0, 6000, baseline) : lerp(0, 240, baseline);
@@ -706,11 +720,11 @@ export class DotField {
         dot.vy = Math.abs(dot.vy) * 0.5;
       } else if (dot.y > this.#height - rScaled - edgePad) {
         dot.y = this.#height - rScaled - edgePad;
-        dot.vy = this.#gravityEnabled ? 0 : -Math.abs(dot.vy) * 0.5;
+        dot.vy = gravityActive ? 0 : -Math.abs(dot.vy) * 0.5;
       }
 
       // "Sleep" grounded dots during gravity so the pile doesn't jitter.
-      if (this.#gravityEnabled) {
+      if (gravityActive) {
         const bottom = this.#height - rScaled - edgePad;
         if (dot.y >= bottom - 0.5 * this.#dpr) {
           if (dot.vy > 0) dot.vy = 0;
