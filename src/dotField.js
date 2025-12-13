@@ -182,6 +182,7 @@ export class DotField {
   #gravityMaskUntilMs = null;
   /** @type {number | null} */
   #gravityMaskStartMs = null;
+  #gravityMaskSeed = 0;
   /** @type {number | null} */
   #gravityActiveUntilMs = null;
 
@@ -307,6 +308,7 @@ export class DotField {
       this.#gravityDropUntilMs = null;
       this.#gravityMaskUntilMs = null;
       this.#gravityMaskStartMs = null;
+      this.#gravityMaskSeed = 0;
       this.#gravityActiveUntilMs = null;
     }
   }
@@ -327,6 +329,7 @@ export class DotField {
     this.#gravityActiveUntilMs = t0 + activeMs;
     this.#gravityMaskStartMs = t0 + maskDelayMs;
     this.#gravityMaskUntilMs = this.#gravityMaskStartMs + maskMs;
+    this.#gravityMaskSeed = (Math.random() * 0x7fffffff) | 0;
 
     for (const dot of this.#dots) {
       dot.vy = Math.max(0, dot.vy);
@@ -919,7 +922,33 @@ export class DotField {
 
       this.#ctx.fillStyle = this.#palette.dot;
       this.#ctx.globalAlpha = 1;
-      this.#ctx.fillRect(0, this.#height - h, this.#width, h);
+      const topBase = this.#height - h;
+      const amp = Math.min(h * 0.18, 36 * this.#dpr);
+      const seed = this.#gravityMaskSeed || 1;
+      const ph1 = ((seed >>> 0) % 360) * (Math.PI / 180);
+      const ph2 = (((seed >>> 8) % 360) * Math.PI) / 180;
+      const ph3 = (((seed >>> 16) % 360) * Math.PI) / 180;
+      const f1 = 1 + ((seed >>> 20) % 3);
+      const f2 = 2 + ((seed >>> 24) % 4);
+      const f3 = 3 + ((seed >>> 28) % 5);
+
+      const segments = 16;
+      this.#ctx.beginPath();
+      this.#ctx.moveTo(0, this.#height);
+      for (let i = 0; i <= segments; i++) {
+        const x = (i / segments) * this.#width;
+        const u = i / segments;
+        const wave =
+          0.62 * Math.sin(2 * Math.PI * f1 * u + ph1) +
+          0.28 * Math.sin(2 * Math.PI * f2 * u + ph2) +
+          0.1 * Math.sin(2 * Math.PI * f3 * u + ph3);
+        const y = clamp(topBase + wave * amp, topBase - amp, this.#height - 1);
+        if (i === 0) this.#ctx.lineTo(0, y);
+        else this.#ctx.lineTo(x, y);
+      }
+      this.#ctx.lineTo(this.#width, this.#height);
+      this.#ctx.closePath();
+      this.#ctx.fill();
     }
 
     this.#ctx.fillStyle = this.#palette.dot;
