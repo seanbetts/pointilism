@@ -127,7 +127,7 @@ export class DotField {
 
   /** @param {number} scale */
   setDotScale(scale) {
-    const next = clamp(scale, 0.4, 3);
+    const next = clamp(scale, 0.4, 10);
     this.#dotScale = next;
     if (this.#reducedMotion) this.#draw(true);
   }
