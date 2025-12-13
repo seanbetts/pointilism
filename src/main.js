@@ -370,6 +370,11 @@ import { DotField } from './dotField.js';
     speedEl.value = String(speed);
     if (speedValue instanceof HTMLOutputElement) speedValue.value = speed.toFixed(2);
     speedEl.addEventListener('input', () => {
+      if (paused) {
+        paused = false;
+        dotField.resume();
+        syncPauseControls();
+      }
       const next = Number(speedEl.value);
       if (!Number.isFinite(next)) return;
       speed = next;
