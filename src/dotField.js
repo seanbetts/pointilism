@@ -653,7 +653,7 @@ export class DotField {
       dot.vx += jitter * 0.22 * dt;
       dot.vy += jitter * 0.22 * dt;
 
-      if (!this.#paused && !dropping && speed > 0) {
+      if (!this.#paused && !dropping && !gravityActive && speed > 0) {
         const sx = dot.x * driftScale;
         const sy = dot.y * driftScale;
         const n1a = noise2(sx, sy, driftSeed0);
@@ -687,7 +687,7 @@ export class DotField {
       if (!this.#paused && gravityActive && speed > 0) {
         // Gravity drop is positional so all dots fall at the same speed regardless of size.
         const baseline = Math.max(0.35, speed);
-        const dropPxPerSec = dropping ? lerp(0, 6000, baseline) : lerp(0, 240, baseline);
+        const dropPxPerSec = dropping ? lerp(0, 9000, baseline) : lerp(0, 240, baseline);
         dot.y += dropPxPerSec * dtSec * this.#dpr;
         dot.vy = 0;
         dot.vx *= Math.pow(0.94, dt);
