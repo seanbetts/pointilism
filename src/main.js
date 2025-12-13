@@ -6,7 +6,7 @@ import { DotField } from './dotField.js';
 
   const root = document.documentElement;
 
-  const SETTINGS_VERSION = '2025-12-13-defaults-v3';
+  const SETTINGS_VERSION = '2025-12-13-defaults-v4';
   const storedSettingsVersion = localStorage.getItem('settingsVersion');
   if (storedSettingsVersion !== SETTINGS_VERSION) {
     localStorage.removeItem('dotMinSize');
@@ -31,7 +31,7 @@ import { DotField } from './dotField.js';
   const defaults = {
     dotMinSize: 4.5,
     dotMaxSize: 40,
-    dotDensity: 1,
+    dotDensity: 0.5,
     dotSizeCount: 10,
     dotDistribution: 1,
     speed: 1,
