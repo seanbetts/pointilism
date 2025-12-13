@@ -322,7 +322,7 @@ export class DotField {
     const dropMs = clamp(options?.dropMs ?? 900, 100, 20_000);
     const activeMs = clamp(options?.activeMs ?? 1000, dropMs, 30_000);
     const maskDelayMs = clamp(options?.maskDelayMs ?? 0, 0, 30_000);
-    const maskMs = clamp(options?.maskMs ?? 3000, 0, 30_000);
+    const maskMs = clamp(options?.maskMs ?? 5000, 0, 30_000);
     this.#gravityDropUntilMs = t0 + dropMs;
     this.#gravityActiveUntilMs = t0 + activeMs;
     this.#gravityMaskStartMs = t0 + maskDelayMs;
