@@ -306,7 +306,7 @@ export class DotField {
       this.#draw(true);
       return;
     }
-    this.#gravityDropUntilMs = nowMs() + 1600;
+    this.#gravityDropUntilMs = nowMs() + 900;
 
     for (const dot of this.#dots) {
       dot.vy = Math.max(0, dot.vy);
@@ -581,6 +581,7 @@ export class DotField {
     const dtMs = clamp(t - this.#lastT, 0, 34);
     this.#lastT = t;
     const dt = dtMs / 16.6667;
+    const dtSec = dtMs / 1000;
     const tNow = nowMs();
 
     this.#sectionTuning();
@@ -649,15 +650,12 @@ export class DotField {
       }
 
       if (!this.#paused && this.#gravityEnabled && speed > 0) {
+        // Gravity drop is positional so all dots fall at the same speed regardless of size.
         const baseline = Math.max(0.35, speed);
-        // Gravity uses a target velocity rather than an acceleration; keep it fast but bounded.
-        const fallSpeed = (dropping ? lerp(0, 12, baseline) : lerp(0, 4, baseline)) * this.#dpr;
-        const bottom = this.#height - dot.r - edgePad;
-        const grounded = dot.y >= bottom - 0.5 * this.#dpr;
-        if (!grounded) {
-          const t = clamp(0.22 * dt, 0, 1);
-          dot.vy = lerp(dot.vy, fallSpeed, t);
-        }
+        const dropPxPerSec = dropping ? lerp(0, 6000, baseline) : 0;
+        dot.y += dropPxPerSec * dtSec * this.#dpr;
+        dot.vy = 0;
+        dot.vx *= Math.pow(0.94, dt);
       }
 
       if (anchors.length > 0) {
@@ -678,13 +676,8 @@ export class DotField {
 
       dot.vx *= stability;
       dot.vy *= stability;
-      const baseline = Math.max(0.35, speed);
-      const gravityMaxV =
-        this.#gravityEnabled && speed > 0
-          ? (dropping ? lerp(1.5, 18, baseline) : lerp(1.0, 10, baseline)) * this.#dpr
-          : maxV;
-      dot.vx = clamp(dot.vx, -gravityMaxV, gravityMaxV);
-      dot.vy = clamp(dot.vy, -gravityMaxV, gravityMaxV);
+      dot.vx = clamp(dot.vx, -maxV, maxV);
+      dot.vy = clamp(dot.vy, -maxV, maxV);
 
       if (!this.#paused) {
         dot.x += dot.vx * this.#dpr * 2.2 * dt;
@@ -740,7 +733,7 @@ export class DotField {
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
     const edgePad = this.#edgePaddingCssPx * this.#dpr;
 
-    const physics = this.#physicsEnabled;
+    const physics = this.#physicsEnabled && !this.#gravityEnabled;
     const adhesionBand = physics ? 6 * this.#dpr : 0;
 
     for (let iter = 0; iter < 2; iter++) {
