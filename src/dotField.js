@@ -145,6 +145,7 @@ export class DotField {
   #motionAmount = 0.35;
   #reactToUi = true;
   #contactFeel = 0.25;
+  #driftAngle = Math.random() * Math.PI * 2;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -569,7 +570,11 @@ export class DotField {
       dot.vy += jitter * 0.22 * dt;
 
       if (this.#motionStyle === 1 && this.#motionAmount > 0) {
-        dot.vx += 0.006 * this.#dpr * dt;
+        // Calm drift: direction is unbiased and slowly rotates over time.
+        this.#driftAngle += 0.00045 * dtMs;
+        const base = lerp(0, 0.035, this.#motionAmount) * this.#dpr;
+        dot.vx += Math.cos(this.#driftAngle) * base * dt;
+        dot.vy += Math.sin(this.#driftAngle) * base * dt;
       }
 
       if (anchors.length > 0) {
