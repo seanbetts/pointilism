@@ -108,12 +108,56 @@ body {
 }
 
 .toggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   color: var(--muted);
   font-size: 0.9rem;
   user-select: none;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.toggle-switch {
+  width: 2.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--muted);
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0.15rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  background: var(--muted);
+  border-radius: 999px;
+  transform: translateY(-50%);
+  transition: transform 140ms linear, background-color 140ms linear;
+}
+
+.toggle input:checked + .toggle-switch {
+  border-color: var(--fg);
+}
+
+.toggle input:checked + .toggle-switch::after {
+  background: var(--fg);
+  transform: translate(1.0rem, -50%);
+}
+
+.toggle:focus-within .toggle-switch {
+  border-color: var(--fg);
 }
 
 .toggle-label {
