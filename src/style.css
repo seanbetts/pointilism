@@ -103,8 +103,13 @@ body {
 
 .controls {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.9rem;
+}
+
+.mode-toggle,
+.reset-controls {
+  align-self: center;
 }
 
 .toggle-row {
