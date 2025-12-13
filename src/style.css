@@ -130,6 +130,7 @@ body {
 
 .hero .controls-panel {
   max-width: 60ch;
+  width: min(60ch, 100%);
 }
 
 [data-mode='light'] .controls-panel {
@@ -462,6 +463,7 @@ body {
 
 .copy {
   max-width: 60ch;
+  width: min(60ch, 100%);
 }
 
 .mini-panel {
