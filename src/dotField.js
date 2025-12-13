@@ -541,7 +541,7 @@ export class DotField {
         placed = true;
         break;
       }
-      if (!placed) break;
+      if (!placed) continue;
     }
 
     return dots;
