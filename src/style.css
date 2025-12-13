@@ -303,6 +303,7 @@ body {
 }
 
 .mode-toggle .mode-icon {
+  color: var(--fg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
