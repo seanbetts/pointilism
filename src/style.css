@@ -1,0 +1,274 @@
+:root {
+  --bg: #000;
+  --fg: #fff;
+  --muted: rgba(255, 255, 255, 0.7);
+  --shield: rgba(0, 0, 0, 0.78);
+  --focus: rgba(255, 255, 255, 0.9);
+  color-scheme: dark;
+}
+
+[data-mode='light'] {
+  --bg: #fff;
+  --fg: #000;
+  --muted: rgba(0, 0, 0, 0.68);
+  --shield: rgba(255, 255, 255, 0.82);
+  --focus: rgba(0, 0, 0, 0.9);
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.noscript {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  max-width: 46ch;
+  padding: 0.75rem 0.9rem;
+  background: var(--shield);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  color: var(--muted);
+  z-index: 9;
+}
+
+[data-mode='light'] .noscript {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--fg);
+  color: var(--bg);
+  border-radius: 0.4rem;
+  transform: translateY(-200%);
+  transition: transform 120ms linear;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: none;
+}
+
+#dotfield {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.nav-intent {
+  height: 64px;
+}
+
+.nav {
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem clamp(1rem, 5vw, 3rem);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 160ms linear, transform 160ms linear;
+}
+
+.header[data-nav='open'] .nav,
+.nav:focus-within {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.brand {
+  color: var(--fg);
+  text-decoration: none;
+  font-weight: 550;
+  letter-spacing: 0.02em;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.nav a:hover,
+.nav a:focus-visible {
+  color: var(--fg);
+}
+
+.mode-toggle {
+  border: 1px solid var(--muted);
+  background: transparent;
+  color: var(--muted);
+  padding: 0.45rem 0.6rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.mode-toggle:hover,
+.mode-toggle:focus-visible {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.content {
+  outline: none;
+}
+
+.section {
+  padding: clamp(4rem, 10vh, 8rem) clamp(1rem, 5vw, 3rem);
+  display: grid;
+  justify-items: start;
+}
+
+.hero {
+  min-height: clamp(520px, 92vh, 860px);
+  align-content: center;
+}
+
+.copy {
+  max-width: 60ch;
+}
+
+.shield {
+  background: var(--shield);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.9rem;
+  padding: 1.25rem 1.25rem;
+}
+
+[data-mode='light'] .shield {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.eyebrow {
+  margin: 0 0 0.6rem 0;
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+h1 {
+  margin: 0 0 0.9rem 0;
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 550;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.4rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0.6rem 0;
+  color: var(--muted);
+}
+
+.lede {
+  font-size: 1.05rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.cta,
+.secondary,
+.text-link {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+[data-mode='light'] .cta {
+  border-color: rgba(0, 0, 0, 0.22);
+}
+
+.cta:hover,
+.cta:focus-visible,
+.secondary:hover,
+.secondary:focus-visible,
+.text-link:hover,
+.text-link:focus-visible {
+  color: var(--focus);
+}
+
+.secondary,
+.text-link {
+  color: var(--muted);
+}
+
+.proof-list {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+}
+
+.footer {
+  padding: 3rem clamp(1rem, 5vw, 3rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav,
+  .skip-link {
+    transition: none;
+  }
+}

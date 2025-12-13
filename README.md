@@ -144,14 +144,13 @@ Target budgets:
 
 ## Running the project
 
-Example (adjust to your setup):
+This prototype uses native ES modules, so run it from a local static server.
 
 ```bash
-npm install
-npm run dev
+python3 -m http.server 8000
 ```
 
-Or simply open `index.html` if no build step is used.
+Then open `http://localhost:8000` and load `index.html`.
 
 ---
 
