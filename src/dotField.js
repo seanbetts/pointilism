@@ -837,7 +837,8 @@ export class DotField {
               other.vx -= tvx * (0.5 - friction * 0.5);
               other.vy -= tvy * (0.5 - friction * 0.5);
 
-              const damp = lerp(0.75, 0.94, feel);
+              const dampBase = !physics ? 1 : lerp(0.95, 0.82, friction);
+              const damp = Math.pow(dampBase, dt);
               dot.vx *= damp;
               dot.vy *= damp;
               other.vx *= damp;
