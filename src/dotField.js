@@ -135,7 +135,7 @@ export class DotField {
 
   /** @param {number} scale */
   setDotScale(scale) {
-    const next = clamp(scale, 0.4, 10);
+    const next = clamp(scale, 0.4, 100);
     this.#dotScale = next;
     this.#scheduleSetup();
   }
