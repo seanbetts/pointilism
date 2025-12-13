@@ -850,7 +850,7 @@ export class DotField {
               const minDist = dot.r + other.r + this.#bufferPx * this.#dpr;
               const minDist2 = minDist * minDist;
               const stickRaw = physics ? (dot.stick + other.stick) * 0.5 : 0;
-              const stick = breathing ? stickRaw * 0.25 : stickRaw;
+              const stick = breathExhale > 0 ? 0 : breathing ? stickRaw * 0.25 : stickRaw;
               const restitution = physics ? lerp(1.25, 0.05, stick) : 0;
               const friction = physics ? lerp(0.06, 0.7, stick) : 1;
               const adhesionStrength = physics ? 0.05 * stick : 0;
