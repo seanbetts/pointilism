@@ -141,6 +141,10 @@ export class DotField {
   #sizeCount = 5;
   #distribution = 'flat';
   #autoFit = true;
+  #motionStyle = 1;
+  #motionAmount = 0.35;
+  #reactToUi = true;
+  #contactFeel = 0.25;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -215,7 +219,7 @@ export class DotField {
   setMinRadius(cssPx) {
     const next = clamp(cssPx, 0.5, 200);
     this.#minRadiusCssPx = next;
-    if (this.#minRadiusCssPx > this.#maxRadiusCssPx) this.#minRadiusCssPx = this.#maxRadiusCssPx;
+    if (this.#minRadiusCssPx > this.#maxRadiusCssPx) this.#maxRadiusCssPx = this.#minRadiusCssPx;
     this.#scheduleSetup();
   }
 
@@ -245,6 +249,29 @@ export class DotField {
   setAutoFitDensity(enabled) {
     this.#autoFit = Boolean(enabled);
     this.#scheduleSetup();
+  }
+
+  /** @param {number} style */
+  setMotionStyle(style) {
+    this.#motionStyle = clampInt(style, 0, 4);
+    if (this.#motionStyle === 0) this.stop();
+    else if (this.#running && !this.#reducedMotion) this.start();
+    if (this.#reducedMotion || this.#motionStyle === 0) this.#draw(true);
+  }
+
+  /** @param {number} amount */
+  setMotionAmount(amount) {
+    this.#motionAmount = clamp(amount, 0, 1);
+  }
+
+  /** @param {boolean} enabled */
+  setReactToUi(enabled) {
+    this.#reactToUi = Boolean(enabled);
+  }
+
+  /** @param {number} feel */
+  setContactFeel(feel) {
+    this.#contactFeel = clamp(feel, 0, 1);
   }
 
   /** @param {number} cssPx */
@@ -304,6 +331,11 @@ export class DotField {
   start() {
     this.#running = true;
     if (this.#reducedMotion) {
+      this.#draw(true);
+      return;
+    }
+    if (this.#motionStyle === 0) {
+      this.stop();
       this.#draw(true);
       return;
     }
@@ -431,6 +463,8 @@ export class DotField {
     /** @type {Anchor[]} */
     const anchors = [];
 
+    if (!this.#reactToUi) return anchors;
+
     if (this.#navActive) {
       anchors.push({ x: this.#width * 0.2, y: this.#height * 0.08, strength: 0.9 });
       anchors.push({ x: this.#width * 0.5, y: this.#height * 0.08, strength: 0.9 });
@@ -473,40 +507,50 @@ export class DotField {
   }
 
   #sectionTuning() {
-    const s = this.#activeSection;
     const intro = this.#introUntilMs != null && nowMs() < this.#introUntilMs;
-    if (s === 'proof') {
-      this.#stability = 0.965;
-      this.#noise = 0.08;
-      this.#cohesion = 0.16;
-      this.#maxV = 0.6;
-      return;
+
+    const amount = this.#motionAmount;
+    const react = this.#reactToUi;
+
+    // Presets define the character; amount scales intensity.
+    // 0: Still, 1: Calm drift, 2: Settle, 3: Reactive, 4: Alive.
+    switch (this.#motionStyle) {
+      case 1: {
+        this.#stability = lerp(0.975, 0.945, amount);
+        this.#noise = lerp(0.0, 0.12, amount);
+        this.#maxV = lerp(0.12, 0.55, amount);
+        this.#cohesion = react ? lerp(0.03, 0.09, amount) : 0;
+        break;
+      }
+      case 2: {
+        this.#stability = lerp(0.985, 0.955, amount);
+        this.#noise = intro ? lerp(0.18, 0.38, amount) : lerp(0.0, 0.08, amount);
+        this.#maxV = lerp(0.12, 0.5, amount);
+        this.#cohesion = react ? lerp(0.06, 0.14, amount) : 0;
+        break;
+      }
+      case 3: {
+        this.#stability = lerp(0.97, 0.93, amount);
+        this.#noise = lerp(0.02, 0.16, amount);
+        this.#maxV = lerp(0.18, 0.85, amount);
+        this.#cohesion = react ? lerp(0.09, 0.2, amount) : 0;
+        break;
+      }
+      case 4: {
+        this.#stability = lerp(0.955, 0.91, amount);
+        this.#noise = lerp(0.06, 0.28, amount);
+        this.#maxV = lerp(0.25, 1.25, amount);
+        this.#cohesion = react ? lerp(0.1, 0.22, amount) : 0;
+        break;
+      }
+      default: {
+        this.#stability = 0.98;
+        this.#noise = 0;
+        this.#maxV = 0;
+        this.#cohesion = 0;
+        break;
+      }
     }
-    if (s === 'hero') {
-      this.#stability = 0.93;
-      this.#noise = intro ? 0.55 : 0.2;
-      this.#cohesion = intro ? 0.05 : 0.12;
-      this.#maxV = 0.95;
-      return;
-    }
-    if (s && s !== 'footer') {
-      this.#stability = 0.935;
-      this.#noise = 0.18;
-      this.#cohesion = 0.135;
-      this.#maxV = 0.9;
-      return;
-    }
-    if (s === 'footer') {
-      this.#stability = 0.93;
-      this.#noise = 0.18;
-      this.#cohesion = 0.08;
-      this.#maxV = 0.9;
-      return;
-    }
-    this.#stability = 0.92;
-    this.#noise = 0.22;
-    this.#cohesion = 0.11;
-    this.#maxV = 0.95;
   }
 
   #frame(t) {
@@ -523,6 +567,10 @@ export class DotField {
       const jitter = (Math.random() - 0.5) * noise;
       dot.vx += jitter * 0.22 * dt;
       dot.vy += jitter * 0.22 * dt;
+
+      if (this.#motionStyle === 1 && this.#motionAmount > 0) {
+        dot.vx += 0.006 * this.#dpr * dt;
+      }
 
       if (anchors.length > 0) {
         let pullX = 0;
@@ -566,17 +614,24 @@ export class DotField {
       }
     }
 
-    this.#resolveOverlaps();
+    this.#resolveOverlaps(dt);
     this.#draw(false);
   }
 
-  #resolveOverlaps() {
+  /** @param {number} dt */
+  #resolveOverlaps(dt) {
     if (this.#dots.length < 2) return;
 
     const maxR = this.#maxRadiusCssPx * this.#dpr;
     const maxRequired = 2 * maxR + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
+
+    const feel = this.#contactFeel;
+    const restitution = lerp(0.02, 0.85, feel);
+    const friction = lerp(0.12, 0.85, feel);
+    const adhesionBand = lerp(6, 1.5, feel) * this.#dpr;
+    const adhesionStrength = lerp(0.06, 0.0, feel);
 
     for (let iter = 0; iter < 2; iter++) {
       /** @type {Map<string, Dot[]>} */
@@ -605,10 +660,23 @@ export class DotField {
 
             const dx = other.x - dot.x;
             const dy = other.y - dot.y;
-            const dist2 = dx * dx + dy * dy;
-            const minDist = dot.r + other.r + this.#bufferPx * this.#dpr;
-            const minDist2 = minDist * minDist;
-            if (dist2 >= minDist2) continue;
+              const dist2 = dx * dx + dy * dy;
+              const minDist = dot.r + other.r + this.#bufferPx * this.#dpr;
+              const minDist2 = minDist * minDist;
+              if (dist2 >= minDist2) {
+                if (adhesionStrength > 0 && dist2 < (minDist + adhesionBand) * (minDist + adhesionBand)) {
+                  const dist = Math.sqrt(Math.max(1e-6, dist2));
+                  const nx = dx / dist;
+                  const ny = dy / dist;
+                  const gap = dist - minDist;
+                  const pull = clamp(adhesionStrength * (1 - gap / adhesionBand), 0, adhesionStrength);
+                  dot.vx += nx * pull * dt;
+                  dot.vy += ny * pull * dt;
+                  other.vx -= nx * pull * dt;
+                  other.vy -= ny * pull * dt;
+                }
+                continue;
+              }
 
               const dist = Math.sqrt(Math.max(1e-6, dist2));
               const overlap = minDist - dist;
@@ -621,10 +689,29 @@ export class DotField {
               other.x += nx * push;
               other.y += ny * push;
 
-              dot.vx *= 0.92;
-              dot.vy *= 0.92;
-              other.vx *= 0.92;
-              other.vy *= 0.92;
+              const rvx = other.vx - dot.vx;
+              const rvy = other.vy - dot.vy;
+              const vn = rvx * nx + rvy * ny;
+              if (vn < 0) {
+                const j = -(1 + restitution) * vn * 0.5;
+                dot.vx -= j * nx;
+                dot.vy -= j * ny;
+                other.vx += j * nx;
+                other.vy += j * ny;
+              }
+
+              const tvx = rvx - vn * nx;
+              const tvy = rvy - vn * ny;
+              dot.vx += tvx * (0.5 - friction * 0.5);
+              dot.vy += tvy * (0.5 - friction * 0.5);
+              other.vx -= tvx * (0.5 - friction * 0.5);
+              other.vy -= tvy * (0.5 - friction * 0.5);
+
+              const damp = lerp(0.75, 0.94, feel);
+              dot.vx *= damp;
+              dot.vy *= damp;
+              other.vx *= damp;
+              other.vy *= damp;
             }
           }
         }

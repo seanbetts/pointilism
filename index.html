@@ -145,6 +145,101 @@
 	                for="dotDistribution"
 	              ></output>
 	            </label>
+	            <label class="control">
+	              <span class="control-label">
+	                Motion style
+	                <button
+	                  class="help"
+	                  type="button"
+	                  aria-label="Motion style help"
+	                  title="Overall motion character (preset)."
+	                >
+	                  ?
+	                </button>
+	              </span>
+	              <input
+	                id="motionStyle"
+	                class="control-input"
+	                type="range"
+	                min="0"
+	                max="4"
+	                step="1"
+	                value="1"
+	              />
+	              <output id="motionStyleValue" class="control-value" for="motionStyle"></output>
+	            </label>
+	            <label class="control">
+	              <span class="control-label">
+	                Motion amount
+	                <button
+	                  class="help"
+	                  type="button"
+	                  aria-label="Motion amount help"
+	                  title="Scales the intensity of the current motion style."
+	                >
+	                  ?
+	                </button>
+	              </span>
+	              <input
+	                id="motionAmount"
+	                class="control-input"
+	                type="range"
+	                min="0"
+	                max="1"
+	                step="0.05"
+	                value="0.35"
+	              />
+	              <output
+	                id="motionAmountValue"
+	                class="control-value"
+	                for="motionAmount"
+	              ></output>
+	            </label>
+	            <label class="control toggle">
+	              <span class="control-label">
+	                React to UI
+	                <button
+	                  class="help"
+	                  type="button"
+	                  aria-label="React to UI help"
+	                  title="Enables anchor-driven reactions to UI elements."
+	                >
+	                  ?
+	                </button>
+	              </span>
+	              <span class="toggle-row">
+	                <input id="reactToUi" type="checkbox" checked />
+	                <span class="toggle-switch" aria-hidden="true"></span>
+	              </span>
+	              <output id="reactToUiValue" class="control-value" for="reactToUi"></output>
+	            </label>
+	            <label class="control">
+	              <span class="control-label">
+	                Contact feel
+	                <button
+	                  class="help"
+	                  type="button"
+	                  aria-label="Contact feel help"
+	                  title="Sticky dots settle into packed arrangements; bouncy dots rebound more."
+	                >
+	                  ?
+	                </button>
+	              </span>
+	              <input
+	                id="contactFeel"
+	                class="control-input"
+	                type="range"
+	                min="0"
+	                max="1"
+	                step="0.05"
+	                value="0.25"
+	              />
+	              <output
+	                id="contactFeelValue"
+	                class="control-value"
+	                for="contactFeel"
+	              ></output>
+	            </label>
 	            <label class="control toggle">
 	              <span class="control-label">
 	                Auto-fit
