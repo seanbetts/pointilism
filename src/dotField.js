@@ -581,15 +581,17 @@ export class DotField {
     const dtMs = clamp(t - this.#lastT, 0, 34);
     this.#lastT = t;
     const dt = dtMs / 16.6667;
+    const tNow = nowMs();
 
     this.#sectionTuning();
-    const dropping = this.#gravityDropUntilMs != null && nowMs() < this.#gravityDropUntilMs;
+    const dropping = this.#gravityDropUntilMs != null && tNow < this.#gravityDropUntilMs;
     const anchors = dropping ? [] : this.#getAnchors();
     const { cohesion, stability, noise, maxV } = this;
 
     const speed = this.#speed;
     const minR = this.#minRadiusCssPx * this.#dpr;
     const maxR = this.#maxRadiusCssPx * this.#dpr * 1.06;
+    const edgePad = this.#edgePaddingCssPx * this.#dpr;
     let driftSeed0 = 0;
     let driftSeed1 = 0;
     let driftT = 0;
@@ -649,8 +651,12 @@ export class DotField {
       if (!this.#paused && this.#gravityEnabled && speed > 0) {
         const baseline = Math.max(0.35, speed);
         const fallSpeed = (dropping ? lerp(0, 225000, baseline) : lerp(0, 36000, baseline)) * this.#dpr;
-        const t = clamp(0.18 * dt, 0, 1);
-        dot.vy = lerp(dot.vy, fallSpeed, t);
+        const bottom = this.#height - dot.r - edgePad;
+        const grounded = dot.y >= bottom - 0.5 * this.#dpr;
+        if (!grounded) {
+          const t = clamp(0.22 * dt, 0, 1);
+          dot.vy = lerp(dot.vy, fallSpeed, t);
+        }
       }
 
       if (anchors.length > 0) {
@@ -694,7 +700,23 @@ export class DotField {
         dot.vy = Math.abs(dot.vy) * 0.5;
       } else if (dot.y > this.#height - rScaled - edgePad) {
         dot.y = this.#height - rScaled - edgePad;
-        dot.vy = -Math.abs(dot.vy) * 0.5;
+        dot.vy = this.#gravityEnabled ? 0 : -Math.abs(dot.vy) * 0.5;
+      }
+
+      // "Sleep" grounded dots during gravity so the pile doesn't jitter.
+      if (this.#gravityEnabled) {
+        const bottom = this.#height - rScaled - edgePad;
+        if (dot.y >= bottom - 0.5 * this.#dpr) {
+          if (dot.vy > 0) dot.vy = 0;
+          const speed2 = dot.vx * dot.vx + dot.vy * dot.vy;
+          if (speed2 < 0.0009) {
+            dot.vx = 0;
+            dot.vy = 0;
+          } else {
+            const damp = Math.pow(0.72, dt);
+            dot.vx *= damp;
+          }
+        }
       }
     }
 
