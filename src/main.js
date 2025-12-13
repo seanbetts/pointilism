@@ -30,8 +30,15 @@ import { DotField } from './dotField.js';
     return 1;
   }
 
+  function getInitialVariance() {
+    const stored = Number(localStorage.getItem('dotVariance'));
+    if (Number.isFinite(stored) && stored >= 0) return stored;
+    return 1;
+  }
+
   let dotScale = getInitialDotScale();
   let dotDensity = getInitialDensity();
+  let dotVariance = getInitialVariance();
 
   let dotField;
   try {
@@ -47,6 +54,7 @@ import { DotField } from './dotField.js';
 
   dotField.setDotScale(dotScale);
   dotField.setDensityScalar(dotDensity);
+  dotField.setSizeVariance(dotVariance);
 
   const headerEl = document.querySelector('.header');
   function updateTopExclusion() {
@@ -64,6 +72,8 @@ import { DotField } from './dotField.js';
   const dotSizeValue = document.querySelector('#dotSizeValue');
   const dotDensityEl = document.querySelector('#dotDensity');
   const dotDensityValue = document.querySelector('#dotDensityValue');
+  const dotVarianceEl = document.querySelector('#dotVariance');
+  const dotVarianceValue = document.querySelector('#dotVarianceValue');
 
   let dotUpdateScheduled = false;
   function scheduleDotUpdate() {
@@ -73,6 +83,7 @@ import { DotField } from './dotField.js';
       dotUpdateScheduled = false;
       dotField.setDotScale(dotScale);
       dotField.setDensityScalar(dotDensity);
+      dotField.setSizeVariance(dotVariance);
     });
   }
 
@@ -98,6 +109,19 @@ import { DotField } from './dotField.js';
       dotDensity = next;
       localStorage.setItem('dotDensity', String(dotDensity));
       if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(1);
+      scheduleDotUpdate();
+    });
+  }
+
+  if (dotVarianceEl instanceof HTMLInputElement) {
+    dotVarianceEl.value = String(dotVariance);
+    if (dotVarianceValue instanceof HTMLOutputElement) dotVarianceValue.value = dotVariance.toFixed(1);
+    dotVarianceEl.addEventListener('input', () => {
+      const next = Number(dotVarianceEl.value);
+      if (!Number.isFinite(next)) return;
+      dotVariance = next;
+      localStorage.setItem('dotVariance', String(dotVariance));
+      if (dotVarianceValue instanceof HTMLOutputElement) dotVarianceValue.value = dotVariance.toFixed(1);
       scheduleDotUpdate();
     });
   }

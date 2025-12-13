@@ -69,6 +69,7 @@ export class DotField {
   #dotScale = 1;
   #bufferPx = 1.5;
   #excludeTopCssPx = 0;
+  #sizeVariance = 1;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -143,6 +144,13 @@ export class DotField {
   setDensityScalar(scalar) {
     const next = clamp(scalar, 0.1, 3);
     this.#densityScalar = next;
+    this.#scheduleSetup();
+  }
+
+  /** @param {number} variance */
+  setSizeVariance(variance) {
+    const next = clamp(variance, 0, 1);
+    this.#sizeVariance = next;
     this.#scheduleSetup();
   }
 
@@ -239,6 +247,8 @@ export class DotField {
     const maxRequired = 2 * maxR * this.#dotScale + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
+    const meanR = 1.3 * this.#dpr;
+    const halfRange = 0.5 * this.#dpr;
 
     /** @type {Map<string, Dot[]>} */
     const grid = new Map();
@@ -251,7 +261,11 @@ export class DotField {
     while (dots.length < count && attempts < maxAttempts) {
       attempts++;
 
-      const r = lerp(0.8, 1.8, Math.random()) * this.#dpr;
+      const r = clamp(
+        meanR + (Math.random() - 0.5) * 2 * halfRange * this.#sizeVariance,
+        0.8 * this.#dpr,
+        1.8 * this.#dpr
+      );
       const rScaled = r * this.#dotScale;
       const x = lerp(rScaled, this.#width - rScaled, Math.random());
       const y = lerp(excludeTop + rScaled, this.#height - rScaled, Math.random());
