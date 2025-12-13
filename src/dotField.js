@@ -18,7 +18,7 @@ function nowMs() {
 }
 
 /**
- * @typedef {{ x: number; y: number; vx: number; vy: number; r: number; r0: number; a: number; ds: number }} Dot
+ * @typedef {{ x: number; y: number; vx: number; vy: number; r: number; r0: number; a: number; ds: number; stick: number }} Dot
  */
 
 function keyForCell(cx, cy) {
@@ -172,12 +172,8 @@ export class DotField {
   #distribution = 'flat';
   #autoFit = true;
   #reactToUi = true;
-  #motionEnabled = true;
-  #physicsEnabled = true;
-  #gravityEnabled = false;
-  #breathingEnabled = false;
   #speed = 0.35;
-  #contactMode = 'bounce';
+  #physicsEnabled = true;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -289,44 +285,9 @@ export class DotField {
     this.#reactToUi = Boolean(enabled);
   }
 
-  /** @param {boolean} enabled */
-  setMotionEnabled(enabled) {
-    this.#motionEnabled = Boolean(enabled);
-    if (!this.#motionEnabled) {
-      this.pause();
-      this.#draw(true);
-      return;
-    }
-    this.resume();
-  }
-
-  /** @param {boolean} enabled */
-  setPhysicsEnabled(enabled) {
-    this.#physicsEnabled = Boolean(enabled);
-    if (!this.#physicsEnabled) {
-      this.#gravityEnabled = false;
-      this.#contactMode = 'bounce';
-    }
-  }
-
-  /** @param {boolean} enabled */
-  setGravityEnabled(enabled) {
-    this.#gravityEnabled = Boolean(enabled);
-  }
-
-  /** @param {boolean} enabled */
-  setBreathingEnabled(enabled) {
-    this.#breathingEnabled = Boolean(enabled);
-  }
-
   /** @param {number} speed */
   setSpeed(speed) {
     this.#speed = clamp(speed, 0, 1);
-  }
-
-  /** @param {'bounce' | 'stick' | 'both'} mode */
-  setContactMode(mode) {
-    this.#contactMode = mode === 'stick' || mode === 'both' ? mode : 'bounce';
   }
 
   /** @param {number} cssPx */
@@ -390,7 +351,6 @@ export class DotField {
       this.#draw(true);
       return;
     }
-    if (!this.#motionEnabled) return;
     if (this.#raf != null) return;
     this.#lastT = nowMs();
     this.#raf = requestAnimationFrame((t) => this.#frame(t));
@@ -408,7 +368,7 @@ export class DotField {
 
   restart() {
     this.#setup();
-    if (this.#paused || this.#reducedMotion || !this.#motionEnabled) {
+    if (this.#paused || this.#reducedMotion) {
       this.stop();
       this.#draw(true);
       return;
@@ -518,6 +478,7 @@ export class DotField {
           r0: r,
           a: 1,
           ds: lerp(0.75, 1.25, Math.random()),
+          stick: Math.random(),
         };
         const key = keyForCell(cx, cy);
         const bucket = grid.get(key);
@@ -608,7 +569,7 @@ export class DotField {
     let driftScale = 1;
     let driftBandSeed = 0;
     let driftForce = 0;
-    if (this.#motionEnabled && speed > 0) {
+    if (speed > 0) {
       const periodMs = 8000;
       const s0 = Math.floor(t / periodMs);
       const s1 = s0 + 1;
@@ -621,23 +582,14 @@ export class DotField {
       driftForce = lerp(0, 0.095, speed) * this.#dpr;
     }
 
-    const breathingPeriodMs = 7000;
-    const breathingAmp = 0.06;
-    const breathingPhase = (t / breathingPeriodMs) * Math.PI * 2;
-    const breathe = this.#breathingEnabled && this.#motionEnabled;
-
     for (const dot of this.#dots) {
-      if (breathe) {
-        dot.r = dot.r0 * (1 + breathingAmp * Math.sin(breathingPhase));
-      } else {
-        dot.r = dot.r0;
-      }
+      dot.r = dot.r0;
 
       const jitter = (Math.random() - 0.5) * noise;
       dot.vx += jitter * 0.22 * dt;
       dot.vy += jitter * 0.22 * dt;
 
-      if (this.#motionEnabled && speed > 0) {
+      if (!this.#paused && speed > 0) {
         const sx = dot.x * driftScale;
         const sy = dot.y * driftScale;
         const n1a = noise2(sx, sy, driftSeed0);
@@ -680,18 +632,12 @@ export class DotField {
         dot.vy += pullY * cohesion * dt;
       }
 
-      if (this.#motionEnabled && this.#physicsEnabled && this.#gravityEnabled && speed > 0) {
-        const gravityForce = 1.2 * this.#dpr * speed;
-        const mass = 1 + dot.r0 * dot.r0 * 0.05;
-        dot.vy += (gravityForce / mass) * dt;
-      }
-
       dot.vx *= stability;
       dot.vy *= stability;
       dot.vx = clamp(dot.vx, -maxV, maxV);
       dot.vy = clamp(dot.vy, -maxV, maxV);
 
-      if (this.#motionEnabled) {
+      if (!this.#paused) {
         dot.x += dot.vx * this.#dpr * 2.2 * dt;
         dot.y += dot.vy * this.#dpr * 2.2 * dt;
       }
@@ -728,25 +674,7 @@ export class DotField {
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
 
     const physics = this.#physicsEnabled;
-    const mode = this.#contactMode;
-
-    const restitution = !physics
-      ? 0
-      : mode === 'bounce'
-        ? 0.85
-        : mode === 'both'
-          ? 0.45
-          : 0.02;
-    const friction = !physics
-      ? 1
-      : mode === 'bounce'
-        ? 0.2
-        : mode === 'both'
-          ? 0.55
-          : 0.9;
-    const adhesionBand = (mode === 'stick' || mode === 'both') ? 6 * this.#dpr : 0;
-    const adhesionStrength = !physics ? 0 : mode === 'both' ? 0.02 : mode === 'stick' ? 0.05 : 0;
-    const coupleStrength = !physics ? 0 : mode === 'both' ? 0.4 : mode === 'stick' ? 0.9 : 0;
+    const adhesionBand = physics ? 6 * this.#dpr : 0;
 
     for (let iter = 0; iter < 2; iter++) {
       /** @type {Map<string, Dot[]>} */
@@ -773,11 +701,16 @@ export class DotField {
               if (other.x < dot.x) continue;
               if (other.x === dot.x && other.y <= dot.y) continue;
 
-            const dx = other.x - dot.x;
-            const dy = other.y - dot.y;
+              const dx = other.x - dot.x;
+              const dy = other.y - dot.y;
               const dist2 = dx * dx + dy * dy;
               const minDist = dot.r + other.r + this.#bufferPx * this.#dpr;
               const minDist2 = minDist * minDist;
+              const stick = physics ? (dot.stick + other.stick) * 0.5 : 0;
+              const restitution = physics ? lerp(0.85, 0.02, stick) : 0;
+              const friction = physics ? lerp(0.2, 0.9, stick) : 1;
+              const adhesionStrength = physics ? 0.05 * stick : 0;
+              const coupleStrength = physics ? 0.9 * stick : 0;
               if (dist2 >= minDist2) {
                 const band2 = (minDist + adhesionBand) * (minDist + adhesionBand);
                 if (dist2 < band2) {
