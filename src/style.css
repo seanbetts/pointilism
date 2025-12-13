@@ -149,6 +149,10 @@ body {
   margin-bottom: 0.9rem;
 }
 
+.controls-panel .presets-title {
+  margin: 0 0 0.6rem 0;
+}
+
 .theme-button {
   border: 1px solid var(--muted);
   background: transparent;
