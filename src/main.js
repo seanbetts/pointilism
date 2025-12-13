@@ -1,5 +1,4 @@
 import { DotField } from './dotField.js';
-import { ContainedDotField } from './containedDotField.js';
 
 (() => {
   const canvas = document.querySelector('#dotfield');
@@ -122,10 +121,7 @@ import { ContainedDotField } from './containedDotField.js';
   }
 
   let dotField;
-  /** @type {ContainedDotField | null} */
-  let miniField = null;
-  /** @type {HTMLElement | null} */
-  let miniPanel = null;
+  // Title container removed.
   try {
     dotField = new DotField(canvas, {
       mode,
@@ -137,24 +133,7 @@ import { ContainedDotField } from './containedDotField.js';
     return;
   }
 
-  const miniCanvas = document.querySelector('#miniDotfield');
-  if (miniCanvas instanceof HTMLCanvasElement) {
-    const panel = miniCanvas.parentElement;
-    if (panel instanceof HTMLElement) {
-      try {
-        miniPanel = panel;
-        miniField = new ContainedDotField(miniCanvas, panel, {
-          mode,
-          reducedMotion: prefersReducedMotion.matches,
-        });
-        miniField.start();
-      } catch {
-        miniField = null;
-        miniPanel = null;
-        panel.remove();
-      }
-    }
-  }
+  // Title container removed.
 
   dotField.setDensityScalar(dotDensity);
   dotField.setMinRadius(dotMinSize);
@@ -166,41 +145,7 @@ import { ContainedDotField } from './containedDotField.js';
   dotField.setSpeed(speedInternal());
   dotField.setBreathingEnabled(breathingEnabled);
 
-  function updateExclusionRects() {
-    if (!(miniPanel instanceof HTMLElement)) {
-      dotField.setExclusionRects([]);
-      return;
-    }
-
-    const rect = miniPanel.getBoundingClientRect();
-    const visible =
-      rect.width > 1 &&
-      rect.height > 1 &&
-      rect.bottom > 0 &&
-      rect.right > 0 &&
-      rect.top < window.innerHeight &&
-      rect.left < window.innerWidth;
-    if (!visible) {
-      dotField.setExclusionRects([]);
-      return;
-    }
-
-    const pad = 2;
-    dotField.setExclusionRects([
-      {
-        left: rect.left - pad,
-        top: rect.top - pad,
-        right: rect.right + pad,
-        bottom: rect.bottom + pad,
-      },
-    ]);
-  }
-
-  updateExclusionRects();
-  const panelObserver = new ResizeObserver(() => updateExclusionRects());
-  if (miniPanel instanceof HTMLElement) panelObserver.observe(miniPanel);
-  window.addEventListener('scroll', () => updateExclusionRects(), { passive: true });
-  window.addEventListener('resize', () => updateExclusionRects(), { passive: true });
+  dotField.setExclusionRects([]);
 
   const dotMinSizeEl = document.querySelector('#dotMinSize');
   const dotMinSizeValue = document.querySelector('#dotMinSizeValue');
@@ -478,17 +423,17 @@ import { ContainedDotField } from './containedDotField.js';
     scheduleDotUpdate();
     dotField.restart();
     dotField.heroIntro();
-    miniField?.restart();
+    // no-op: title container removed
   });
 
   pauseControls?.addEventListener('click', () => {
     paused = !paused;
     if (paused) {
       dotField.pause();
-      miniField?.pause();
+      // no-op: title container removed
     } else {
       dotField.resume();
-      miniField?.resume();
+      // no-op: title container removed
     }
     syncPauseControls();
   });
@@ -525,13 +470,11 @@ import { ContainedDotField } from './containedDotField.js';
     localStorage.setItem('mode', mode);
     root.dataset.mode = mode;
     dotField.invertWithDispersion(mode);
-    miniField?.setMode(mode);
     syncModeToggle();
   });
 
   prefersReducedMotion.addEventListener('change', (event) => {
     dotField.setReducedMotion(event.matches);
-    miniField?.setReducedMotion(event.matches);
   });
 
   dotField.start();
