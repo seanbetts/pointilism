@@ -107,17 +107,13 @@ body {
   gap: 0.9rem;
 }
 
-.toggle {
+.toggle-row {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-  user-select: none;
 }
 
-.toggle input {
+.toggle-row input {
   position: absolute;
   opacity: 0;
   width: 1px;
@@ -147,23 +143,17 @@ body {
   transition: transform 140ms linear, background-color 140ms linear;
 }
 
-.toggle input:checked + .toggle-switch {
+.toggle-row input:checked + .toggle-switch {
   border-color: var(--fg);
 }
 
-.toggle input:checked + .toggle-switch::after {
+.toggle-row input:checked + .toggle-switch::after {
   background: var(--fg);
   transform: translate(1.0rem, -50%);
 }
 
-.toggle:focus-within .toggle-switch {
+.toggle-row:focus-within .toggle-switch {
   border-color: var(--fg);
-}
-
-.toggle-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
 }
 
 .control {
