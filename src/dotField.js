@@ -186,6 +186,8 @@ export class DotField {
   #gravityActiveUntilMs = null;
   /** @type {number | null} */
   #settleBoostUntilMs = null;
+  /** @type {number | null} */
+  #settleBoostStartMs = null;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -309,10 +311,11 @@ export class DotField {
       this.#gravityDropUntilMs = null;
       this.#gravityActiveUntilMs = null;
       this.#settleBoostUntilMs = null;
+      this.#settleBoostStartMs = null;
     }
   }
 
-  /** @param {{ activeMs?: number; dropMs?: number; maskDelayMs?: number; maskMs?: number }=} options */
+  /** @param {{ activeMs?: number; dropMs?: number; settleDelayMs?: number; settleBoostMs?: number; maskDelayMs?: number; maskMs?: number }=} options */
   dropToBottom(options) {
     this.#gravityEnabled = true;
     if (this.#reducedMotion) {
@@ -322,13 +325,15 @@ export class DotField {
     const t0 = nowMs();
     const dropMs = clamp(options?.dropMs ?? 900, 100, 20_000);
     const activeMs = clamp(options?.activeMs ?? 1000, dropMs, 30_000);
+    const settleDelayMs = clamp(options?.settleDelayMs ?? 250, 0, 10_000);
     const settleBoostMs = clamp(options?.settleBoostMs ?? 1400, 0, 10_000);
     const maskDelayMs = clamp(options?.maskDelayMs ?? 0, 0, 30_000);
     // If maskMs is 0, keep the mask visible until the next Drop / reset.
     const maskMs = clamp(options?.maskMs ?? 0, 0, 60_000);
     this.#gravityDropUntilMs = t0 + dropMs;
     this.#gravityActiveUntilMs = t0 + activeMs;
-    this.#settleBoostUntilMs = this.#gravityDropUntilMs + settleBoostMs;
+    this.#settleBoostStartMs = this.#gravityDropUntilMs + settleDelayMs;
+    this.#settleBoostUntilMs = this.#settleBoostStartMs + settleBoostMs;
     this.#gravityMaskStartMs = t0 + maskDelayMs;
     this.#gravityMaskUntilMs = maskMs <= 0 ? null : this.#gravityMaskStartMs + maskMs;
 
@@ -749,7 +754,11 @@ export class DotField {
       }
     }
 
-    const settling = this.#settleBoostUntilMs != null && tNow < this.#settleBoostUntilMs;
+    const settling =
+      this.#settleBoostStartMs != null &&
+      this.#settleBoostUntilMs != null &&
+      tNow >= this.#settleBoostStartMs &&
+      tNow < this.#settleBoostUntilMs;
     const overlapIterations = dropping ? 28 : settling ? 16 : 2;
     const pushScale = dropping ? 1.95 : settling ? 1.65 : 1;
     this.#resolveOverlaps(dt, overlapIterations, pushScale);
