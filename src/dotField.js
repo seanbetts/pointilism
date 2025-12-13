@@ -181,6 +181,8 @@ export class DotField {
   /** @type {number | null} */
   #gravityMaskUntilMs = null;
   /** @type {number | null} */
+  #gravityMaskStartMs = null;
+  /** @type {number | null} */
   #gravityActiveUntilMs = null;
 
   /**
@@ -304,11 +306,12 @@ export class DotField {
     if (!this.#gravityEnabled) {
       this.#gravityDropUntilMs = null;
       this.#gravityMaskUntilMs = null;
+      this.#gravityMaskStartMs = null;
       this.#gravityActiveUntilMs = null;
     }
   }
 
-  /** @param {{ activeMs?: number; dropMs?: number; maskMs?: number }=} options */
+  /** @param {{ activeMs?: number; dropMs?: number; maskDelayMs?: number; maskMs?: number }=} options */
   dropToBottom(options) {
     this.#gravityEnabled = true;
     if (this.#reducedMotion) {
@@ -318,10 +321,12 @@ export class DotField {
     const t0 = nowMs();
     const dropMs = clamp(options?.dropMs ?? 900, 100, 20_000);
     const activeMs = clamp(options?.activeMs ?? 1000, dropMs, 30_000);
-    const maskMs = clamp(options?.maskMs ?? 2000, 0, 30_000);
+    const maskDelayMs = clamp(options?.maskDelayMs ?? 500, 0, 30_000);
+    const maskMs = clamp(options?.maskMs ?? 3000, 0, 30_000);
     this.#gravityDropUntilMs = t0 + dropMs;
     this.#gravityActiveUntilMs = t0 + activeMs;
-    this.#gravityMaskUntilMs = t0 + maskMs;
+    this.#gravityMaskStartMs = t0 + maskDelayMs;
+    this.#gravityMaskUntilMs = this.#gravityMaskStartMs + maskMs;
 
     for (const dot of this.#dots) {
       dot.vy = Math.max(0, dot.vy);
@@ -890,7 +895,12 @@ export class DotField {
     this.#ctx.fillStyle = this.#palette.bg;
     this.#ctx.fillRect(0, 0, this.#width, this.#height);
 
-    const maskActive = this.#gravityMaskUntilMs != null && nowMs() < this.#gravityMaskUntilMs;
+    const tNow = nowMs();
+    const maskActive =
+      this.#gravityMaskStartMs != null &&
+      this.#gravityMaskUntilMs != null &&
+      tNow >= this.#gravityMaskStartMs &&
+      tNow < this.#gravityMaskUntilMs;
     if (maskActive) {
       const barH = Math.min(this.#height * 0.12, 180 * this.#dpr);
       this.#ctx.fillStyle = this.#palette.dot;
