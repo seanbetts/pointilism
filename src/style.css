@@ -107,6 +107,21 @@ body {
   gap: 0.9rem;
 }
 
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .control {
   display: inline-flex;
   flex-direction: column;

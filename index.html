@@ -118,6 +118,47 @@
 	              />
 	              <output id="dotSizeCountValue" class="control-value" for="dotSizeCount"></output>
 	            </label>
+	            <label class="control">
+	              <span class="control-label">
+	                Distribution
+	                <button
+	                  class="help"
+	                  type="button"
+	                  aria-label="Distribution help"
+	                  title="How dot sizes are distributed across the size buckets."
+	                >
+	                  ?
+	                </button>
+	              </span>
+	              <input
+	                id="dotDistribution"
+	                class="control-input"
+	                type="range"
+	                min="0"
+	                max="4"
+	                step="1"
+	                value="2"
+	              />
+	              <output
+	                id="dotDistributionValue"
+	                class="control-value"
+	                for="dotDistribution"
+	              ></output>
+	            </label>
+	            <label class="toggle">
+	              <input id="autoFit" type="checkbox" checked />
+	              <span class="toggle-label">
+	                Auto-fit
+	                <button
+	                  class="help"
+	                  type="button"
+	                  aria-label="Auto-fit help"
+	                  title="If the requested settings can't pack without overlaps, reduces dot count until it fits."
+	                >
+	                  ?
+	                </button>
+	              </span>
+	            </label>
 	            <button id="resetControls" class="reset-controls" type="button">
 	              Reset
 	            </button>

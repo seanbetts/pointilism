@@ -21,6 +21,8 @@ import { DotField } from './dotField.js';
     dotMaxSize: 3.5,
     dotDensity: 1,
     dotSizeCount: 5,
+    dotDistribution: 2,
+    autoFit: true,
   };
 
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -49,10 +51,25 @@ import { DotField } from './dotField.js';
     return defaults.dotSizeCount;
   }
 
+  function getInitialDistribution() {
+    const stored = Number(localStorage.getItem('dotDistribution'));
+    if (Number.isFinite(stored)) return stored;
+    return defaults.dotDistribution;
+  }
+
+  function getInitialAutoFit() {
+    const stored = localStorage.getItem('autoFit');
+    if (stored === 'true') return true;
+    if (stored === 'false') return false;
+    return defaults.autoFit;
+  }
+
   let dotMinSize = getInitialMinSize();
   let dotMaxSize = getInitialMaxSize();
   let dotDensity = getInitialDensity();
   let dotSizeCount = getInitialSizeCount();
+  let dotDistribution = getInitialDistribution();
+  let autoFit = getInitialAutoFit();
 
   let dotField;
   try {
@@ -70,6 +87,8 @@ import { DotField } from './dotField.js';
   dotField.setMinRadius(dotMinSize);
   dotField.setMaxRadius(dotMaxSize);
   dotField.setSizeCount(dotSizeCount);
+  dotField.setDistribution(dotDistribution);
+  dotField.setAutoFitDensity(autoFit);
 
   const headerEl = document.querySelector('.header');
   function updateTopExclusion() {
@@ -91,6 +110,9 @@ import { DotField } from './dotField.js';
   const dotDensityValue = document.querySelector('#dotDensityValue');
   const dotSizeCountEl = document.querySelector('#dotSizeCount');
   const dotSizeCountValue = document.querySelector('#dotSizeCountValue');
+  const dotDistributionEl = document.querySelector('#dotDistribution');
+  const dotDistributionValue = document.querySelector('#dotDistributionValue');
+  const autoFitEl = document.querySelector('#autoFit');
   const resetControls = document.querySelector('#resetControls');
 
   let dotUpdateScheduled = false;
@@ -103,6 +125,8 @@ import { DotField } from './dotField.js';
       dotField.setMinRadius(dotMinSize);
       dotField.setMaxRadius(dotMaxSize);
       dotField.setSizeCount(dotSizeCount);
+      dotField.setDistribution(dotDistribution);
+      dotField.setAutoFitDensity(autoFit);
     });
   }
 
@@ -171,6 +195,49 @@ import { DotField } from './dotField.js';
     });
   }
 
+  function distributionLabel(v) {
+    switch (v) {
+      case 0:
+        return 'Small-biased';
+      case 1:
+        return 'Bell curve';
+      case 2:
+        return 'Flat';
+      case 3:
+        return 'U-shaped';
+      case 4:
+        return 'Large-biased';
+      default:
+        return 'Flat';
+    }
+  }
+
+  if (dotDistributionEl instanceof HTMLInputElement) {
+    dotDistributionEl.value = String(dotDistribution);
+    if (dotDistributionValue instanceof HTMLOutputElement) {
+      dotDistributionValue.value = distributionLabel(dotDistribution);
+    }
+    dotDistributionEl.addEventListener('input', () => {
+      const next = Number(dotDistributionEl.value);
+      if (!Number.isFinite(next)) return;
+      dotDistribution = next;
+      localStorage.setItem('dotDistribution', String(dotDistribution));
+      if (dotDistributionValue instanceof HTMLOutputElement) {
+        dotDistributionValue.value = distributionLabel(dotDistribution);
+      }
+      scheduleDotUpdate();
+    });
+  }
+
+  if (autoFitEl instanceof HTMLInputElement) {
+    autoFitEl.checked = autoFit;
+    autoFitEl.addEventListener('change', () => {
+      autoFit = autoFitEl.checked;
+      localStorage.setItem('autoFit', String(autoFit));
+      scheduleDotUpdate();
+    });
+  }
+
   function syncControlValues() {
     clampMinMaxSizes();
     if (dotMinSizeEl instanceof HTMLInputElement) dotMinSizeEl.value = String(dotMinSize);
@@ -181,6 +248,9 @@ import { DotField } from './dotField.js';
     if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(1);
     if (dotSizeCountEl instanceof HTMLInputElement) dotSizeCountEl.value = String(dotSizeCount);
     if (dotSizeCountValue instanceof HTMLOutputElement) dotSizeCountValue.value = String(dotSizeCount);
+    if (dotDistributionEl instanceof HTMLInputElement) dotDistributionEl.value = String(dotDistribution);
+    if (dotDistributionValue instanceof HTMLOutputElement) dotDistributionValue.value = distributionLabel(dotDistribution);
+    if (autoFitEl instanceof HTMLInputElement) autoFitEl.checked = autoFit;
   }
 
   resetControls?.addEventListener('click', () => {
@@ -188,11 +258,15 @@ import { DotField } from './dotField.js';
     dotMaxSize = defaults.dotMaxSize;
     dotDensity = defaults.dotDensity;
     dotSizeCount = defaults.dotSizeCount;
+    dotDistribution = defaults.dotDistribution;
+    autoFit = defaults.autoFit;
 
     localStorage.removeItem('dotMinSize');
     localStorage.removeItem('dotMaxSize');
     localStorage.removeItem('dotDensity');
     localStorage.removeItem('dotSizeCount');
+    localStorage.removeItem('dotDistribution');
+    localStorage.removeItem('autoFit');
 
     syncControlValues();
     scheduleDotUpdate();

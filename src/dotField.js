@@ -25,6 +25,68 @@ function keyForCell(cx, cy) {
   return `${cx},${cy}`;
 }
 
+function clampInt(value, min, max) {
+  return Math.round(clamp(value, min, max));
+}
+
+function quantizeLabel(index) {
+  switch (index) {
+    case 0:
+      return 'small-biased';
+    case 1:
+      return 'bell';
+    case 2:
+      return 'flat';
+    case 3:
+      return 'u-shaped';
+    case 4:
+      return 'large-biased';
+    default:
+      return 'flat';
+  }
+}
+
+function distributionWeights(mode, n) {
+  const mid = (n - 1) / 2;
+  const sigma = Math.max(0.55, n / 5);
+
+  /** @type {number[]} */
+  const w = new Array(n).fill(1);
+  for (let i = 0; i < n; i++) {
+    const x = i - mid;
+    if (mode === 'flat') w[i] = 1;
+    else if (mode === 'bell') w[i] = Math.exp(-(x * x) / (2 * sigma * sigma));
+    else if (mode === 'small-biased') w[i] = Math.pow(n - i, 2);
+    else if (mode === 'large-biased') w[i] = Math.pow(i + 1, 2);
+    else if (mode === 'u-shaped') w[i] = Math.pow(Math.abs(x) + 1, 2);
+    else w[i] = 1;
+  }
+  return w;
+}
+
+function quotasFromWeights(total, weights) {
+  const sum = weights.reduce((a, b) => a + b, 0);
+  const n = weights.length;
+
+  /** @type {number[]} */
+  const raw = weights.map((w) => (sum <= 0 ? total / n : (w / sum) * total));
+  /** @type {number[]} */
+  const q = raw.map((v) => Math.floor(v));
+  let remaining = total - q.reduce((a, b) => a + b, 0);
+
+  const order = raw
+    .map((v, i) => ({ i, frac: v - Math.floor(v) }))
+    .sort((a, b) => b.frac - a.frac)
+    .map((x) => x.i);
+
+  for (let k = 0; k < order.length && remaining > 0; k++) {
+    q[order[k]]++;
+    remaining--;
+  }
+
+  return q;
+}
+
 export class DotField {
   /** @type {HTMLCanvasElement} */
   #canvas;
@@ -71,6 +133,8 @@ export class DotField {
   #minRadiusCssPx = 1.5;
   #maxRadiusCssPx = 3.5;
   #sizeCount = 5;
+  #distribution = 'flat';
+  #autoFit = true;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -164,6 +228,19 @@ export class DotField {
     this.#scheduleSetup();
   }
 
+  /** @param {number | string} mode */
+  setDistribution(mode) {
+    const next = typeof mode === 'number' ? quantizeLabel(mode) : String(mode);
+    this.#distribution = next;
+    this.#scheduleSetup();
+  }
+
+  /** @param {boolean} enabled */
+  setAutoFitDensity(enabled) {
+    this.#autoFit = Boolean(enabled);
+    this.#scheduleSetup();
+  }
+
   /** @param {number} cssPx */
   setTopExclusion(cssPx) {
     const next = clamp(cssPx, 0, 10_000);
@@ -253,66 +330,92 @@ export class DotField {
 
   /** @param {number} count */
   #spawnDots(count) {
+    const attemptCounts = this.#autoFit
+      ? [count, Math.floor(count * 0.92), Math.floor(count * 0.84), Math.floor(count * 0.76), Math.floor(count * 0.68)]
+      : [count];
+
+    for (const target of attemptCounts) {
+      const result = this.#trySpawnDots(target);
+      if (!this.#autoFit) return result;
+      if (result.length === target) return result;
+    }
+
+    return this.#trySpawnDots(Math.max(40, Math.floor(count * 0.6)));
+  }
+
+  /** @param {number} target */
+  #trySpawnDots(target) {
     const minR = this.#minRadiusCssPx * this.#dpr;
     const maxR = this.#maxRadiusCssPx * this.#dpr;
     const maxRequired = 2 * maxR + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
     const excludeTop = this.#excludeTopCssPx * this.#dpr;
+
     const sizes = Array.from({ length: this.#sizeCount }, (_, i) => {
-      if (this.#sizeCount === 1) return minR;
       return minR + (i * (maxR - minR)) / (this.#sizeCount - 1);
     });
+
+    const weights = distributionWeights(this.#distribution, this.#sizeCount);
+    const quotas = quotasFromWeights(target, weights);
+
+    /** @type {number[]} */
+    const radii = [];
+    for (let i = 0; i < sizes.length; i++) {
+      for (let k = 0; k < quotas[i]; k++) radii.push(sizes[i]);
+    }
+    radii.sort((a, b) => b - a);
 
     /** @type {Map<string, Dot[]>} */
     const grid = new Map();
     /** @type {Dot[]} */
     const dots = [];
 
-    const maxAttempts = Math.max(4000, count * 90);
-    let attempts = 0;
+    const perDotAttempts = clampInt(120, 20, 320);
 
-    while (dots.length < count && attempts < maxAttempts) {
-      attempts++;
+    for (const r of radii) {
+      let placed = false;
+      for (let tries = 0; tries < perDotAttempts; tries++) {
+        const x = lerp(r, this.#width - r, Math.random());
+        const y = lerp(excludeTop + r, this.#height - r, Math.random());
+        const cx = Math.floor(x / cellSize);
+        const cy = Math.floor(y / cellSize);
 
-      const r = sizes[Math.floor(Math.random() * sizes.length)];
-      const x = lerp(r, this.#width - r, Math.random());
-      const y = lerp(excludeTop + r, this.#height - r, Math.random());
-
-      const cx = Math.floor(x / cellSize);
-      const cy = Math.floor(y / cellSize);
-
-      let ok = true;
-      for (let oy = -1; oy <= 1 && ok; oy++) {
-        for (let ox = -1; ox <= 1 && ok; ox++) {
-          const bucket = grid.get(keyForCell(cx + ox, cy + oy));
-          if (!bucket) continue;
-          for (const other of bucket) {
-            const dx = x - other.x;
-            const dy = y - other.y;
-            const minDist = r + other.r + this.#bufferPx * this.#dpr;
-            if (dx * dx + dy * dy < minDist * minDist) {
-              ok = false;
-              break;
+        let ok = true;
+        for (let oy = -1; oy <= 1 && ok; oy++) {
+          for (let ox = -1; ox <= 1 && ok; ox++) {
+            const bucket = grid.get(keyForCell(cx + ox, cy + oy));
+            if (!bucket) continue;
+            for (const other of bucket) {
+              const dx = x - other.x;
+              const dy = y - other.y;
+              const minDist = r + other.r + this.#bufferPx * this.#dpr;
+              if (dx * dx + dy * dy < minDist * minDist) {
+                ok = false;
+                break;
+              }
             }
           }
         }
-      }
-      if (!ok) continue;
+        if (!ok) continue;
 
-      /** @type {Dot} */
-      const dot = {
-        x,
-        y,
-        vx: (Math.random() - 0.5) * 0.22,
-        vy: (Math.random() - 0.5) * 0.22,
-        r,
-        a: 1,
-      };
-      const key = keyForCell(cx, cy);
-      const bucket = grid.get(key);
-      if (bucket) bucket.push(dot);
-      else grid.set(key, [dot]);
-      dots.push(dot);
+        /** @type {Dot} */
+        const dot = {
+          x,
+          y,
+          vx: (Math.random() - 0.5) * 0.22,
+          vy: (Math.random() - 0.5) * 0.22,
+          r,
+          a: 1,
+        };
+        const key = keyForCell(cx, cy);
+        const bucket = grid.get(key);
+        if (bucket) bucket.push(dot);
+        else grid.set(key, [dot]);
+        dots.push(dot);
+        placed = true;
+        break;
+      }
+      if (!placed) break;
     }
 
     return dots;
