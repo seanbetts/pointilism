@@ -17,11 +17,11 @@ import { DotField } from './dotField.js';
   root.dataset.mode = mode;
 
   const defaults = {
-    dotMinSize: 1.5,
-    dotMaxSize: 4,
+    dotMinSize: 4.5,
+    dotMaxSize: 40,
     dotDensity: 1,
-    dotSizeCount: 5,
-    dotDistribution: 3,
+    dotSizeCount: 10,
+    dotDistribution: 1,
     autoFit: true,
     reactToUi: true,
     speed: 1,
