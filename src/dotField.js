@@ -215,15 +215,15 @@ export class DotField {
   setMinRadius(cssPx) {
     const next = clamp(cssPx, 0.5, 200);
     this.#minRadiusCssPx = next;
-    if (this.#minRadiusCssPx > this.#maxRadiusCssPx) this.#maxRadiusCssPx = this.#minRadiusCssPx;
+    if (this.#minRadiusCssPx > this.#maxRadiusCssPx) this.#minRadiusCssPx = this.#maxRadiusCssPx;
     this.#scheduleSetup();
   }
 
   /** @param {number} cssPx */
   setMaxRadius(cssPx) {
-    const next = clamp(cssPx, 0.5, 400);
+    const next = clamp(cssPx, 1, 400);
     this.#maxRadiusCssPx = next;
-    if (this.#maxRadiusCssPx < this.#minRadiusCssPx) this.#minRadiusCssPx = this.#maxRadiusCssPx;
+    if (this.#maxRadiusCssPx < this.#minRadiusCssPx) this.#maxRadiusCssPx = this.#minRadiusCssPx;
     this.#scheduleSetup();
   }
 

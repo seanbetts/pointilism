@@ -65,7 +65,7 @@ import { DotField } from './dotField.js';
   }
 
   let dotMinSize = getInitialMinSize();
-  let dotMaxSize = getInitialMaxSize();
+  let dotMaxSize = Math.round(getInitialMaxSize());
   let dotDensity = getInitialDensity();
   let dotSizeCount = getInitialSizeCount();
   let dotDistribution = getInitialDistribution();
@@ -132,7 +132,8 @@ import { DotField } from './dotField.js';
   }
 
   function clampMinMaxSizes() {
-    if (dotMinSize > dotMaxSize) dotMaxSize = dotMinSize;
+    dotMaxSize = Math.max(1, Math.round(dotMaxSize));
+    if (dotMinSize > dotMaxSize) dotMaxSize = Math.ceil(dotMinSize);
     if (dotMaxSize < dotMinSize) dotMinSize = dotMaxSize;
   }
 
@@ -148,22 +149,22 @@ import { DotField } from './dotField.js';
       localStorage.setItem('dotMaxSize', String(dotMaxSize));
       if (dotMinSizeValue instanceof HTMLOutputElement) dotMinSizeValue.value = dotMinSize.toFixed(1);
       if (dotMaxSizeEl instanceof HTMLInputElement) dotMaxSizeEl.value = String(dotMaxSize);
-      if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(1);
+      if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(0);
       scheduleDotUpdate();
     });
   }
 
   if (dotMaxSizeEl instanceof HTMLInputElement) {
     dotMaxSizeEl.value = String(dotMaxSize);
-    if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(1);
+    if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(0);
     dotMaxSizeEl.addEventListener('input', () => {
       const next = Number(dotMaxSizeEl.value);
       if (!Number.isFinite(next)) return;
-      dotMaxSize = next;
+      dotMaxSize = Math.round(next);
       clampMinMaxSizes();
       localStorage.setItem('dotMinSize', String(dotMinSize));
       localStorage.setItem('dotMaxSize', String(dotMaxSize));
-      if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(1);
+      if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(0);
       if (dotMinSizeEl instanceof HTMLInputElement) dotMinSizeEl.value = String(dotMinSize);
       if (dotMinSizeValue instanceof HTMLOutputElement) dotMinSizeValue.value = dotMinSize.toFixed(1);
       scheduleDotUpdate();
@@ -250,7 +251,7 @@ import { DotField } from './dotField.js';
     if (dotMinSizeEl instanceof HTMLInputElement) dotMinSizeEl.value = String(dotMinSize);
     if (dotMinSizeValue instanceof HTMLOutputElement) dotMinSizeValue.value = dotMinSize.toFixed(1);
     if (dotMaxSizeEl instanceof HTMLInputElement) dotMaxSizeEl.value = String(dotMaxSize);
-    if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(1);
+    if (dotMaxSizeValue instanceof HTMLOutputElement) dotMaxSizeValue.value = dotMaxSize.toFixed(0);
     if (dotDensityEl instanceof HTMLInputElement) dotDensityEl.value = String(dotDensity);
     if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(2);
     if (dotSizeCountEl instanceof HTMLInputElement) dotSizeCountEl.value = String(dotSizeCount);
