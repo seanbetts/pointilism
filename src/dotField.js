@@ -323,7 +323,7 @@ export class DotField {
       return;
     }
     const t0 = nowMs();
-    const dropMs = clamp(options?.dropMs ?? 900, 100, 20_000);
+    const dropMs = clamp(options?.dropMs ?? 1200, 100, 20_000);
     const activeMs = clamp(options?.activeMs ?? 1000, dropMs, 30_000);
     const settleDelayMs = clamp(options?.settleDelayMs ?? 250, 0, 10_000);
     const settleBoostMs = clamp(options?.settleBoostMs ?? 1400, 0, 10_000);
