@@ -480,15 +480,15 @@ import { DotField } from './dotField.js';
       breathingEnabled: true,
       gridEnabled: false,
     },
-    balancedBloom: {
+    bellGrid: {
       dotMinSize: 3,
-      dotMaxSize: 40,
-      dotDensity: 0.7,
-      dotSizeCount: 15,
+      dotMaxSize: 25,
+      dotDensity: 1.0,
+      dotSizeCount: 2,
       dotDistribution: 2, // Bell curve
-      speed: 1.1,
-      breathingEnabled: true,
-      gridEnabled: false,
+      speed: 0.0,
+      breathingEnabled: false,
+      gridEnabled: true,
     },
     highContrastMix: {
       dotMinSize: 2,
