@@ -4,6 +4,8 @@
   --muted: rgba(255, 255, 255, 0.7);
   --shield: rgba(0, 0, 0, 0.9);
   --focus: rgba(255, 255, 255, 0.9);
+  --container-border: rgba(255, 255, 255, 0.85);
+  --container-border-width: 1px;
   color-scheme: dark;
 }
 
@@ -13,6 +15,7 @@
   --muted: rgba(0, 0, 0, 0.68);
   --shield: rgba(255, 255, 255, 0.92);
   --focus: rgba(0, 0, 0, 0.9);
+  --container-border: rgba(0, 0, 0, 0.85);
   color-scheme: light;
 }
 
@@ -34,10 +37,10 @@ body {
 
 .header,
 .noscript,
-.mode-toggle,
 .restart-controls,
 .pause-controls,
 .gravity-drop,
+.cta,
 .shield {
   transition: background-color 320ms ease, color 320ms ease, border-color 320ms ease, filter 320ms ease;
 }
@@ -102,7 +105,7 @@ body {
 
 .page {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   min-height: 100%;
 }
 
@@ -121,20 +124,45 @@ body {
 }
 
 .controls-panel {
-  margin-top: 0.65rem;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  box-sizing: border-box;
   padding: 0.75rem 0.85rem;
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: var(--container-border-width) solid var(--container-border);
   background: var(--shield);
 }
 
 .hero .controls-panel {
-  max-width: 60ch;
-  width: min(60ch, 100%);
+  max-width: none;
+  width: auto;
 }
 
-[data-mode='light'] .controls-panel {
-  border-color: rgba(0, 0, 0, 0.14);
+.controls-panel .theme-buttons {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.theme-button {
+  border: 1px solid var(--muted);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.35rem 0;
+  min-height: 34px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.theme-button:hover,
+.theme-button:focus-visible {
+  border-color: var(--fg);
+  color: var(--fg);
 }
 
 .nav {
@@ -170,18 +198,25 @@ body {
 }
 
 @media (max-width: 980px) {
+  .controls-panel .theme-buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .controls-panel .controls {
     grid-template-columns: repeat(2, minmax(180px, 1fr));
   }
 }
 
 @media (max-width: 640px) {
+  .controls-panel .theme-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .controls-panel .controls {
     grid-template-columns: 1fr;
   }
 }
 
-.mode-toggle,
 .reset-controls,
 .restart-controls,
 .pause-controls,
@@ -363,42 +398,6 @@ body {
   color: var(--fg);
 }
 
-.mode-toggle {
-  border: 1px solid var(--muted);
-  background: transparent;
-  color: var(--muted);
-  padding: 0.45rem 0.6rem;
-  border-radius: 999px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.5rem;
-}
-
-.mode-toggle .mode-icon {
-  color: var(--fg);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-[data-mode='dark'] .mode-toggle .mode-icon-sun {
-  display: inline-flex;
-}
-
-[data-mode='dark'] .mode-toggle .mode-icon-moon {
-  display: none;
-}
-
-[data-mode='light'] .mode-toggle .mode-icon-sun {
-  display: none;
-}
-
-[data-mode='light'] .mode-toggle .mode-icon-moon {
-  display: inline-flex;
-}
-
 .reset-controls,
 .restart-controls,
 .pause-controls {
@@ -422,12 +421,6 @@ body {
 .gravity-drop:hover,
 .gravity-drop:focus-visible {
   filter: brightness(0.92);
-}
-
-.mode-toggle:hover,
-.mode-toggle:focus-visible {
-  border-color: var(--fg);
-  color: var(--fg);
 }
 
 .reset-controls:hover,
@@ -467,24 +460,57 @@ body {
 }
 
 .mini-panel {
-  position: absolute;
-  top: clamp(1rem, 3vh, 2rem);
-  left: clamp(1rem, 5vw, 3rem);
-  width: min(420px, 60vw);
-  height: clamp(120px, 16vh, 190px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: clamp(80px, 10.7vh, 127px);
+  z-index: 3;
   border-radius: 0;
-  border-bottom-right-radius: 2.4rem;
   border: 0;
-  border-right: 2px solid rgba(255, 255, 255, 0.9);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.9);
   background: transparent;
   overflow: hidden;
   pointer-events: none;
 }
 
-[data-mode='light'] .mini-panel {
-  border-right-color: rgba(0, 0, 0, 0.9);
-  border-bottom-color: rgba(0, 0, 0, 0.9);
+.mini-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  z-index: 0;
+}
+
+.topbar-fade {
+  position: fixed;
+  left: 0;
+  top: clamp(80px, 10.7vh, 127px);
+  width: 100vw;
+  height: 56px;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--bg), transparent);
+  filter: blur(10px);
+  transform: translateY(-10px);
+}
+
+@supports (background: color-mix(in srgb, #000 50%, transparent)) {
+  .mini-panel::before {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--bg) 96%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 96%, transparent) 70%,
+      transparent 100%
+    );
+  }
+
+  .topbar-fade {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--bg) 70%, transparent) 0%,
+      transparent 100%
+    );
+  }
 }
 
 .mini-panel canvas {
@@ -493,17 +519,14 @@ body {
   width: 100%;
   height: 100%;
   display: block;
+  z-index: 1;
 }
 
 .shield {
   background: var(--shield);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: var(--container-border-width) solid var(--container-border);
   border-radius: 0.9rem;
   padding: 1.25rem 1.25rem;
-}
-
-[data-mode='light'] .shield {
-  border-color: rgba(0, 0, 0, 0.18);
 }
 
 .eyebrow {
@@ -563,6 +586,18 @@ p {
 
 [data-mode='light'] .cta {
   border-color: rgba(0, 0, 0, 0.22);
+}
+
+.cta.is-active {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+}
+
+.cta.is-active:hover,
+.cta.is-active:focus-visible {
+  color: var(--bg);
+  filter: brightness(0.92);
 }
 
 .cta:hover,

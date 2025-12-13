@@ -166,53 +166,9 @@ import { ContainedDotField } from './containedDotField.js';
   dotField.setSpeed(speedInternal());
   dotField.setBreathingEnabled(breathingEnabled);
 
-  const headerEl = document.querySelector('.header');
-  function updateTopExclusion() {
-    if (!(headerEl instanceof HTMLElement)) return;
-    const rect = headerEl.getBoundingClientRect();
-    dotField.setTopExclusion(rect.bottom + 8);
-  }
-  updateTopExclusion();
-  if (headerEl instanceof HTMLElement) {
-    const headerObserver = new ResizeObserver(() => updateTopExclusion());
-    headerObserver.observe(headerEl);
-  }
-
-  function updateExclusionRects() {
-    if (!(miniPanel instanceof HTMLElement)) {
-      dotField.setExclusionRects([]);
-      return;
-    }
-
-    const rect = miniPanel.getBoundingClientRect();
-    const visible =
-      rect.width > 1 &&
-      rect.height > 1 &&
-      rect.bottom > 0 &&
-      rect.right > 0 &&
-      rect.top < window.innerHeight &&
-      rect.left < window.innerWidth;
-    if (!visible) {
-      dotField.setExclusionRects([]);
-      return;
-    }
-
-    const pad = 8;
-    dotField.setExclusionRects([
-      {
-        left: rect.left - pad,
-        top: rect.top - pad,
-        right: rect.right + pad,
-        bottom: rect.bottom + pad,
-      },
-    ]);
-  }
-
-  updateExclusionRects();
-  const panelObserver = new ResizeObserver(() => updateExclusionRects());
-  if (miniPanel instanceof HTMLElement) panelObserver.observe(miniPanel);
-  window.addEventListener('scroll', () => updateExclusionRects(), { passive: true });
-  window.addEventListener('resize', () => updateExclusionRects(), { passive: true });
+  // Allow main dots to move behind the top grid bar (it has an opaque background),
+  // so we don't exclude it from spawning.
+  dotField.setExclusionRects([]);
 
   const dotMinSizeEl = document.querySelector('#dotMinSize');
   const dotMinSizeValue = document.querySelector('#dotMinSizeValue');
@@ -231,12 +187,71 @@ import { ContainedDotField } from './containedDotField.js';
   const gravityDrop = document.querySelector('#gravityDrop');
   const restartControls = document.querySelector('#restartControls');
   const pauseControls = document.querySelector('#pauseControls');
+  const controlsPanel = document.querySelector('#controlsPanel');
+  const toggleControls = document.querySelector('#toggleControls');
 
   let paused = false;
   function syncPauseControls() {
     if (!(pauseControls instanceof HTMLButtonElement)) return;
     pauseControls.textContent = paused ? 'Start' : 'Stop';
     pauseControls.setAttribute('aria-pressed', paused ? 'true' : 'false');
+  }
+
+  let controlsVisible = false;
+  {
+    const stored = localStorage.getItem('controlsVisible');
+    if (stored === '1' || stored === 'true') controlsVisible = true;
+  }
+  function layoutControlsPanel() {
+    if (!(controlsPanel instanceof HTMLElement)) return;
+    const copy = document.querySelector('.copy.shield');
+    if (!(copy instanceof HTMLElement)) return;
+    const rect = copy.getBoundingClientRect();
+    const gap = 14;
+    controlsPanel.style.left = `${Math.round(rect.left)}px`;
+    controlsPanel.style.top = `${Math.round(rect.bottom + gap)}px`;
+    controlsPanel.style.width = `${Math.round(rect.width)}px`;
+  }
+  function syncControlsPanel() {
+    if (controlsPanel instanceof HTMLElement && controlsVisible) layoutControlsPanel();
+    if (controlsPanel instanceof HTMLElement) controlsPanel.hidden = !controlsVisible;
+    if (toggleControls instanceof HTMLElement) toggleControls.setAttribute('aria-expanded', controlsVisible ? 'true' : 'false');
+    if (toggleControls instanceof HTMLElement) toggleControls.classList.toggle('is-active', controlsVisible);
+  }
+  syncControlsPanel();
+
+  toggleControls?.addEventListener('click', (event) => {
+    event.preventDefault();
+    controlsVisible = !controlsVisible;
+    localStorage.setItem('controlsVisible', controlsVisible ? '1' : '0');
+    syncControlsPanel();
+  });
+
+  {
+    const copy = document.querySelector('.copy.shield');
+    if (copy instanceof HTMLElement) {
+      const obs = new ResizeObserver(() => {
+        if (!controlsVisible) return;
+        layoutControlsPanel();
+      });
+      obs.observe(copy);
+    }
+    window.addEventListener(
+      'resize',
+      () => {
+        if (!controlsVisible) return;
+        layoutControlsPanel();
+      },
+      { passive: true }
+    );
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!controlsVisible) return;
+        layoutControlsPanel();
+      },
+      { passive: true }
+    );
   }
 
   let dotUpdateScheduled = false;
@@ -464,15 +479,17 @@ import { ContainedDotField } from './containedDotField.js';
   localStorage.removeItem('reactToUi');
 
   const modeToggle = document.querySelector('#modeToggle');
+  const modeValue = document.querySelector('#modeValue');
   function syncModeToggle() {
-    if (!modeToggle) return;
-    modeToggle.setAttribute('aria-label', mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-    modeToggle.setAttribute('aria-pressed', mode === 'light' ? 'true' : 'false');
+    if (!(modeToggle instanceof HTMLInputElement)) return;
+    modeToggle.checked = mode === 'dark';
+    if (modeValue instanceof HTMLOutputElement) modeValue.textContent = mode === 'dark' ? 'Dark' : 'Light';
   }
   syncModeToggle();
 
-  modeToggle?.addEventListener('click', () => {
-    mode = mode === 'dark' ? 'light' : 'dark';
+  modeToggle?.addEventListener('change', () => {
+    if (!(modeToggle instanceof HTMLInputElement)) return;
+    mode = modeToggle.checked ? 'dark' : 'light';
     localStorage.setItem('mode', mode);
     root.dataset.mode = mode;
     dotField.invertWithDispersion(mode);

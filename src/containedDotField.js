@@ -127,15 +127,11 @@ export class ContainedDotField {
     this.#canvas.width = this.#width;
     this.#canvas.height = this.#height;
 
-    const area = rect.width * rect.height;
-    const baseDots = area < 30_000 ? 90 : area < 70_000 ? 150 : area < 120_000 ? 220 : 300;
-    const count = Math.floor(baseDots * this.#density);
-    this.#dots = this.#spawnDotsGrid(count);
+    this.#dots = this.#spawnDotsGrid();
     this.#draw();
   }
 
-  /** @param {number} count */
-  #spawnDotsGrid(count) {
+  #spawnDotsGrid() {
     const minR = this.#minRadiusCssPx * this.#dpr;
     const maxR = this.#maxRadiusCssPx * this.#dpr;
     const edgePad = this.#edgePadCssPx * this.#dpr;
@@ -147,7 +143,7 @@ export class ContainedDotField {
     const rows = Math.max(1, Math.floor(usableH / spacing));
     const totalCells = cols * rows;
 
-    const target = Math.min(count, totalCells);
+    const target = Math.max(1, Math.min(totalCells, Math.floor(totalCells * clamp(this.#density, 0, 1))));
     const indices = Array.from({ length: totalCells }, (_, i) => i);
     for (let i = indices.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
