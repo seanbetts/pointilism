@@ -632,6 +632,7 @@ export class DotField {
     const friction = lerp(0.12, 0.85, feel);
     const adhesionBand = lerp(6, 1.5, feel) * this.#dpr;
     const adhesionStrength = lerp(0.06, 0.0, feel);
+    const coupleStrength = Math.pow(1 - feel, 1.6);
 
     for (let iter = 0; iter < 2; iter++) {
       /** @type {Map<string, Dot[]>} */
@@ -664,16 +665,31 @@ export class DotField {
               const minDist = dot.r + other.r + this.#bufferPx * this.#dpr;
               const minDist2 = minDist * minDist;
               if (dist2 >= minDist2) {
-                if (adhesionStrength > 0 && dist2 < (minDist + adhesionBand) * (minDist + adhesionBand)) {
+                const band2 = (minDist + adhesionBand) * (minDist + adhesionBand);
+                if (dist2 < band2) {
                   const dist = Math.sqrt(Math.max(1e-6, dist2));
                   const nx = dx / dist;
                   const ny = dy / dist;
                   const gap = dist - minDist;
-                  const pull = clamp(adhesionStrength * (1 - gap / adhesionBand), 0, adhesionStrength);
-                  dot.vx += nx * pull * dt;
-                  dot.vy += ny * pull * dt;
-                  other.vx -= nx * pull * dt;
-                  other.vy -= ny * pull * dt;
+
+                  if (adhesionStrength > 0) {
+                    const pull = clamp(adhesionStrength * (1 - gap / adhesionBand), 0, adhesionStrength);
+                    dot.vx += nx * pull * dt;
+                    dot.vy += ny * pull * dt;
+                    other.vx -= nx * pull * dt;
+                    other.vy -= ny * pull * dt;
+                  }
+
+                  // "Attachment": suppress relative jitter so clusters move as a unit.
+                  if (coupleStrength > 0.001) {
+                    const avgVx = (dot.vx + other.vx) * 0.5;
+                    const avgVy = (dot.vy + other.vy) * 0.5;
+                    const t = clamp(coupleStrength * (1 - gap / adhesionBand), 0, coupleStrength);
+                    dot.vx = lerp(dot.vx, avgVx, t);
+                    dot.vy = lerp(dot.vy, avgVy, t);
+                    other.vx = lerp(other.vx, avgVx, t);
+                    other.vy = lerp(other.vy, avgVy, t);
+                  }
                 }
                 continue;
               }
