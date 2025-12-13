@@ -179,10 +179,6 @@ export class DotField {
   /** @type {number | null} */
   #gravityDropUntilMs = null;
   /** @type {number | null} */
-  #gravityVisualUntilMs = null;
-  /** @type {number | null} */
-  #gravityVisualStartMs = null;
-  /** @type {number | null} */
   #gravityActiveUntilMs = null;
 
   /**
@@ -319,11 +315,8 @@ export class DotField {
     const t0 = nowMs();
     const dropMs = clamp(options?.dropMs ?? 900, 100, 20_000);
     const activeMs = clamp(options?.activeMs ?? 1000, dropMs, 30_000);
-    const liquidMs = clamp(options?.liquidMs ?? 5000, 0, 60_000);
     this.#gravityDropUntilMs = t0 + dropMs;
     this.#gravityActiveUntilMs = t0 + activeMs;
-    this.#gravityVisualUntilMs = t0 + liquidMs;
-    this.#gravityVisualStartMs = t0;
 
     for (const dot of this.#dots) {
       dot.vy = Math.max(0, dot.vy);
@@ -894,38 +887,12 @@ export class DotField {
 
     this.#ctx.fillStyle = this.#palette.dot;
     this.#ctx.globalAlpha = 1;
-    const tNow = nowMs();
-    const liquid = this.#gravityVisualUntilMs != null && tNow < this.#gravityVisualUntilMs;
-    if (liquid) {
-      const start = this.#gravityVisualStartMs ?? (this.#gravityVisualUntilMs - 1);
-      const dur = Math.max(1, this.#gravityVisualUntilMs - start);
-      const p = clamp((tNow - start) / dur, 0, 1);
-
-      const maxPool = Math.min(this.#height * 0.36, 520 * this.#dpr);
-      const poolH = maxPool * (1 - p * p * 0.92);
-      if (poolH > 1) {
-        const g = this.#ctx.createLinearGradient(0, this.#height - poolH, 0, this.#height);
-        g.addColorStop(0, 'rgba(0,0,0,0)');
-        g.addColorStop(0.25, this.#palette.dot);
-        g.addColorStop(1, this.#palette.dot);
-        this.#ctx.save();
-        this.#ctx.globalAlpha = 0.28;
-        this.#ctx.fillStyle = g;
-        this.#ctx.fillRect(0, this.#height - poolH, this.#width, poolH);
-        this.#ctx.restore();
-      }
-
-      this.#ctx.shadowColor = this.#palette.dot;
-      this.#ctx.shadowBlur = lerp(42, 14, p) * this.#dpr;
-    } else {
-      this.#ctx.shadowBlur = 0;
-    }
+    this.#ctx.shadowBlur = 0;
     for (const dot of this.#dots) {
       const radius = Math.max(0.5, dot.r);
       this.#ctx.beginPath();
       this.#ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
       this.#ctx.fill();
     }
-    if (liquid) this.#ctx.shadowBlur = 0;
   }
 }
