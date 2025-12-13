@@ -321,7 +321,7 @@ export class DotField {
     const dropMs = clamp(options?.dropMs ?? 900, 100, 20_000);
     const activeMs = clamp(options?.activeMs ?? 1000, dropMs, 30_000);
     const maskDelayMs = clamp(options?.maskDelayMs ?? 0, 0, 30_000);
-    const maskMs = clamp(options?.maskMs ?? 8000, 0, 30_000);
+    const maskMs = clamp(options?.maskMs ?? 5000, 0, 30_000);
     this.#gravityDropUntilMs = t0 + dropMs;
     this.#gravityActiveUntilMs = t0 + activeMs;
     this.#gravityMaskStartMs = t0 + maskDelayMs;
@@ -909,16 +909,19 @@ export class DotField {
       const holdFrac = Math.max(0, 1 - growFrac - shrinkFrac);
 
       let h = barMaxH;
+      let alpha = 1;
       if (localT < growFrac) {
         const p = smoothstep(clamp(localT / growFrac, 0, 1));
         h = barMaxH * p;
+        alpha = p;
       } else if (localT > growFrac + holdFrac) {
         const p = smoothstep(clamp((localT - (growFrac + holdFrac)) / shrinkFrac, 0, 1));
         h = barMaxH * (1 - p);
+        alpha = 1 - p;
       }
 
       this.#ctx.fillStyle = this.#palette.dot;
-      this.#ctx.globalAlpha = 1;
+      this.#ctx.globalAlpha = clamp(alpha, 0, 1);
       const topBase = this.#height - h;
       const amp = Math.min(h * 0.18, 36 * this.#dpr);
       const seed = this.#gravityMaskSeed || 1;
