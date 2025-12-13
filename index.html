@@ -29,183 +29,71 @@
 	            <label class="control">
 	              <span class="control-label">
 	                Min size
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="Min size help"
-	                  title="Minimum dot radius (in CSS pixels)."
-	                >
-	                  ?
-	                </button>
+	                <button class="help" type="button" aria-label="Min size help" title="Minimum dot radius (in CSS pixels).">?</button>
 	              </span>
-	              <input
-	                id="dotMinSize"
-	                class="control-input"
-	                type="range"
-	                min="0.5"
-	                max="60"
-	                step="0.5"
-	                value="1.5"
-	              />
+	              <input id="dotMinSize" class="control-input" type="range" min="0.5" max="60" step="0.5" value="1.5" />
 	              <output id="dotMinSizeValue" class="control-value" for="dotMinSize"></output>
 	            </label>
 	            <label class="control">
 	              <span class="control-label">
 	                Max size
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="Max size help"
-	                  title="Maximum dot radius (in CSS pixels)."
-	                >
-	                  ?
-	                </button>
+	                <button class="help" type="button" aria-label="Max size help" title="Maximum dot radius (in CSS pixels).">?</button>
 	              </span>
-	              <input
-	                id="dotMaxSize"
-	                class="control-input"
-	                type="range"
-	                min="1"
-	                max="200"
-	                step="1"
-	                value="4"
-	              />
+	              <input id="dotMaxSize" class="control-input" type="range" min="1" max="200" step="1" value="4" />
 	              <output id="dotMaxSizeValue" class="control-value" for="dotMaxSize"></output>
 	            </label>
 	            <label class="control">
 	              <span class="control-label">
-	                Density
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="Density help"
-	                  title="Controls how many dots are on screen."
-	                >
-	                  ?
-	                </button>
-	              </span>
-	              <input
-	                id="dotDensity"
-	                class="control-input"
-	                type="range"
-                min="0.2"
-                max="2.5"
-                step="0.05"
-                value="1"
-              />
-	              <output id="dotDensityValue" class="control-value" for="dotDensity"></output>
-	            </label>
-	            <label class="control">
-	              <span class="control-label">
 	                Size count
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="Size count help"
-	                  title="Number of discrete dot sizes between min and max (evenly spaced)."
-	                >
-	                  ?
-	                </button>
+	                <button class="help" type="button" aria-label="Size count help" title="Number of discrete dot sizes between min and max (evenly spaced).">?</button>
 	              </span>
-	              <input
-	                id="dotSizeCount"
-	                class="control-input"
-	                type="range"
-	                min="2"
-	                max="15"
-	                step="1"
-	                value="5"
-	              />
+	              <input id="dotSizeCount" class="control-input" type="range" min="2" max="15" step="1" value="5" />
 	              <output id="dotSizeCountValue" class="control-value" for="dotSizeCount"></output>
 	            </label>
 	            <label class="control">
 	              <span class="control-label">
 	                Size distribution
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="Size distribution help"
-	                  title="How dot sizes are distributed across the size buckets."
-	                >
-	                  ?
-	                </button>
+	                <button class="help" type="button" aria-label="Size distribution help" title="How dot sizes are distributed across the size buckets.">?</button>
 	              </span>
-	              <input
-	                id="dotDistribution"
-	                class="control-input"
-	                type="range"
-	                min="0"
-	                max="6"
-	                step="1"
-	                value="2"
-	              />
-	              <output
-	                id="dotDistributionValue"
-	                class="control-value"
-	                for="dotDistribution"
-	              ></output>
+	              <input id="dotDistribution" class="control-input" type="range" min="0" max="6" step="1" value="2" />
+	              <output id="dotDistributionValue" class="control-value" for="dotDistribution"></output>
+	            </label>
+	            <label class="control">
+	              <span class="control-label">
+	                Density
+	                <button class="help" type="button" aria-label="Density help" title="Controls how many dots are on screen.">?</button>
+	              </span>
+	              <input id="dotDensity" class="control-input" type="range" min="0.2" max="2.5" step="0.05" value="1" />
+	              <output id="dotDensityValue" class="control-value" for="dotDensity"></output>
 	            </label>
 	            <label class="control">
 	              <span class="control-label">
 	                Motion style
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="Motion style help"
-	                  title="Overall motion character (preset)."
-	                >
-	                  ?
-	                </button>
+	                <button class="help" type="button" aria-label="Motion style help" title="Overall motion character (preset).">?</button>
 	              </span>
-	              <input
-	                id="motionStyle"
-	                class="control-input"
-	                type="range"
-	                min="0"
-	                max="4"
-	                step="1"
-	                value="1"
-	              />
+	              <input id="motionStyle" class="control-input" type="range" min="0" max="4" step="1" value="1" />
 	              <output id="motionStyleValue" class="control-value" for="motionStyle"></output>
 	            </label>
 	            <label class="control">
 	              <span class="control-label">
 	                Motion amount
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="Motion amount help"
-	                  title="Scales the intensity of the current motion style."
-	                >
-	                  ?
-	                </button>
+	                <button class="help" type="button" aria-label="Motion amount help" title="Scales the intensity of the current motion style.">?</button>
 	              </span>
-	              <input
-	                id="motionAmount"
-	                class="control-input"
-	                type="range"
-	                min="0"
-	                max="1"
-	                step="0.05"
-	                value="0.35"
-	              />
-	              <output
-	                id="motionAmountValue"
-	                class="control-value"
-	                for="motionAmount"
-	              ></output>
+	              <input id="motionAmount" class="control-input" type="range" min="0" max="1" step="0.05" value="0.35" />
+	              <output id="motionAmountValue" class="control-value" for="motionAmount"></output>
+	            </label>
+	            <label class="control">
+	              <span class="control-label">
+	                Contact feel
+	                <button class="help" type="button" aria-label="Contact feel help" title="Sticky dots settle into packed arrangements; bouncy dots rebound more.">?</button>
+	              </span>
+	              <input id="contactFeel" class="control-input" type="range" min="0" max="1" step="0.05" value="0.25" />
+	              <output id="contactFeelValue" class="control-value" for="contactFeel"></output>
 	            </label>
 	            <label class="control toggle">
 	              <span class="control-label">
 	                React to UI
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="React to UI help"
-	                  title="Enables anchor-driven reactions to UI elements."
-	                >
-	                  ?
-	                </button>
+	                <button class="help" type="button" aria-label="React to UI help" title="Enables anchor-driven reactions to UI elements.">?</button>
 	              </span>
 	              <span class="toggle-row">
 	                <input id="reactToUi" type="checkbox" checked />
@@ -216,14 +104,7 @@
 	            <label class="control toggle">
 	              <span class="control-label">
 	                Auto-fit
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="Auto-fit help"
-	                  title="If the requested settings can't pack without overlaps, reduces dot count until it fits."
-	                >
-	                  ?
-	                </button>
+	                <button class="help" type="button" aria-label="Auto-fit help" title="If the requested settings can't pack without overlaps, reduces dot count until it fits.">?</button>
 	              </span>
 	              <span class="toggle-row">
 	                <input id="autoFit" type="checkbox" checked />
@@ -231,45 +112,13 @@
 	              </span>
 	              <output id="autoFitValue" class="control-value" for="autoFit"></output>
 	            </label>
-	            <label class="control">
-	              <span class="control-label">
-	                Contact feel
-	                <button
-	                  class="help"
-	                  type="button"
-	                  aria-label="Contact feel help"
-	                  title="Sticky dots settle into packed arrangements; bouncy dots rebound more."
-	                >
-	                  ?
-	                </button>
-	              </span>
-	              <input
-	                id="contactFeel"
-	                class="control-input"
-	                type="range"
-	                min="0"
-	                max="1"
-	                step="0.05"
-	                value="0.25"
-	              />
-	              <output
-	                id="contactFeelValue"
-	                class="control-value"
-	                for="contactFeel"
-	              ></output>
-	            </label>
-	            <button id="resetControls" class="reset-controls" type="button">Defaults</button>
-	            <button id="restartControls" class="restart-controls" type="button">Reset</button>
 	            <button id="pauseControls" class="pause-controls" type="button">Stop</button>
-	            <button
-	              id="modeToggle"
-	              class="mode-toggle"
-	              type="button"
-	              aria-label="Toggle light or dark mode"
-	            ></button>
-          </div>
-        </nav>
-      </header>
+	            <button id="restartControls" class="restart-controls" type="button">Reset</button>
+	            <button id="resetControls" class="reset-controls" type="button">Defaults</button>
+	            <button id="modeToggle" class="mode-toggle" type="button" aria-label="Toggle light or dark mode"></button>
+	          </div>
+	        </nav>
+	      </header>
 
       <main id="content" class="content" tabindex="-1">
         <section id="top" class="section hero" data-section="hero">
