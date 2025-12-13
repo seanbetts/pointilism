@@ -100,9 +100,6 @@ import { DotField } from './dotField.js';
   }
 
   function getInitialBreathingEnabled() {
-    const stored = localStorage.getItem('breathingEnabled');
-    if (stored === 'true') return true;
-    if (stored === 'false') return false;
     return defaults.breathingEnabled;
   }
 
@@ -118,6 +115,9 @@ import { DotField } from './dotField.js';
   let speed = getInitialSpeed();
   let breathingEnabled = getInitialBreathingEnabled();
   let gridEnabled = getInitialGridEnabled();
+  // Breathing is intended as the default ambient state.
+  localStorage.removeItem('breathingEnabled');
+  breathingEnabled = defaults.breathingEnabled;
   // Grid is a transient "layout action" and shouldn't persist across refresh.
   localStorage.removeItem('gridEnabled');
   gridEnabled = false;
