@@ -308,6 +308,20 @@ body {
   cursor: pointer;
 }
 
+.gravity-drop {
+  border: 1px solid var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+  padding: 0.45rem 0.6rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.gravity-drop:hover,
+.gravity-drop:focus-visible {
+  filter: brightness(0.92);
+}
+
 .mode-toggle:hover,
 .mode-toggle:focus-visible {
   border-color: var(--fg);
