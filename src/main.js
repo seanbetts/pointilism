@@ -188,10 +188,8 @@ import { DotField } from './dotField.js?v=2025-12-13-85';
   }
 
   let controlsVisible = false;
-  {
-    const stored = localStorage.getItem('controlsVisible');
-    if (stored === '1' || stored === 'true') controlsVisible = true;
-  }
+  // Controls should always start hidden on refresh.
+  localStorage.removeItem('controlsVisible');
   function layoutControlsPanel() {
     if (!(controlsPanel instanceof HTMLElement)) return;
     const copy = document.querySelector('.copy.shield');
@@ -213,7 +211,6 @@ import { DotField } from './dotField.js?v=2025-12-13-85';
   toggleControls?.addEventListener('click', (event) => {
     event.preventDefault();
     controlsVisible = !controlsVisible;
-    localStorage.setItem('controlsVisible', controlsVisible ? '1' : '0');
     syncControlsPanel();
   });
 
