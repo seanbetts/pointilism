@@ -24,7 +24,7 @@ import { DotField } from './dotField.js';
     dotDistribution: 3,
     autoFit: true,
     reactToUi: true,
-    speed: 0.35,
+    speed: 1,
   };
 
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -75,7 +75,12 @@ import { DotField } from './dotField.js';
 
   function getInitialSpeed() {
     const stored = Number(localStorage.getItem('speed'));
-    if (Number.isFinite(stored)) return stored;
+    if (Number.isFinite(stored)) {
+      // Migration: older builds stored a 0..1 "internal speed" value.
+      const maybeOldInternal = stored <= 1.0001;
+      const next = maybeOldInternal ? stored / 0.35 : stored;
+      return Math.max(0, Math.min(3, next));
+    }
     return defaults.speed;
   }
 
@@ -87,6 +92,10 @@ import { DotField } from './dotField.js';
   let autoFit = getInitialAutoFit();
   let reactToUi = getInitialReactToUi();
   let speed = getInitialSpeed();
+
+  function speedInternal() {
+    return Math.max(0, Math.min(1, speed * 0.35));
+  }
 
   let dotField;
   try {
@@ -107,7 +116,7 @@ import { DotField } from './dotField.js';
   dotField.setDistribution(dotDistribution);
   dotField.setAutoFitDensity(autoFit);
   dotField.setReactToUi(reactToUi);
-  dotField.setSpeed(speed);
+  dotField.setSpeed(speedInternal());
 
   const headerEl = document.querySelector('.header');
   function updateTopExclusion() {
@@ -161,7 +170,7 @@ import { DotField } from './dotField.js';
       dotField.setDistribution(dotDistribution);
       dotField.setAutoFitDensity(autoFit);
       dotField.setReactToUi(reactToUi);
-      dotField.setSpeed(speed);
+      dotField.setSpeed(speedInternal());
     });
   }
 
