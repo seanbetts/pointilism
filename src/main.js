@@ -18,6 +18,14 @@ import { DotField } from './dotField.js';
 
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
+  function getInitialDotScale() {
+    const stored = Number(localStorage.getItem('dotScale'));
+    if (Number.isFinite(stored) && stored > 0) return stored;
+    return 1;
+  }
+
+  let dotScale = getInitialDotScale();
+
   let dotField;
   try {
     dotField = new DotField(canvas, {
@@ -28,6 +36,20 @@ import { DotField } from './dotField.js';
     root.dataset.dotfield = 'unavailable';
     canvas.remove();
     return;
+  }
+
+  dotField.setDotScale(dotScale);
+
+  const dotSize = document.querySelector('#dotSize');
+  if (dotSize instanceof HTMLInputElement) {
+    dotSize.value = String(dotScale);
+    dotSize.addEventListener('input', () => {
+      const next = Number(dotSize.value);
+      if (!Number.isFinite(next)) return;
+      dotScale = next;
+      localStorage.setItem('dotScale', String(dotScale));
+      dotField.setDotScale(dotScale);
+    });
   }
 
   const modeToggle = document.querySelector('#modeToggle');

@@ -61,6 +61,7 @@ export class DotField {
   #noise = 0.22;
   #maxV = 0.9;
   #densityScalar = 1;
+  #dotScale = 1;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -121,6 +122,13 @@ export class DotField {
   /** @param {Anchor[]} anchors */
   setInteractiveAnchors(anchors) {
     this.#interactiveAnchors = anchors;
+    if (this.#reducedMotion) this.#draw(true);
+  }
+
+  /** @param {number} scale */
+  setDotScale(scale) {
+    const next = clamp(scale, 0.4, 3);
+    this.#dotScale = next;
     if (this.#reducedMotion) this.#draw(true);
   }
 
@@ -199,12 +207,13 @@ export class DotField {
     /** @type {Dot[]} */
     const dots = [];
     for (let i = 0; i < count; i++) {
+      const baseR = lerp(0.8, 1.8, Math.random()) * this.#dpr;
       dots.push({
         x: Math.random() * this.#width,
         y: Math.random() * this.#height,
         vx: (Math.random() - 0.5) * 0.3,
         vy: (Math.random() - 0.5) * 0.3,
-        r: lerp(0.8, 1.8, Math.random()) * this.#dpr,
+        r: baseR,
         a: 1,
       });
     }
@@ -365,8 +374,9 @@ export class DotField {
     this.#ctx.fillStyle = this.#palette.dot;
     this.#ctx.globalAlpha = 1;
     for (const dot of this.#dots) {
+      const radius = dot.r * this.#dotScale;
       this.#ctx.beginPath();
-      this.#ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2);
+      this.#ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
       this.#ctx.fill();
     }
   }

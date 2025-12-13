@@ -101,6 +101,26 @@ body {
   min-height: 44px;
 }
 
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.dot-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.dot-size-input {
+  width: min(220px, 40vw);
+  accent-color: var(--fg);
+}
+
 .brand {
   color: var(--fg);
   text-decoration: none;
