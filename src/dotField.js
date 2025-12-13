@@ -716,8 +716,8 @@ export class DotField {
               const minDist = dot.r + other.r + this.#bufferPx * this.#dpr;
               const minDist2 = minDist * minDist;
               const stick = physics ? (dot.stick + other.stick) * 0.5 : 0;
-              const restitution = physics ? lerp(0.85, 0.02, stick) : 0;
-              const friction = physics ? lerp(0.2, 0.9, stick) : 1;
+              const restitution = physics ? lerp(0.98, 0.04, stick) : 0;
+              const friction = physics ? lerp(0.08, 0.75, stick) : 1;
               const adhesionStrength = physics ? 0.05 * stick : 0;
               const coupleStrength = physics ? 0.9 * stick : 0;
               if (dist2 >= minDist2) {
@@ -779,7 +779,7 @@ export class DotField {
               other.vx -= tvx * (0.5 - friction * 0.5);
               other.vy -= tvy * (0.5 - friction * 0.5);
 
-              const dampBase = !physics ? 1 : lerp(0.95, 0.82, friction);
+              const dampBase = !physics ? 1 : lerp(0.99, 0.94, friction);
               const damp = Math.pow(dampBase, dt);
               dot.vx *= damp;
               dot.vy *= damp;
