@@ -48,6 +48,18 @@ import { DotField } from './dotField.js';
   dotField.setDotScale(dotScale);
   dotField.setDensityScalar(dotDensity);
 
+  const headerEl = document.querySelector('.header');
+  function updateTopExclusion() {
+    if (!(headerEl instanceof HTMLElement)) return;
+    const rect = headerEl.getBoundingClientRect();
+    dotField.setTopExclusion(rect.bottom + 8);
+  }
+  updateTopExclusion();
+  if (headerEl instanceof HTMLElement) {
+    const headerObserver = new ResizeObserver(() => updateTopExclusion());
+    headerObserver.observe(headerEl);
+  }
+
   const dotSize = document.querySelector('#dotSize');
   const dotDensityEl = document.querySelector('#dotDensity');
 

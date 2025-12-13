@@ -68,6 +68,7 @@ export class DotField {
   #densityScalar = 1;
   #dotScale = 1;
   #bufferPx = 1.5;
+  #excludeTopCssPx = 0;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -142,6 +143,14 @@ export class DotField {
   setDensityScalar(scalar) {
     const next = clamp(scalar, 0.1, 3);
     this.#densityScalar = next;
+    this.#scheduleSetup();
+  }
+
+  /** @param {number} cssPx */
+  setTopExclusion(cssPx) {
+    const next = clamp(cssPx, 0, 10_000);
+    if (Math.abs(next - this.#excludeTopCssPx) < 0.5) return;
+    this.#excludeTopCssPx = next;
     this.#scheduleSetup();
   }
 
@@ -229,6 +238,7 @@ export class DotField {
     const maxR = 1.8 * this.#dpr;
     const maxRequired = 2 * maxR * this.#dotScale + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
+    const excludeTop = this.#excludeTopCssPx * this.#dpr;
 
     /** @type {Map<string, Dot[]>} */
     const grid = new Map();
@@ -244,7 +254,7 @@ export class DotField {
       const r = lerp(0.8, 1.8, Math.random()) * this.#dpr;
       const rScaled = r * this.#dotScale;
       const x = lerp(rScaled, this.#width - rScaled, Math.random());
-      const y = lerp(rScaled, this.#height - rScaled, Math.random());
+      const y = lerp(excludeTop + rScaled, this.#height - rScaled, Math.random());
 
       const cx = Math.floor(x / cellSize);
       const cy = Math.floor(y / cellSize);
@@ -408,6 +418,7 @@ export class DotField {
       dot.y += dot.vy * this.#dpr * 2.2 * dt;
 
       const rScaled = dot.r * this.#dotScale;
+      const excludeTop = this.#excludeTopCssPx * this.#dpr;
       if (dot.x < rScaled) {
         dot.x = rScaled;
         dot.vx = Math.abs(dot.vx) * 0.5;
@@ -415,8 +426,8 @@ export class DotField {
         dot.x = this.#width - rScaled;
         dot.vx = -Math.abs(dot.vx) * 0.5;
       }
-      if (dot.y < rScaled) {
-        dot.y = rScaled;
+      if (dot.y < excludeTop + rScaled) {
+        dot.y = excludeTop + rScaled;
         dot.vy = Math.abs(dot.vy) * 0.5;
       } else if (dot.y > this.#height - rScaled) {
         dot.y = this.#height - rScaled;
@@ -434,6 +445,7 @@ export class DotField {
     const maxR = 1.8 * this.#dpr;
     const maxRequired = 2 * maxR * this.#dotScale + this.#bufferPx * this.#dpr;
     const cellSize = Math.max(6, maxRequired);
+    const excludeTop = this.#excludeTopCssPx * this.#dpr;
 
     for (let iter = 0; iter < 2; iter++) {
       /** @type {Map<string, Dot[]>} */
@@ -491,7 +503,7 @@ export class DotField {
     for (const dot of this.#dots) {
       const rScaled = dot.r * this.#dotScale;
       dot.x = clamp(dot.x, rScaled, this.#width - rScaled);
-      dot.y = clamp(dot.y, rScaled, this.#height - rScaled);
+      dot.y = clamp(dot.y, excludeTop + rScaled, this.#height - rScaled);
     }
   }
 
