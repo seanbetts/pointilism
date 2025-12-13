@@ -64,7 +64,9 @@ import { DotField } from './dotField.js';
   }
 
   function getInitialDistribution() {
-    const stored = Number(localStorage.getItem('dotDistribution'));
+    const raw = localStorage.getItem('dotDistribution');
+    if (raw == null) return defaults.dotDistribution;
+    const stored = Number(raw);
     if (Number.isFinite(stored)) return Math.max(0, Math.min(6, Math.round(stored)));
     return defaults.dotDistribution;
   }
@@ -84,7 +86,9 @@ import { DotField } from './dotField.js';
   }
 
   function getInitialSpeed() {
-    const stored = Number(localStorage.getItem('speed'));
+    const raw = localStorage.getItem('speed');
+    if (raw == null) return defaults.speed;
+    const stored = Number(raw);
     if (Number.isFinite(stored)) {
       // Migration: older builds stored a 0..1 "internal speed" value.
       const maybeOldInternal = stored <= 1.0001;
