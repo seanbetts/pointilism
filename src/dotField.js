@@ -149,7 +149,7 @@ export class DotField {
 
   /** @param {number} variance */
   setSizeVariance(variance) {
-    const next = clamp(variance, 0, 1);
+    const next = clamp(variance, 0, 5);
     this.#sizeVariance = next;
     this.#scheduleSetup();
   }
