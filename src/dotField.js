@@ -18,7 +18,7 @@ function nowMs() {
 }
 
 /**
- * @typedef {{ x: number; y: number; vx: number; vy: number; r: number; a: number }} Dot
+ * @typedef {{ x: number; y: number; vx: number; vy: number; r: number; a: number; ds: number }} Dot
  */
 
 function keyForCell(cx, cy) {
@@ -27,6 +27,35 @@ function keyForCell(cx, cy) {
 
 function clampInt(value, min, max) {
   return Math.round(clamp(value, min, max));
+}
+
+function smoothstep(t) {
+  return t * t * (3 - 2 * t);
+}
+
+function hash3i(x, y, s) {
+  let h = (x | 0) * 374761393 + (y | 0) * 668265263 + (s | 0) * 2147483647;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+
+function noise2(x, y, seed) {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const xf = x - xi;
+  const yf = y - yi;
+  const u = smoothstep(xf);
+  const v = smoothstep(yf);
+
+  const n00 = hash3i(xi, yi, seed);
+  const n10 = hash3i(xi + 1, yi, seed);
+  const n01 = hash3i(xi, yi + 1, seed);
+  const n11 = hash3i(xi + 1, yi + 1, seed);
+
+  const nx0 = lerp(n00, n10, u);
+  const nx1 = lerp(n01, n11, u);
+  return lerp(nx0, nx1, v);
 }
 
 function quantizeLabel(index) {
@@ -145,7 +174,6 @@ export class DotField {
   #motionAmount = 0.35;
   #reactToUi = true;
   #contactFeel = 0.25;
-  #driftAngle = Math.random() * Math.PI * 2;
 
   /**
    * @param {HTMLCanvasElement} canvas
@@ -445,6 +473,7 @@ export class DotField {
           vy: (Math.random() - 0.5) * 0.22,
           r,
           a: 1,
+          ds: lerp(0.75, 1.25, Math.random()),
         };
         const key = keyForCell(cx, cy);
         const bucket = grid.get(key);
@@ -565,14 +594,24 @@ export class DotField {
     const anchors = this.#getAnchors();
     const { cohesion, stability, noise, maxV } = this;
 
-    let driftVx = 0;
-    let driftVy = 0;
+    let driftSeed0 = 0;
+    let driftSeed1 = 0;
+    let driftT = 0;
+    let driftAccel = 0;
+    let driftScale = 1;
+    let driftBandSeed = 0;
     if (this.#motionStyle === 1 && this.#motionAmount > 0) {
-      // Calm drift: direction is unbiased and slowly rotates over time.
-      this.#driftAngle += 0.00045 * dtMs;
-      const base = lerp(0, 0.035, this.#motionAmount) * this.#dpr;
-      driftVx = Math.cos(this.#driftAngle) * base * dt;
-      driftVy = Math.sin(this.#driftAngle) * base * dt;
+      // Calm drift: per-dot, slowly evolving vector field (no global rotation).
+      const periodMs = 8000;
+      const s0 = Math.floor(t / periodMs);
+      const s1 = s0 + 1;
+      const tt = (t - s0 * periodMs) / periodMs;
+      driftSeed0 = s0;
+      driftSeed1 = s1;
+      driftT = smoothstep(tt);
+      driftBandSeed = s0 * 8191 + 17;
+      driftAccel = lerp(0, 0.065, this.#motionAmount) * this.#dpr;
+      driftScale = 1 / (520 * this.#dpr);
     }
 
     for (const dot of this.#dots) {
@@ -581,8 +620,23 @@ export class DotField {
       dot.vy += jitter * 0.22 * dt;
 
       if (this.#motionStyle === 1 && this.#motionAmount > 0) {
-        dot.vx += driftVx;
-        dot.vy += driftVy;
+        const sx = dot.x * driftScale;
+        const sy = dot.y * driftScale;
+        const n1a = noise2(sx, sy, driftSeed0);
+        const n1b = noise2(sx, sy, driftSeed1);
+        const n2a = noise2(sx + 19.17, sy - 11.83, driftSeed0 + 101);
+        const n2b = noise2(sx + 19.17, sy - 11.83, driftSeed1 + 101);
+        const vx = lerp(n1a, n1b, driftT) - 0.5;
+        const vy = lerp(n2a, n2b, driftT) - 0.5;
+        const len = Math.sqrt(vx * vx + vy * vy) || 1;
+
+        const bandA = noise2(sx - 7.3, sy + 5.1, driftBandSeed);
+        const bandB = noise2(sx - 7.3, sy + 5.1, driftBandSeed + 1);
+        const band = lerp(bandA, bandB, driftT);
+        const speed = lerp(0.65, 1.25, band) * dot.ds;
+
+        dot.vx += (vx / len) * driftAccel * speed * dt;
+        dot.vy += (vy / len) * driftAccel * speed * dt;
       }
 
       if (anchors.length > 0) {
