@@ -182,7 +182,7 @@ import { DotField } from './dotField.js';
   let paused = false;
   function syncPauseControls() {
     if (!(pauseControls instanceof HTMLButtonElement)) return;
-    pauseControls.textContent = paused ? 'Start' : 'Stop';
+    pauseControls.textContent = paused ? 'UNFREEZE' : 'FREEZE';
     pauseControls.setAttribute('aria-pressed', paused ? 'true' : 'false');
   }
 
