@@ -78,26 +78,26 @@ import { DotField } from './dotField.js';
 
   if (dotSize instanceof HTMLInputElement) {
     dotSize.value = String(dotScale);
-    if (dotSizeValue instanceof HTMLOutputElement) dotSizeValue.value = dotScale.toFixed(2);
+    if (dotSizeValue instanceof HTMLOutputElement) dotSizeValue.value = dotScale.toFixed(1);
     dotSize.addEventListener('input', () => {
       const next = Number(dotSize.value);
       if (!Number.isFinite(next)) return;
       dotScale = next;
       localStorage.setItem('dotScale', String(dotScale));
-      if (dotSizeValue instanceof HTMLOutputElement) dotSizeValue.value = dotScale.toFixed(2);
+      if (dotSizeValue instanceof HTMLOutputElement) dotSizeValue.value = dotScale.toFixed(1);
       scheduleDotUpdate();
     });
   }
 
   if (dotDensityEl instanceof HTMLInputElement) {
     dotDensityEl.value = String(dotDensity);
-    if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(2);
+    if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(1);
     dotDensityEl.addEventListener('input', () => {
       const next = Number(dotDensityEl.value);
       if (!Number.isFinite(next)) return;
       dotDensity = next;
       localStorage.setItem('dotDensity', String(dotDensity));
-      if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(2);
+      if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(1);
       scheduleDotUpdate();
     });
   }
