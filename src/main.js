@@ -491,14 +491,14 @@ import { DotField } from './dotField.js';
       gridEnabled: true,
     },
     highContrastMix: {
-      dotMinSize: 2,
-      dotMaxSize: 70,
-      dotDensity: 0.55,
-      dotSizeCount: 10,
+      dotMinSize: 1,
+      dotMaxSize: 100,
+      dotDensity: 0.75,
+      dotSizeCount: 15,
       dotDistribution: 4, // U-shaped
-      speed: 0.9,
+      speed: 0.0,
       breathingEnabled: false,
-      gridEnabled: false,
+      gridEnabled: true,
     },
     posterGrid: {
       dotMinSize: 3,
