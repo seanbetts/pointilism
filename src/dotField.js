@@ -229,7 +229,7 @@ export class DotField {
 
   /** @param {number} count */
   setSizeCount(count) {
-    const next = Math.round(clamp(count, 2, 10));
+    const next = Math.round(clamp(count, 2, 15));
     this.#sizeCount = next;
     this.#scheduleSetup();
   }
