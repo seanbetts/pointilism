@@ -290,12 +290,14 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     if (!controlsVisible) return;
     controlsVisible = false;
     syncControlsPanel();
+    if (isMobileControlsLayout()) syncHeroVisibility(false);
   }
 
   function openControls() {
     if (controlsVisible) return;
     controlsVisible = true;
     syncControlsPanel();
+    if (isMobileControlsLayout()) syncHeroVisibility(true);
   }
 
   /** @type {{ scrollY: number } | null} */
@@ -431,6 +433,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   toggleControls?.addEventListener('click', (event) => {
     controlsVisible = !controlsVisible;
     syncControlsPanel();
+    if (isMobileControlsLayout()) syncHeroVisibility(controlsVisible);
   });
 
   controlsBackdrop?.addEventListener('click', () => {
