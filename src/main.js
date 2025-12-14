@@ -638,29 +638,15 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
       syncPauseControls();
     }
 
-    activePresetId = 'default';
-    setActivePreset('default');
-
-    dotMinSize = defaults.dotMinSize;
-    dotMaxSize = defaults.dotMaxSize;
-    dotDensity = defaults.dotDensity;
-    dotSizeCount = defaults.dotSizeCount;
-    dotDistribution = defaults.dotDistribution;
-    speed = defaults.speed;
-    breathingEnabled = defaults.breathingEnabled;
-    gridEnabled = false;
-
-    localStorage.removeItem('dotMinSize');
-    localStorage.removeItem('dotMaxSize');
-    localStorage.removeItem('dotDensity');
-    localStorage.removeItem('dotSizeCount');
-    localStorage.removeItem('dotDistribution');
-    localStorage.removeItem('speed');
-    localStorage.removeItem('breathingEnabled');
-    localStorage.removeItem('gridEnabled');
-
-    syncControlValues();
-    scheduleDotUpdate();
+    dotField.setDensityScalar(dotDensity);
+    dotField.setMinRadius(dotMinSize);
+    dotField.setMaxRadius(dotMaxSize);
+    dotField.setSizeCount(dotSizeCount);
+    dotField.setDistribution(dotDistribution);
+    dotField.setAutoFitDensity(autoFit);
+    dotField.setReactToUi(reactToUi);
+    dotField.setSpeed(speedInternal());
+    dotField.setBreathingEnabled(breathingEnabled);
     dotField.setGridEnabled(gridEnabled);
     dotField.restart();
     dotField.heroIntro();

@@ -88,7 +88,7 @@ The dot controls live in an **Explore** panel (hidden by default):
 - **Breathing**: larger dots oscillate at a fixed tempo; exhale nudges nearby dots.
 - **Grid**: snaps dots into a screen-wide grid (breathing is disabled while grid is on).
 - **DROP**: applies a brief “gravity drop” to stack dots at the bottom (also unfreezes, turns off grid, and turns on breathing).
-- **RESET**: restores defaults (Origin), respawns, and unfreezes.
+- **RESTART**: respawns using the current settings and unfreezes.
 - **FREEZE / UNFREEZE**: pauses/resumes animation.
 - **Mode**: light/dark polarity inversion.
 
