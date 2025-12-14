@@ -155,6 +155,43 @@ body.controls-open {
   transform: none;
 }
 
+.controls-panel-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  position: sticky;
+  top: 0;
+  margin: -0.75rem -0.85rem 0.75rem -0.85rem;
+  padding: 0.85rem 0.85rem 0.75rem 0.85rem;
+  background: var(--shield);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-mode='light'] .controls-panel-header {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+.controls-panel-title {
+  margin: 0;
+}
+
+.controls-close {
+  border: 1px solid var(--muted);
+  background: transparent;
+  color: var(--muted);
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.controls-close:hover,
+.controls-close:focus-visible {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
 .controls-backdrop {
   position: fixed;
   inset: 0;
@@ -270,6 +307,15 @@ body.controls-open {
 }
 
 @media (max-width: 640px) {
+  .section {
+    padding: clamp(3rem, 8svh, 6rem) max(1rem, env(safe-area-inset-left)) clamp(4rem, 10svh, 7rem)
+      max(1rem, env(safe-area-inset-right));
+  }
+
+  .shield {
+    padding: 1.05rem 1.05rem;
+  }
+
   .controls-panel {
     left: max(1rem, env(safe-area-inset-left));
     right: max(1rem, env(safe-area-inset-right));
@@ -289,6 +335,10 @@ body.controls-open {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
+  }
+
+  .controls-panel-header {
+    display: flex;
   }
 
   .controls-panel .theme-buttons {
