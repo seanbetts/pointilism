@@ -150,7 +150,8 @@ body.controls-open {
   border: var(--container-border-width) solid var(--container-border);
   background: var(--shield);
   max-height: calc(100vh - 2rem);
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -306,6 +307,7 @@ body.controls-open {
   grid-template-columns: repeat(3, minmax(180px, 1fr));
   gap: 0.9rem 1.2rem;
   align-items: start;
+  min-width: 0;
 }
 
 .controls-panel .toggle-group,
@@ -314,6 +316,7 @@ body.controls-open {
   display: grid;
   gap: 0.9rem 1.2rem;
   align-items: start;
+  min-width: 0;
 }
 
 .controls-panel .toggle-group {
@@ -327,6 +330,7 @@ body.controls-open {
 .controls-panel .control-input {
   width: 100%;
   max-width: 260px;
+  min-width: 0;
 }
 
 .controls-panel .button-group > button {
@@ -544,6 +548,7 @@ body.controls-open {
   font-size: 0.9rem;
   user-select: none;
   transition: color 320ms ease;
+  min-width: 0;
 }
 
 .control.toggle {
@@ -602,6 +607,7 @@ body.controls-open {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  flex-wrap: wrap;
 }
 
 .help {
