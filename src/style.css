@@ -141,6 +141,9 @@ body {
   border-radius: 1rem;
   border: var(--container-border-width) solid var(--container-border);
   background: var(--shield);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .hero .controls-panel {
@@ -239,12 +242,58 @@ body {
 }
 
 @media (max-width: 640px) {
+  .controls-panel {
+    left: max(1rem, env(safe-area-inset-left));
+    right: max(1rem, env(safe-area-inset-right));
+    top: auto;
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    width: auto !important;
+    max-height: min(calc(100vh - 2rem), 78vh);
+    border-radius: 1.1rem;
+  }
+
   .controls-panel .theme-buttons {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .controls-panel .controls {
     grid-template-columns: 1fr;
+  }
+
+  .theme-button {
+    min-height: 44px;
+  }
+
+  .help {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.9rem;
+  }
+
+  .toggle-row {
+    width: 2.75rem;
+    height: 1.55rem;
+  }
+
+  .toggle-switch::after {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .toggle-row input:checked + .toggle-switch::after {
+    transform: translate(1.25rem, -50%);
+  }
+}
+
+@supports (height: 100dvh) {
+  .controls-panel {
+    max-height: calc(100dvh - 2rem);
+  }
+
+  @media (max-width: 640px) {
+    .controls-panel {
+      max-height: min(calc(100dvh - 2rem), 78dvh);
+    }
   }
 }
 
@@ -515,6 +564,12 @@ body {
   align-content: center;
   gap: 1.4rem;
   position: relative;
+}
+
+@supports (height: 100svh) {
+  .hero {
+    min-height: clamp(520px, 92svh, 860px);
+  }
 }
 
 .copy {

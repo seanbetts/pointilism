@@ -38,6 +38,10 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     breathingEnabled: true,
   };
 
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
   // Always start from the Origin preset on refresh.
@@ -247,15 +251,38 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   let controlsVisible = false;
   // Controls should always start hidden on refresh.
   localStorage.removeItem('controlsVisible');
+
+  const controlsMobileMq = matchMedia('(max-width: 640px)');
+  function isMobileControlsLayout() {
+    return controlsMobileMq.matches;
+  }
+
   function layoutControlsPanel() {
     if (!(controlsPanel instanceof HTMLElement)) return;
+    if (isMobileControlsLayout()) {
+      controlsPanel.style.removeProperty('left');
+      controlsPanel.style.removeProperty('top');
+      controlsPanel.style.removeProperty('width');
+      return;
+    }
     const copy = document.querySelector('.copy.shield');
     if (!(copy instanceof HTMLElement)) return;
     const rect = copy.getBoundingClientRect();
     const gap = 14;
-    controlsPanel.style.left = `${Math.round(rect.left)}px`;
-    controlsPanel.style.top = `${Math.round(rect.bottom + gap)}px`;
-    controlsPanel.style.width = `${Math.round(rect.width)}px`;
+    const margin = 12;
+    const desiredWidth = Math.round(rect.width);
+    const desiredLeft = clamp(Math.round(rect.left), margin, Math.max(margin, window.innerWidth - desiredWidth - margin));
+    const desiredTop = Math.round(rect.bottom + gap);
+
+    controlsPanel.style.left = `${desiredLeft}px`;
+    controlsPanel.style.width = `${desiredWidth}px`;
+    controlsPanel.style.top = `${desiredTop}px`;
+
+    // Clamp top so the panel never renders off-screen (it becomes scrollable via CSS).
+    const panelRect = controlsPanel.getBoundingClientRect();
+    const maxTop = Math.max(margin, window.innerHeight - margin - panelRect.height);
+    const clampedTop = clamp(desiredTop, margin, maxTop);
+    controlsPanel.style.top = `${Math.round(clampedTop)}px`;
   }
   function syncControlsPanel() {
     if (controlsPanel instanceof HTMLElement && controlsVisible) layoutControlsPanel();
@@ -269,6 +296,11 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     event.preventDefault();
     controlsVisible = !controlsVisible;
     syncControlsPanel();
+  });
+
+  controlsMobileMq.addEventListener('change', () => {
+    if (!controlsVisible) return;
+    layoutControlsPanel();
   });
 
   {
