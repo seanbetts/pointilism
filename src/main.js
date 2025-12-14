@@ -289,6 +289,12 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     syncControlsPanel();
   }
 
+  function openControls() {
+    if (controlsVisible) return;
+    controlsVisible = true;
+    syncControlsPanel();
+  }
+
   /** @type {{ scrollY: number } | null} */
   let scrollLock = null;
   function setScrollLocked(locked) {
@@ -449,6 +455,67 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
       first.focus({ preventScroll: true });
     }
   });
+
+  // Swipe-to-close for the mobile bottom sheet.
+  {
+    /** @type {{ startY: number; startX: number; lastY: number; active: boolean } | null} */
+    let swipe = null;
+
+    function canStartSwipe(eventTarget) {
+      if (!(controlsPanel instanceof HTMLElement)) return false;
+      if (!isMobileControlsLayout()) return false;
+      if (!controlsVisible) return false;
+      if (!controlsPanel.contains(eventTarget)) return false;
+      // Only allow swipe-to-close when the panel is scrolled to the top (avoid fighting scrolling).
+      return controlsPanel.scrollTop <= 0;
+    }
+
+    controlsPanel?.addEventListener(
+      'pointerdown',
+      (event) => {
+        if (!(event instanceof PointerEvent)) return;
+        if (!canStartSwipe(event.target)) return;
+        swipe = { startY: event.clientY, startX: event.clientX, lastY: event.clientY, active: true };
+        controlsPanel.setPointerCapture?.(event.pointerId);
+      },
+      { passive: true }
+    );
+
+    controlsPanel?.addEventListener(
+      'pointermove',
+      (event) => {
+        if (!(event instanceof PointerEvent)) return;
+        if (!swipe?.active) return;
+        swipe.lastY = event.clientY;
+      },
+      { passive: true }
+    );
+
+    controlsPanel?.addEventListener(
+      'pointerup',
+      (event) => {
+        if (!(event instanceof PointerEvent)) return;
+        if (!swipe?.active) return;
+        swipe.active = false;
+        const dy = swipe.lastY - swipe.startY;
+        const dx = event.clientX - swipe.startX;
+        swipe = null;
+
+        // Close on a deliberate downward swipe; ignore horizontal gestures.
+        if (Math.abs(dx) > 80) return;
+        if (dy > 80) closeControls();
+      },
+      { passive: true }
+    );
+
+    controlsPanel?.addEventListener(
+      'pointercancel',
+      () => {
+        swipe = null;
+      },
+      { passive: true }
+    );
+  }
 
   onMediaQueryChange(controlsMobileMq, () => {
     if (!controlsVisible) return;
