@@ -38,7 +38,20 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     breathingEnabled: true,
   };
 
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  function onMediaQueryChange(mql, handler) {
+    if (!mql) return;
+    // Safari < 14 uses addListener/removeListener instead of addEventListener.
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', handler);
+      return;
+    }
+    if (typeof mql.addListener === 'function') mql.addListener(handler);
+  }
 
   // Always start from the Origin preset on refresh.
   localStorage.removeItem('dotMinSize');
@@ -186,6 +199,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   const pauseControls = document.querySelector('#pauseControls');
   const exportImage = document.querySelector('#exportImage');
   const controlsPanel = document.querySelector('#controlsPanel');
+  const controlsBackdrop = document.querySelector('#controlsBackdrop');
   const toggleControls = document.querySelector('#toggleControls');
   const presetButtons = Array.from(document.querySelectorAll('.theme-button'));
 
@@ -247,21 +261,103 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   let controlsVisible = false;
   // Controls should always start hidden on refresh.
   localStorage.removeItem('controlsVisible');
+
+  const controlsMobileMq = matchMedia('(max-width: 640px)');
+  function isMobileControlsLayout() {
+    return controlsMobileMq.matches;
+  }
+
+  /** @type {WeakMap<HTMLElement, number>} */
+  const controlsHideTimers = new WeakMap();
+  let didInitialControlsSync = false;
+  let lastControlsFocus = null;
+
+  function showEl(el) {
+    if (!(el instanceof HTMLElement)) return;
+    const timer = controlsHideTimers.get(el);
+    if (timer != null) clearTimeout(timer);
+    controlsHideTimers.delete(el);
+    el.hidden = false;
+    requestAnimationFrame(() => el.classList.add('is-visible'));
+  }
+
+  function hideEl(el, { immediate = false } = {}) {
+    if (!(el instanceof HTMLElement)) return;
+    el.classList.remove('is-visible');
+    const timer = controlsHideTimers.get(el);
+    if (timer != null) clearTimeout(timer);
+    controlsHideTimers.delete(el);
+
+    if (immediate) {
+      el.hidden = true;
+      return;
+    }
+
+    controlsHideTimers.set(
+      el,
+      window.setTimeout(() => {
+        el.hidden = true;
+      }, 240)
+    );
+  }
+
   function layoutControlsPanel() {
     if (!(controlsPanel instanceof HTMLElement)) return;
+    if (isMobileControlsLayout()) {
+      controlsPanel.style.removeProperty('left');
+      controlsPanel.style.removeProperty('top');
+      controlsPanel.style.removeProperty('width');
+      return;
+    }
     const copy = document.querySelector('.copy.shield');
     if (!(copy instanceof HTMLElement)) return;
     const rect = copy.getBoundingClientRect();
     const gap = 14;
-    controlsPanel.style.left = `${Math.round(rect.left)}px`;
-    controlsPanel.style.top = `${Math.round(rect.bottom + gap)}px`;
-    controlsPanel.style.width = `${Math.round(rect.width)}px`;
+    const margin = 12;
+    const desiredWidth = Math.round(rect.width);
+    const desiredLeft = clamp(Math.round(rect.left), margin, Math.max(margin, window.innerWidth - desiredWidth - margin));
+    const desiredTop = Math.round(rect.bottom + gap);
+
+    controlsPanel.style.left = `${desiredLeft}px`;
+    controlsPanel.style.width = `${desiredWidth}px`;
+    controlsPanel.style.top = `${desiredTop}px`;
+
+    // Clamp top so the panel never renders off-screen (it becomes scrollable via CSS).
+    const panelRect = controlsPanel.getBoundingClientRect();
+    const maxTop = Math.max(margin, window.innerHeight - margin - panelRect.height);
+    const clampedTop = clamp(desiredTop, margin, maxTop);
+    controlsPanel.style.top = `${Math.round(clampedTop)}px`;
   }
   function syncControlsPanel() {
     if (controlsPanel instanceof HTMLElement && controlsVisible) layoutControlsPanel();
-    if (controlsPanel instanceof HTMLElement) controlsPanel.hidden = !controlsVisible;
+    const mobile = isMobileControlsLayout();
+
+    const immediate = !didInitialControlsSync;
+
+    if (controlsPanel instanceof HTMLElement) {
+      if (controlsVisible) showEl(controlsPanel);
+      else hideEl(controlsPanel, { immediate });
+    }
+
+    if (controlsBackdrop instanceof HTMLElement) {
+      if (controlsVisible && mobile) showEl(controlsBackdrop);
+      else hideEl(controlsBackdrop, { immediate });
+    }
+
+    document.body.classList.toggle('controls-open', controlsVisible && mobile);
     if (toggleControls instanceof HTMLElement) toggleControls.setAttribute('aria-expanded', controlsVisible ? 'true' : 'false');
     if (toggleControls instanceof HTMLElement) toggleControls.classList.toggle('is-active', controlsVisible);
+
+    if (controlsVisible && mobile) {
+      lastControlsFocus = document.activeElement;
+      const firstButton = controlsPanel?.querySelector('button, input, a, [tabindex]:not([tabindex="-1"])');
+      if (firstButton instanceof HTMLElement) firstButton.focus({ preventScroll: true });
+    } else if (!controlsVisible && lastControlsFocus instanceof HTMLElement) {
+      lastControlsFocus.focus({ preventScroll: true });
+      lastControlsFocus = null;
+    }
+
+    didInitialControlsSync = true;
   }
   syncControlsPanel();
 
@@ -269,6 +365,25 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     event.preventDefault();
     controlsVisible = !controlsVisible;
     syncControlsPanel();
+  });
+
+  controlsBackdrop?.addEventListener('click', () => {
+    if (!controlsVisible) return;
+    controlsVisible = false;
+    syncControlsPanel();
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (!controlsVisible) return;
+    if (!isMobileControlsLayout()) return;
+    controlsVisible = false;
+    syncControlsPanel();
+  });
+
+  onMediaQueryChange(controlsMobileMq, () => {
+    if (!controlsVisible) return;
+    layoutControlsPanel();
   });
 
   {
@@ -754,8 +869,8 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     syncModeToggle();
   });
 
-  prefersReducedMotion.addEventListener('change', (event) => {
-    dotField.setReducedMotion(event.matches);
+  onMediaQueryChange(prefersReducedMotion, (event) => {
+    dotField.setReducedMotion(Boolean(event?.matches));
   });
 
   dotField.start();
