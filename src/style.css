@@ -37,21 +37,18 @@ body {
   transition: background-color 320ms ease, color 320ms ease;
 }
 
-:where(body, body *) {
-  transition-property: background-color, color, border-color, text-decoration-color, fill, stroke;
-  transition-duration: 320ms;
-  transition-timing-function: ease;
-}
-
 .header,
 .noscript,
 .controls-panel,
+.shield {
+  transition: background-color 320ms ease, border-color 320ms ease, filter 320ms ease;
+}
+
 .theme-button,
 .restart-controls,
 .pause-controls,
 .gravity-drop,
-.cta,
-.shield {
+.cta {
   transition: background-color 320ms ease, color 320ms ease, border-color 320ms ease, filter 320ms ease;
 }
 
@@ -320,6 +317,7 @@ body {
   color: var(--muted);
   font-size: 0.9rem;
   user-select: none;
+  transition: color 320ms ease;
 }
 
 .control.toggle {
@@ -418,12 +416,14 @@ body {
   text-decoration: none;
   font-weight: 550;
   letter-spacing: 0.02em;
+  transition: color 320ms ease;
 }
 
 .nav a {
   color: var(--muted);
   text-decoration: none;
   font-size: 0.95rem;
+  transition: color 320ms ease;
 }
 
 .nav a:hover,
@@ -519,6 +519,7 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.75rem;
+  transition: color 320ms ease;
 }
 
 h1 {
@@ -527,6 +528,7 @@ h1 {
   font-weight: 550;
   letter-spacing: -0.02em;
   line-height: 1.1;
+  transition: color 320ms ease;
 }
 
 h2 {
@@ -534,11 +536,13 @@ h2 {
   font-size: 1.4rem;
   font-weight: 550;
   letter-spacing: -0.01em;
+  transition: color 320ms ease;
 }
 
 p {
   margin: 0.6rem 0;
   color: var(--muted);
+  transition: color 320ms ease;
 }
 
 .lede {
@@ -594,7 +598,9 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :where(body, body *) {
+  *,
+  *::before,
+  *::after {
     transition: none !important;
   }
 
