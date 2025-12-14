@@ -398,6 +398,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     setScrollLocked(controlsVisible && mobile);
     if (toggleControls instanceof HTMLElement) toggleControls.setAttribute('aria-expanded', controlsVisible ? 'true' : 'false');
     if (toggleControls instanceof HTMLElement) toggleControls.classList.toggle('is-active', controlsVisible);
+    syncShowHeroButtonVisibility();
 
     if (controlsVisible && mobile) {
       lastControlsFocus = document.activeElement;
@@ -413,9 +414,20 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   }
   syncControlsPanel();
 
+  function syncShowHeroButtonVisibility() {
+    if (!(showHero instanceof HTMLButtonElement)) return;
+    if (!isMobileControlsLayout()) {
+      showHero.hidden = true;
+      return;
+    }
+    const heroHidden = heroCard instanceof HTMLElement ? heroCard.hidden : false;
+    // Only show when both the hero card and controls are hidden.
+    showHero.hidden = !(heroHidden && !controlsVisible);
+  }
+
   function syncHeroVisibility(hidden) {
     if (heroCard instanceof HTMLElement) heroCard.hidden = hidden;
-    if (showHero instanceof HTMLButtonElement) showHero.hidden = !hidden;
+    syncShowHeroButtonVisibility();
     if (!hidden && toggleControls instanceof HTMLElement) toggleControls.focus({ preventScroll: true });
     if (hidden && showHero instanceof HTMLButtonElement) showHero.focus({ preventScroll: true });
   }
