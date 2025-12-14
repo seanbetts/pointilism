@@ -499,10 +499,10 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
       gridEnabled: false,
     },
     micrograin: {
-      dotMinSize: 1,
-      dotMaxSize: 5,
+      dotMinSize: 2,
+      dotMaxSize: 7,
       dotDensity: 1.0,
-      dotSizeCount: 2,
+      dotSizeCount: 5,
       dotDistribution: 0, // Small (linear)
       speed: 2.0,
       breathingEnabled: true,
