@@ -71,6 +71,10 @@ body.controls-open {
   outline-offset: 3px;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .noscript {
   position: fixed;
   left: 1rem;
