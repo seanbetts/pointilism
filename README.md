@@ -174,6 +174,20 @@ Then open `http://localhost:8000` and load `index.html`.
 
 ---
 
+## Examples
+
+The `examples/` folder contains saved PNG captures of different presets in both light and dark modes:
+
+- `examples/pointilism-light.png`, `examples/pointilism-dark.png` (general/default)
+- `examples/breathe-light.png`, `examples/breathe-dark.png`
+- `examples/grains-light.png`, `examples/grains-dark.png`
+- `examples/bond-light.png`, `examples/bond-dark.png`
+- `examples/matrix-light.png`, `examples/matrix-dark.png`
+
+These are handy for reference (and for sharing/preview images).
+
+---
+
 ## SEO, sharing, and icons
 
 Single-page or not, the site ships the basics:
