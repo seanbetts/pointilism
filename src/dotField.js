@@ -1023,8 +1023,17 @@ export class DotField {
       this.#gridEnabled && this.#gridTransitionUntilMs != null && tNow < this.#gridTransitionUntilMs;
     if (this.#gridTransitionUntilMs != null && tNow >= this.#gridTransitionUntilMs) this.#gridTransitionUntilMs = null;
 
-    const overlapIterations =
-      dropping ? 28 : settling ? 16 : this.#gridEnabled ? (gridTransition || this.#gridSoftCollisions ? 0 : 10) : 2;
+    const overlapIterations = dropping
+      ? 28
+      : settling
+        ? 16
+        : this.#gridEnabled
+          ? gridTransition || this.#gridSoftCollisions
+            ? 0
+            : 10
+          : breathEnabled
+            ? 6
+            : 2;
     const pushScale = dropping ? 1.95 : settling ? 1.65 : this.#gridEnabled ? 1.25 : 1;
     this.#resolveOverlaps(dt, overlapIterations, pushScale, breathEnabled ? exhaleForce : 0, breathThresholdR);
     this.#pushOutOfExclusions();
@@ -1048,7 +1057,7 @@ export class DotField {
     const edgePad = this.#edgePaddingCssPx * this.#dpr;
 
     // Grid mode is a deterministic layout: disable "stickiness" physics so dots don't form clusters.
-    const physics = this.#physicsEnabled && !this.#gravityEnabled && !this.#gridEnabled;
+    const physics = this.#physicsEnabled && !this.#gravityEnabled && !this.#gridEnabled && !breathing;
     const breathing = this.#breathingEnabled;
     const gridSnap = this.#gridEnabled;
     const allowCoupling = !breathing;
@@ -1088,7 +1097,7 @@ export class DotField {
               const minDist = (dot.r + other.r + bufferPx) * minDistScale;
               const minDist2 = minDist * minDist;
               const stickRaw = physics ? (dot.stick + other.stick) * 0.5 : 0;
-              const stick = breathing || gridSnap ? 0 : stickRaw;
+              const stick = gridSnap ? 0 : stickRaw;
               const restitution = !physics || gridSnap ? 0 : lerp(1.25, 0.05, stick);
               const friction = !physics || gridSnap ? 1 : lerp(0.06, 0.7, stick);
               const adhesionStrength = !physics || gridSnap ? 0 : 0.05 * stick;
@@ -1151,30 +1160,40 @@ export class DotField {
               other.x += nx * push;
               other.y += ny * push;
 
-              const rvx = other.vx - dot.vx;
-              const rvy = other.vy - dot.vy;
-              const vn = rvx * nx + rvy * ny;
-              if (vn < 0) {
-                const j = -(1 + restitution) * vn * 0.5;
-                dot.vx -= j * nx;
-                dot.vy -= j * ny;
-                other.vx += j * nx;
-                other.vy += j * ny;
+              if (physics) {
+                const rvx = other.vx - dot.vx;
+                const rvy = other.vy - dot.vy;
+                const vn = rvx * nx + rvy * ny;
+                if (vn < 0) {
+                  const j = -(1 + restitution) * vn * 0.5;
+                  dot.vx -= j * nx;
+                  dot.vy -= j * ny;
+                  other.vx += j * nx;
+                  other.vy += j * ny;
+                }
+
+                const tvx = rvx - vn * nx;
+                const tvy = rvy - vn * ny;
+                dot.vx += tvx * (0.5 - friction * 0.5);
+                dot.vy += tvy * (0.5 - friction * 0.5);
+                other.vx -= tvx * (0.5 - friction * 0.5);
+                other.vy -= tvy * (0.5 - friction * 0.5);
+
+                const dampBase = lerp(0.99, 0.94, friction);
+                const damp = Math.pow(dampBase, dt);
+                dot.vx *= damp;
+                dot.vy *= damp;
+                other.vx *= damp;
+                other.vy *= damp;
+              } else {
+                // When physics impulses are disabled (grid / breathing / gravity),
+                // strongly damp velocities so tight packing doesn't "buzz".
+                const damp = Math.pow(0.38, dt);
+                dot.vx *= damp;
+                dot.vy *= damp;
+                other.vx *= damp;
+                other.vy *= damp;
               }
-
-              const tvx = rvx - vn * nx;
-              const tvy = rvy - vn * ny;
-              dot.vx += tvx * (0.5 - friction * 0.5);
-              dot.vy += tvy * (0.5 - friction * 0.5);
-              other.vx -= tvx * (0.5 - friction * 0.5);
-              other.vy -= tvy * (0.5 - friction * 0.5);
-
-              const dampBase = !physics ? 1 : lerp(0.99, 0.94, friction);
-              const damp = Math.pow(dampBase, dt);
-              dot.vx *= damp;
-              dot.vy *= damp;
-              other.vx *= damp;
-              other.vy *= damp;
 
               if (gridSnap) {
                 const snapDamp = Math.pow(0.55, dt);
