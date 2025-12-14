@@ -174,6 +174,21 @@ Then open `http://localhost:8000` and load `index.html`.
 
 ---
 
+## SEO, sharing, and icons
+
+Single-page or not, the site ships the basics:
+
+- `index.html`: `<title>`, meta description, canonical URL, Open Graph + Twitter tags, and JSON-LD.
+- `favicon.svg`, `favicon.ico`: browser favicons.
+- `assets/apple-touch-icon.png`: iOS home-screen icon.
+- `assets/icon-192.png`, `assets/icon-512.png`: PWA icons referenced by `site.webmanifest`.
+- `assets/og.png`: social sharing card image.
+- `robots.txt`, `sitemap.xml`: basic crawler discovery for GitHub Pages.
+
+If you deploy under a different domain/path, update the canonical/OG URLs in `index.html` and the URLs in `robots.txt` / `sitemap.xml`.
+
+---
+
 ## Design constraints (summary)
 
 - Black/white only
