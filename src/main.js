@@ -289,6 +289,30 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     syncControlsPanel();
   }
 
+  /** @type {{ scrollY: number } | null} */
+  let scrollLock = null;
+  function setScrollLocked(locked) {
+    if (locked) {
+      if (scrollLock) return;
+      scrollLock = { scrollY: window.scrollY || 0 };
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollLock.scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
+      return;
+    }
+    if (!scrollLock) return;
+    const { scrollY } = scrollLock;
+    scrollLock = null;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    window.scrollTo(0, scrollY);
+  }
+
   function showEl(el) {
     if (!(el instanceof HTMLElement)) return;
     const timer = controlsHideTimers.get(el);
@@ -362,6 +386,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     }
 
     document.body.classList.toggle('controls-open', controlsVisible && mobile);
+    setScrollLocked(controlsVisible && mobile);
     if (toggleControls instanceof HTMLElement) toggleControls.setAttribute('aria-expanded', controlsVisible ? 'true' : 'false');
     if (toggleControls instanceof HTMLElement) toggleControls.classList.toggle('is-active', controlsVisible);
 
@@ -380,7 +405,6 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   syncControlsPanel();
 
   toggleControls?.addEventListener('click', (event) => {
-    event.preventDefault();
     controlsVisible = !controlsVisible;
     syncControlsPanel();
   });
