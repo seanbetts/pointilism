@@ -1032,7 +1032,7 @@ export class DotField {
             ? 0
             : 10
           : breathEnabled
-            ? 6
+            ? 4
             : 2;
     const pushScale = dropping ? 1.95 : settling ? 1.65 : this.#gridEnabled ? 1.25 : 1;
     this.#resolveOverlaps(dt, overlapIterations, pushScale, breathEnabled ? exhaleForce : 0, breathThresholdR);
@@ -1057,7 +1057,7 @@ export class DotField {
     const edgePad = this.#edgePaddingCssPx * this.#dpr;
 
     // Grid mode is a deterministic layout: disable "stickiness" physics so dots don't form clusters.
-    const physics = this.#physicsEnabled && !this.#gravityEnabled && !this.#gridEnabled && !breathing;
+    const physics = this.#physicsEnabled && !this.#gravityEnabled && !this.#gridEnabled;
     const breathing = this.#breathingEnabled;
     const gridSnap = this.#gridEnabled;
     const allowCoupling = !breathing;
@@ -1097,10 +1097,10 @@ export class DotField {
               const minDist = (dot.r + other.r + bufferPx) * minDistScale;
               const minDist2 = minDist * minDist;
               const stickRaw = physics ? (dot.stick + other.stick) * 0.5 : 0;
-              const stick = gridSnap ? 0 : stickRaw;
-              const restitution = !physics || gridSnap ? 0 : lerp(1.25, 0.05, stick);
-              const friction = !physics || gridSnap ? 1 : lerp(0.06, 0.7, stick);
-              const adhesionStrength = !physics || gridSnap ? 0 : 0.05 * stick;
+              const stick = breathing || gridSnap ? 0 : stickRaw;
+              const restitution = !physics || gridSnap ? 0 : breathing ? 0.06 : lerp(1.25, 0.05, stick);
+              const friction = !physics || gridSnap ? 1 : breathing ? 0.9 : lerp(0.06, 0.7, stick);
+              const adhesionStrength = !physics || gridSnap || breathing ? 0 : 0.05 * stick;
               const coupleStrength = !physics || gridSnap || !allowCoupling ? 0 : 0.9 * stick;
               if (dist2 >= minDist2) {
                 if (breathBand > 0) {
@@ -1181,14 +1181,6 @@ export class DotField {
 
                 const dampBase = lerp(0.99, 0.94, friction);
                 const damp = Math.pow(dampBase, dt);
-                dot.vx *= damp;
-                dot.vy *= damp;
-                other.vx *= damp;
-                other.vy *= damp;
-              } else {
-                // When physics impulses are disabled (grid / breathing / gravity),
-                // strongly damp velocities so tight packing doesn't "buzz".
-                const damp = Math.pow(0.38, dt);
                 dot.vx *= damp;
                 dot.vy *= damp;
                 other.vx *= damp;
