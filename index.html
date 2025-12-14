@@ -66,7 +66,7 @@
     <div class="page">
       <main id="content" class="content" tabindex="-1">
         <section id="top" class="section hero" data-section="hero">
-          <div class="copy shield">
+          <div id="heroCard" class="copy shield">
             <p class="eyebrow">Pointilism</p>
             <h1>A calm, monochrome surface to explore.</h1>
             <p class="lede">
@@ -76,6 +76,7 @@
               <button id="toggleControls" class="cta" type="button" aria-controls="controlsPanel" aria-expanded="false">
                 EXPLORE
               </button>
+              <button id="hideHero" class="cta cta-muted" type="button">HIDE</button>
             </div>
           </div>
 
@@ -190,6 +191,8 @@
         </section>
       </main>
     </div>
+
+    <button id="showHero" class="cta show-hero" type="button" hidden>SHOW</button>
 
     <script type="module" src="src/main.js?v=2025-12-13-97"></script>
   </body>
