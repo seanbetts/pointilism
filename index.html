@@ -73,13 +73,18 @@
               Dots drift, breathe, snap, and drop to reveal different states—always readable, always minimal.
             </p>
             <div class="actions">
-              <a id="toggleControls" class="cta" href="#top" role="button" aria-controls="controlsPanel" aria-expanded="false"
-                >EXPLORE</a
-              >
+              <button id="toggleControls" class="cta" type="button" aria-controls="controlsPanel" aria-expanded="false">
+                EXPLORE
+              </button>
             </div>
           </div>
 
           <div id="controlsPanel" class="controls-panel" role="region" aria-label="Dot controls" hidden>
+            <div class="controls-panel-header">
+              <span class="sheet-handle" aria-hidden="true"></span>
+              <p class="controls-panel-title eyebrow">Controls</p>
+              <button id="controlsClose" class="controls-close" type="button" aria-label="Close controls">Close</button>
+            </div>
             <p class="presets-title eyebrow">Presets</p>
             <div class="theme-buttons" role="group" aria-label="Presets">
               <button class="theme-button" type="button" data-preset="default" title="Origin">Origin</button>

@@ -200,6 +200,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   const exportImage = document.querySelector('#exportImage');
   const controlsPanel = document.querySelector('#controlsPanel');
   const controlsBackdrop = document.querySelector('#controlsBackdrop');
+  const controlsClose = document.querySelector('#controlsClose');
   const toggleControls = document.querySelector('#toggleControls');
   const presetButtons = Array.from(document.querySelectorAll('.theme-button'));
 
@@ -271,6 +272,46 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   const controlsHideTimers = new WeakMap();
   let didInitialControlsSync = false;
   let lastControlsFocus = null;
+
+  function getFocusableElements(container) {
+    if (!(container instanceof HTMLElement)) return [];
+    const nodes = Array.from(
+      container.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    );
+    return nodes.filter((el) => el instanceof HTMLElement && !el.hidden);
+  }
+
+  function closeControls() {
+    if (!controlsVisible) return;
+    controlsVisible = false;
+    syncControlsPanel();
+  }
+
+  /** @type {{ scrollY: number } | null} */
+  let scrollLock = null;
+  function setScrollLocked(locked) {
+    if (locked) {
+      if (scrollLock) return;
+      scrollLock = { scrollY: window.scrollY || 0 };
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollLock.scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
+      return;
+    }
+    if (!scrollLock) return;
+    const { scrollY } = scrollLock;
+    scrollLock = null;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    window.scrollTo(0, scrollY);
+  }
 
   function showEl(el) {
     if (!(el instanceof HTMLElement)) return;
@@ -345,12 +386,14 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     }
 
     document.body.classList.toggle('controls-open', controlsVisible && mobile);
+    setScrollLocked(controlsVisible && mobile);
     if (toggleControls instanceof HTMLElement) toggleControls.setAttribute('aria-expanded', controlsVisible ? 'true' : 'false');
     if (toggleControls instanceof HTMLElement) toggleControls.classList.toggle('is-active', controlsVisible);
 
     if (controlsVisible && mobile) {
       lastControlsFocus = document.activeElement;
-      const firstButton = controlsPanel?.querySelector('button, input, a, [tabindex]:not([tabindex="-1"])');
+      const focusable = getFocusableElements(controlsPanel);
+      const firstButton = focusable[0];
       if (firstButton instanceof HTMLElement) firstButton.focus({ preventScroll: true });
     } else if (!controlsVisible && lastControlsFocus instanceof HTMLElement) {
       lastControlsFocus.focus({ preventScroll: true });
@@ -362,23 +405,49 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   syncControlsPanel();
 
   toggleControls?.addEventListener('click', (event) => {
-    event.preventDefault();
     controlsVisible = !controlsVisible;
     syncControlsPanel();
   });
 
   controlsBackdrop?.addEventListener('click', () => {
-    if (!controlsVisible) return;
-    controlsVisible = false;
-    syncControlsPanel();
+    closeControls();
+  });
+
+  controlsClose?.addEventListener('click', () => {
+    closeControls();
   });
 
   window.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
     if (!controlsVisible) return;
     if (!isMobileControlsLayout()) return;
-    controlsVisible = false;
-    syncControlsPanel();
+    closeControls();
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    if (!controlsVisible) return;
+    if (!isMobileControlsLayout()) return;
+    if (!(controlsPanel instanceof HTMLElement)) return;
+    const focusable = getFocusableElements(controlsPanel);
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+
+    if (event.shiftKey) {
+      if (active === first || !controlsPanel.contains(active)) {
+        event.preventDefault();
+        last.focus({ preventScroll: true });
+      }
+      return;
+    }
+
+    if (active === last) {
+      event.preventDefault();
+      first.focus({ preventScroll: true });
+    }
   });
 
   onMediaQueryChange(controlsMobileMq, () => {
