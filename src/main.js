@@ -62,7 +62,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
 
   function getInitialDensity() {
     const stored = Number(localStorage.getItem('dotDensity'));
-    if (Number.isFinite(stored) && stored > 0) return Math.max(0.2, Math.min(1, stored));
+    if (Number.isFinite(stored) && stored > 0) return Math.max(0.2, Math.min(3, stored));
     return defaults.dotDensity;
   }
 
@@ -366,7 +366,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
       if (activePresetId) clearActivePreset();
       const next = Number(dotDensityEl.value);
       if (!Number.isFinite(next)) return;
-      dotDensity = next;
+      dotDensity = Math.max(0.2, Math.min(3, next));
       localStorage.setItem('dotDensity', String(dotDensity));
       if (dotDensityValue instanceof HTMLOutputElement) dotDensityValue.value = dotDensity.toFixed(2);
       scheduleDotUpdate();
@@ -621,7 +621,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
 
     dotMinSize = preset.dotMinSize;
     dotMaxSize = preset.dotMaxSize;
-    dotDensity = preset.dotDensity;
+    dotDensity = Math.max(0.2, Math.min(3, preset.dotDensity));
     dotSizeCount = preset.dotSizeCount;
     dotDistribution = preset.dotDistribution;
     speed = preset.speed;
