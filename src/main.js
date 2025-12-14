@@ -550,7 +550,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     micrograin: {
       dotMinSize: 2,
       dotMaxSize: 7,
-      dotDensity: 1.0,
+      dotDensity: 3.0,
       dotSizeCount: 5,
       dotDistribution: 0, // Small (linear)
       speed: 2.0,
