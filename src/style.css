@@ -37,6 +37,10 @@ body {
   transition: background-color 320ms ease, color 320ms ease;
 }
 
+body.controls-open {
+  overflow: hidden;
+}
+
 .header,
 .noscript,
 .controls-panel,
@@ -146,6 +150,30 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+.controls-panel {
+  opacity: 1;
+  transform: none;
+}
+
+.controls-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  background: rgba(0, 0, 0, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+[data-mode='light'] .controls-backdrop {
+  background: rgba(0, 0, 0, 0.26);
+}
+
+.controls-backdrop.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .hero .controls-panel {
   max-width: none;
   width: auto;
@@ -250,6 +278,17 @@ body {
     width: auto !important;
     max-height: min(calc(100vh - 2rem), 78vh);
     border-radius: 1.1rem;
+    opacity: 0;
+    transform: translateY(14px);
+    pointer-events: none;
+    transition: transform 220ms ease, opacity 220ms ease, background-color 320ms ease, border-color 320ms ease,
+      filter 320ms ease;
+  }
+
+  .controls-panel.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
   }
 
   .controls-panel .theme-buttons {

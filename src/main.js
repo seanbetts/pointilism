@@ -190,6 +190,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   const pauseControls = document.querySelector('#pauseControls');
   const exportImage = document.querySelector('#exportImage');
   const controlsPanel = document.querySelector('#controlsPanel');
+  const controlsBackdrop = document.querySelector('#controlsBackdrop');
   const toggleControls = document.querySelector('#toggleControls');
   const presetButtons = Array.from(document.querySelectorAll('.theme-button'));
 
@@ -257,6 +258,40 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     return controlsMobileMq.matches;
   }
 
+  /** @type {WeakMap<HTMLElement, number>} */
+  const controlsHideTimers = new WeakMap();
+  let didInitialControlsSync = false;
+  let lastControlsFocus = null;
+
+  function showEl(el) {
+    if (!(el instanceof HTMLElement)) return;
+    const timer = controlsHideTimers.get(el);
+    if (timer != null) clearTimeout(timer);
+    controlsHideTimers.delete(el);
+    el.hidden = false;
+    requestAnimationFrame(() => el.classList.add('is-visible'));
+  }
+
+  function hideEl(el, { immediate = false } = {}) {
+    if (!(el instanceof HTMLElement)) return;
+    el.classList.remove('is-visible');
+    const timer = controlsHideTimers.get(el);
+    if (timer != null) clearTimeout(timer);
+    controlsHideTimers.delete(el);
+
+    if (immediate) {
+      el.hidden = true;
+      return;
+    }
+
+    controlsHideTimers.set(
+      el,
+      window.setTimeout(() => {
+        el.hidden = true;
+      }, 240)
+    );
+  }
+
   function layoutControlsPanel() {
     if (!(controlsPanel instanceof HTMLElement)) return;
     if (isMobileControlsLayout()) {
@@ -286,15 +321,54 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   }
   function syncControlsPanel() {
     if (controlsPanel instanceof HTMLElement && controlsVisible) layoutControlsPanel();
-    if (controlsPanel instanceof HTMLElement) controlsPanel.hidden = !controlsVisible;
+    const mobile = isMobileControlsLayout();
+
+    const immediate = !didInitialControlsSync;
+
+    if (controlsPanel instanceof HTMLElement) {
+      if (controlsVisible) showEl(controlsPanel);
+      else hideEl(controlsPanel, { immediate });
+    }
+
+    if (controlsBackdrop instanceof HTMLElement) {
+      if (controlsVisible && mobile) showEl(controlsBackdrop);
+      else hideEl(controlsBackdrop, { immediate });
+    }
+
+    document.body.classList.toggle('controls-open', controlsVisible && mobile);
     if (toggleControls instanceof HTMLElement) toggleControls.setAttribute('aria-expanded', controlsVisible ? 'true' : 'false');
     if (toggleControls instanceof HTMLElement) toggleControls.classList.toggle('is-active', controlsVisible);
+
+    if (controlsVisible && mobile) {
+      lastControlsFocus = document.activeElement;
+      const firstButton = controlsPanel?.querySelector('button, input, a, [tabindex]:not([tabindex="-1"])');
+      if (firstButton instanceof HTMLElement) firstButton.focus({ preventScroll: true });
+    } else if (!controlsVisible && lastControlsFocus instanceof HTMLElement) {
+      lastControlsFocus.focus({ preventScroll: true });
+      lastControlsFocus = null;
+    }
+
+    didInitialControlsSync = true;
   }
   syncControlsPanel();
 
   toggleControls?.addEventListener('click', (event) => {
     event.preventDefault();
     controlsVisible = !controlsVisible;
+    syncControlsPanel();
+  });
+
+  controlsBackdrop?.addEventListener('click', () => {
+    if (!controlsVisible) return;
+    controlsVisible = false;
+    syncControlsPanel();
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (!controlsVisible) return;
+    if (!isMobileControlsLayout()) return;
+    controlsVisible = false;
     syncControlsPanel();
   });
 
