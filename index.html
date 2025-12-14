@@ -8,7 +8,7 @@
       name="description"
       content="A monochrome, pointillist dot-field system demonstrating state, intent, and transformation."
     />
-    <link rel="stylesheet" href="src/style.css?v=2025-12-13-95" />
+    <link rel="stylesheet" href="src/style.css?v=2025-12-13-96" />
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -109,7 +109,10 @@
                 <output id="breathingEnabledValue" class="control-value" for="breathingEnabled"></output>
               </label>
               <label class="control toggle">
-                <span class="control-label">Grid</span>
+                <span class="control-label">
+                  Grid
+                  <button class="help" type="button" aria-label="Grid help" title="Snaps dots into a screen-wide grid layout.">?</button>
+                </span>
                 <span class="toggle-row">
                   <input id="gridEnabled" type="checkbox" />
                   <span class="toggle-switch" aria-hidden="true"></span>
@@ -137,6 +140,6 @@
       </main>
     </div>
 
-    <script type="module" src="src/main.js?v=2025-12-13-95"></script>
+    <script type="module" src="src/main.js?v=2025-12-13-96"></script>
   </body>
 </html>
