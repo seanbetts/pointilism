@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://seanbetts.github.io/pointilism/sitemap.xml
+Sitemap: https://pointilism.seanbetts.com/sitemap.xml
