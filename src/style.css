@@ -48,6 +48,7 @@ body {
 .restart-controls,
 .pause-controls,
 .gravity-drop,
+.export-image,
 .cta {
   transition: background-color 320ms ease, color 320ms ease, border-color 320ms ease, filter 320ms ease;
 }
@@ -451,6 +452,16 @@ body {
   cursor: pointer;
 }
 
+.export-image {
+  border: 1px solid var(--muted);
+  background: transparent;
+  color: var(--muted);
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.85rem;
+  cursor: pointer;
+  grid-column: 1 / -1;
+}
+
 .gravity-drop:hover,
 .gravity-drop:focus-visible {
   border-color: var(--fg);
@@ -467,6 +478,12 @@ body {
 .restart-controls:focus-visible,
 .pause-controls:hover,
 .pause-controls:focus-visible {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.export-image:hover,
+.export-image:focus-visible {
   border-color: var(--fg);
   color: var(--fg);
 }

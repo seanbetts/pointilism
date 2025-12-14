@@ -184,15 +184,64 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   const gravityDrop = document.querySelector('#gravityDrop');
   const restartControls = document.querySelector('#restartControls');
   const pauseControls = document.querySelector('#pauseControls');
+  const exportImage = document.querySelector('#exportImage');
   const controlsPanel = document.querySelector('#controlsPanel');
   const toggleControls = document.querySelector('#toggleControls');
   const presetButtons = Array.from(document.querySelectorAll('.theme-button'));
 
   let paused = false;
   function syncPauseControls() {
-    if (!(pauseControls instanceof HTMLButtonElement)) return;
-    pauseControls.textContent = paused ? 'UNFREEZE' : 'FREEZE';
-    pauseControls.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    if (pauseControls instanceof HTMLButtonElement) {
+      pauseControls.textContent = paused ? 'UNFREEZE' : 'FREEZE';
+      pauseControls.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    }
+    if (exportImage instanceof HTMLButtonElement) exportImage.hidden = !paused;
+  }
+
+  function downloadCanvasPng({ canvas, mode }) {
+    if (!(canvas instanceof HTMLCanvasElement)) return;
+    if (canvas.width <= 0 || canvas.height <= 0) return;
+
+    const out = document.createElement('canvas');
+    out.width = canvas.width;
+    out.height = canvas.height;
+
+    const ctx = out.getContext('2d');
+    if (!ctx) return;
+
+    ctx.fillStyle = mode === 'dark' ? '#000000' : '#ffffff';
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(canvas, 0, 0);
+
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `pointilism-${stamp}.png`;
+
+    function triggerDownload(blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }
+
+    if (typeof out.toBlob === 'function') {
+      out.toBlob((blob) => {
+        if (!blob) return;
+        triggerDownload(blob);
+      }, 'image/png');
+      return;
+    }
+
+    const dataUrl = out.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   }
 
   let controlsVisible = false;
@@ -663,6 +712,11 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
       // no-op: title container removed
     }
     syncPauseControls();
+  });
+
+  exportImage?.addEventListener('click', () => {
+    const canvas = document.querySelector('#dotfield');
+    downloadCanvasPng({ canvas, mode });
   });
 
   syncControlValues();
