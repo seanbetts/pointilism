@@ -202,6 +202,9 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   const controlsBackdrop = document.querySelector('#controlsBackdrop');
   const controlsClose = document.querySelector('#controlsClose');
   const toggleControls = document.querySelector('#toggleControls');
+  const heroCard = document.querySelector('#heroCard');
+  const hideHero = document.querySelector('#hideHero');
+  const showHero = document.querySelector('#showHero');
   const presetButtons = Array.from(document.querySelectorAll('.theme-button'));
 
   let paused = false;
@@ -409,6 +412,21 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     didInitialControlsSync = true;
   }
   syncControlsPanel();
+
+  function syncHeroVisibility(hidden) {
+    if (heroCard instanceof HTMLElement) heroCard.hidden = hidden;
+    if (showHero instanceof HTMLButtonElement) showHero.hidden = !hidden;
+    if (!hidden && toggleControls instanceof HTMLElement) toggleControls.focus({ preventScroll: true });
+    if (hidden && showHero instanceof HTMLButtonElement) showHero.focus({ preventScroll: true });
+  }
+
+  hideHero?.addEventListener('click', () => {
+    syncHeroVisibility(true);
+  });
+
+  showHero?.addEventListener('click', () => {
+    syncHeroVisibility(false);
+  });
 
   toggleControls?.addEventListener('click', (event) => {
     controlsVisible = !controlsVisible;

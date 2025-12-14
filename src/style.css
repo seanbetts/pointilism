@@ -721,6 +721,40 @@ body.controls-open {
   border: var(--container-border-width) solid var(--container-border);
   border-radius: 0.9rem;
   padding: 1.25rem 1.25rem;
+  box-sizing: border-box;
+}
+
+.cta.cta-muted {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+
+.cta.cta-muted:hover,
+.cta.cta-muted:focus-visible {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.show-hero {
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 6;
+  background: var(--shield);
+  border-color: var(--container-border);
+  color: var(--fg);
+}
+
+[data-mode='light'] .show-hero {
+  background: var(--shield);
+  border-color: var(--container-border);
+}
+
+@media (min-width: 641px) {
+  #hideHero,
+  #showHero {
+    display: none;
+  }
 }
 
 .eyebrow {
