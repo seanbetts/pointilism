@@ -145,45 +145,49 @@
                 <input id="speed" class="control-input" type="range" min="0" max="3" step="0.05" value="1" />
                 <output id="speedValue" class="control-value" for="speed"></output>
               </label>
-              <label class="control toggle">
-                <span class="control-label">
-                  Breathing
-                  <button class="help" type="button" aria-label="Breathing help" title="Big dots gently breathe (fixed tempo), and expand to nudge nearby dots.">?</button>
-                </span>
-                <span class="toggle-row">
-                  <input id="breathingEnabled" type="checkbox" checked />
-                  <span class="toggle-switch" aria-hidden="true"></span>
-                </span>
-                <output id="breathingEnabledValue" class="control-value" for="breathingEnabled"></output>
-              </label>
-              <label class="control toggle">
-                <span class="control-label">
-                  Grid
-                  <button class="help" type="button" aria-label="Grid help" title="Snaps dots into a screen-wide grid layout.">?</button>
-                </span>
-                <span class="toggle-row">
-                  <input id="gridEnabled" type="checkbox" />
-                  <span class="toggle-switch" aria-hidden="true"></span>
-                </span>
-                <output id="gridEnabledValue" class="control-value" for="gridEnabled">Off</output>
-              </label>
-              <label class="control toggle">
-                <span class="control-label">
-                  Mode
-                  <button class="help" type="button" aria-label="Mode help" title="Switch between light and dark mode.">?</button>
-                </span>
-                <span class="toggle-row">
-                  <input id="modeToggle" type="checkbox" aria-label="Toggle light or dark mode" />
-                  <span class="toggle-switch" aria-hidden="true"></span>
-                </span>
-                <output id="modeValue" class="control-value"></output>
-              </label>
-              <button id="gravityDrop" class="gravity-drop" type="button" title="Drop all dots to the bottom for a few seconds.">DROP</button>
-              <button id="restartControls" class="restart-controls" type="button">RESTART</button>
-              <button id="pauseControls" class="pause-controls" type="button">FREEZE</button>
-              <button id="exportImage" class="export-image" type="button" hidden title="Save the current dot field as an image.">
-                SAVE IMAGE
-              </button>
+              <div class="toggle-group" role="group" aria-label="Toggles">
+                <label class="control toggle">
+                  <span class="control-label">
+                    Breathing
+                    <button class="help" type="button" aria-label="Breathing help" title="Big dots gently breathe (fixed tempo), and expand to nudge nearby dots.">?</button>
+                  </span>
+                  <span class="toggle-row">
+                    <input id="breathingEnabled" type="checkbox" checked />
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                  </span>
+                  <output id="breathingEnabledValue" class="control-value" for="breathingEnabled"></output>
+                </label>
+                <label class="control toggle">
+                  <span class="control-label">
+                    Grid
+                    <button class="help" type="button" aria-label="Grid help" title="Snaps dots into a screen-wide grid layout.">?</button>
+                  </span>
+                  <span class="toggle-row">
+                    <input id="gridEnabled" type="checkbox" />
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                  </span>
+                  <output id="gridEnabledValue" class="control-value" for="gridEnabled">Off</output>
+                </label>
+                <label class="control toggle">
+                  <span class="control-label">
+                    Mode
+                    <button class="help" type="button" aria-label="Mode help" title="Switch between light and dark mode.">?</button>
+                  </span>
+                  <span class="toggle-row">
+                    <input id="modeToggle" type="checkbox" aria-label="Toggle light or dark mode" />
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                  </span>
+                  <output id="modeValue" class="control-value"></output>
+                </label>
+              </div>
+              <div class="button-group" role="group" aria-label="Actions">
+                <button id="gravityDrop" class="gravity-drop" type="button" title="Drop all dots to the bottom for a few seconds.">DROP</button>
+                <button id="restartControls" class="restart-controls" type="button">RESTART</button>
+                <button id="pauseControls" class="pause-controls" type="button">FREEZE</button>
+                <button id="exportImage" class="export-image" type="button" hidden title="Save the current dot field as an image.">
+                  SAVE IMAGE
+                </button>
+              </div>
             </div>
           </div>
           <div id="controlsBackdrop" class="controls-backdrop" aria-hidden="true" hidden></div>
