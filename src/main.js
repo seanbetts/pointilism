@@ -290,7 +290,6 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     if (!controlsVisible) return;
     controlsVisible = false;
     syncControlsPanel();
-    if (isMobileControlsLayout()) syncHeroVisibility(false);
   }
 
   function openControls() {
