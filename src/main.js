@@ -43,6 +43,15 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
   }
 
   const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  function onMediaQueryChange(mql, handler) {
+    if (!mql) return;
+    // Safari < 14 uses addListener/removeListener instead of addEventListener.
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', handler);
+      return;
+    }
+    if (typeof mql.addListener === 'function') mql.addListener(handler);
+  }
 
   // Always start from the Origin preset on refresh.
   localStorage.removeItem('dotMinSize');
@@ -372,7 +381,7 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     syncControlsPanel();
   });
 
-  controlsMobileMq.addEventListener('change', () => {
+  onMediaQueryChange(controlsMobileMq, () => {
     if (!controlsVisible) return;
     layoutControlsPanel();
   });
@@ -860,8 +869,8 @@ import { DotField } from './dotField.js?v=2025-12-13-90';
     syncModeToggle();
   });
 
-  prefersReducedMotion.addEventListener('change', (event) => {
-    dotField.setReducedMotion(event.matches);
+  onMediaQueryChange(prefersReducedMotion, (event) => {
+    dotField.setReducedMotion(Boolean(event?.matches));
   });
 
   dotField.start();
